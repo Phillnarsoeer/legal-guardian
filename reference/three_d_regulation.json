@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "source": "AI Legal Tool 3D Collaborative Regulation Path",
+    "institution": "Southwest Minzu University Law School",
+    "team": "Xu Zihan Team",
+    "date": "2026-05-16"
+  },
+  "dimensions": {
+    "technology": {
+      "name": "Technology Standards (Developer-facing)",
+      "items": {
+        "T1": {
+          "name": "Built-in Legal Knowledge Verification Layer",
+          "priority": "highest",
+          "description": "Any legal provision cited by AI must pass built-in existence check and validity verification",
+          "target_failures": ["F1", "F5"],
+          "evaluation_criteria": "Fictional law detection rate must reach 100%; repealed law flagging rate must reach 100%"
+        },
+        "T2": {
+          "name": "Controversy Annotation and Alternative Analysis",
+          "priority": "high",
+          "description": "When multiple crime characterizations exist, annotate controversy and list alternative analysis paths",
+          "target_failures": ["F2"],
+          "evaluation_criteria": "At least 1 prosecution perspective and 1 defense perspective alternative must be listed"
+        },
+        "T3": {
+          "name": "Sentencing Confidence Disclosure",
+          "priority": "high",
+          "description": "Sentencing predictions must disclose uncertainty intervals and historical similar case ranges. Default: no precise sentence prediction",
+          "target_failures": ["F3"],
+          "evaluation_criteria": "Precise predictions must note: 'for reference only, empirical error can reach 71%'"
+        },
+        "T4": {
+          "name": "Calculation Verification and Consistency Check",
+          "priority": "medium_high",
+          "description": "Legal issues involving numerical calculations must include built-in verification steps",
+          "target_failures": ["F7"],
+          "evaluation_criteria": "Conclusion value and example value discrepancy must not exceed 1%"
+        },
+        "T5": {
+          "name": "User Profile Awareness and Differentiated Output",
+          "priority": "high",
+          "description": "Ask user background (law student/non-professional), adjust answer depth, risk warning intensity, and disclaimer prominence accordingly",
+          "target_failures": ["F10"],
+          "evaluation_criteria": "Law student version guidance >= 4.0; non-professional version guidance >= 4.5"
+        }
+      }
+    },
+    "education": {
+      "name": "Education and Guidance (User Literacy)",
+      "items": {
+        "E1": {
+          "name": "Law School AI Literacy Required Course",
+          "priority": "high",
+          "description": "Incorporate AI 10 failure patterns into law school curriculum for critical AI usage skills",
+          "target_failures": ["F4", "F6", "F8"]
+        },
+        "E2": {
+          "name": "Legal Practitioner AI Skills Training",
+          "priority": "medium",
+          "description": "Train practicing lawyers on AI legal research methods, output verification, and human-AI collaboration workflow",
+          "target_failures": ["F6"]
+        },
+        "E3": {
+          "name": "Public AI Legal Education",
+          "priority": "medium",
+          "description": "Create accessible 'AI Legal Tool Pitfall Guide' for non-professionals. Key warning: AI is not a lawyer",
+          "target_failures": ["F10"]
+        },
+        "E4": {
+          "name": "Standardized Question Template Promotion",
+          "priority": "high",
+          "description": "Promote 5 standardized question templates to reduce AI error rate at the source",
+          "target_failures": ["F5", "F9"]
+        }
+      }
+    },
+    "legal": {
+      "name": "Legal Safeguards (Regulatory Recommendations)",
+      "items": {
+        "L1": {
+          "name": "AI Legal Tool Tiered Certification",
+          "priority": "high",
+          "description": "Three-tier certification: General (information only) -> Professional (practitioner assistance) -> Supervised (strict testing and monitoring)",
+          "target_failures": ["F1", "F2", "F3"]
+        },
+        "L2": {
+          "name": "Mandatory Transparency and Explainability",
+          "priority": "high",
+          "description": "AI legal tool outputs must include: source links, uncertainty level, alternative views, and explicit lawyer consultation recommendation",
+          "target_failures": ["F3", "F5"]
+        },
+        "L3": {
+          "name": "AI Ethics Code for Legal Practitioners",
+          "priority": "medium",
+          "description": "Core principles: human lawyer ultimate responsibility, AI usage disclosure to clients, prohibition on replacing professional judgment with AI",
+          "target_failures": ["F6", "F10"]
+        },
+        "L4": {
+          "name": "AI Legal Product Regulatory Sandbox",
+          "priority": "medium",
+          "description": "Sandbox mechanism for new AI legal products: limit users -> limit scenarios -> monitor quality -> grant license if compliant",
+          "target_failures": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10"]
+        }
+      }
+    }
+  },
+  "roadmap": {
+    "short_term_2026_2027": [
+      "Complete Pitfall Handbook compilation and distribution",
+      "Law School AI Literacy pilot course",
+      "Submit regulatory recommendations to authorities"
+    ],
+    "mid_term_2027_2028": [
+      "AI Legal Tool Tiered Certification draft standards",
+      "Bar Association AI ethics training system",
+      "Public AI legal education promotion",
+      "Standardized question templates embedded in legal tech products"
+    ],
+    "long_term_2028_plus": [
+      "Promote mandatory standards legislation for AI legal tools",
+      "Establish independent third-party AI legal tool evaluation mechanism",
+      "Establish AI legal safety incident reporting and traceability system"
+    ]
+  }
+}

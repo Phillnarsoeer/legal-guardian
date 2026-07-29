@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "skill": "LegalGuardian",
+    "version": "1.0.0",
+    "description": "集成测试用例 — 验证法律守卫四大模块的核心功能",
+    "total_cases": 10
+  },
+  "test_cases": [
+    {
+      "id": "TC001",
+      "name": "模块A-基础：法条幻视检测（引用废止法律）",
+      "module": "A",
+      "input_file": "test_data/sample_ai_response_f1.json",
+      "input_description": "一段AI回复，其中未纠正用户引用的《民法通则》",
+      "expected": {
+        "f1_fired": true,
+        "f1_severity": "critical",
+        "correction_contains": ["已废止", "民法典"],
+        "checklist_c1_failed": true
+      }
+    },
+    {
+      "id": "TC002",
+      "name": "模块A-进阶：多模式同时检测",
+      "module": "A",
+      "input_file": "test_data/sample_ai_response_multi.json",
+      "input_description": "一段包含法条幻视+浅度正确+引导性赤字的AI回复",
+      "expected": {
+        "fired_count_min": 3,
+        "critical_count_min": 1,
+        "high_count_min": 1
+      }
+    },
+    {
+      "id": "TC003",
+      "name": "模块A-边界：无失效模式的优质回答",
+      "module": "A",
+      "input_file": "test_data/sample_ai_response_clean.json",
+      "input_description": "一段高质量的法律分析，引用了正确的法律、标注了有效性",
+      "expected": {
+        "fired_count_max": 1,
+        "overall_risk": "low",
+        "accuracy_score_min": 4.0
+      }
+    },
+    {
+      "id": "TC004",
+      "name": "模块B-基础：引用废止法律的问题优化",
+      "module": "B",
+      "input": "我想知道根据《民法通则》第X条，我的借条能不能要回24%的利息？",
+      "expected": {
+        "has_repealed_law_risk": true,
+        "recommended_template_contains": "T4",
+        "optimized_contains": ["已废止", "民法典"]
+      }
+    },
+    {
+      "id": "TC005",
+      "name": "模块B-进阶：量刑预测问题优化",
+      "module": "B",
+      "input": "我朋友因为故意伤害被抓了，大概会判几年？",
+      "expected": {
+        "has_sentencing_inquiry": true,
+        "recommended_template_contains": "T2",
+        "optimized_contains": ["仅供参考", "误差"]
+      }
+    },
+    {
+      "id": "TC006",
+      "name": "模块B-实务：实操需求问题优化",
+      "module": "B",
+      "input": "邻居在我家门口堆了石子，我踩到滑倒骨折了，怎么办？",
+      "expected": {
+        "has_practical_need": true,
+        "recommended_template_contains": "T5",
+        "optimized_contains": ["证据", "步骤"]
+      }
+    },
+    {
+      "id": "TC007",
+      "name": "模块C-基础：法学作业评估（中等质量）",
+      "module": "C",
+      "input_file": "test_data/sample_assignment.md",
+      "course_type": "case_analysis",
+      "expected": {
+        "total_score_range": [60, 85],
+        "d1_score_min": 2.5,
+        "red_line_triggered": false
+      }
+    },
+    {
+      "id": "TC008",
+      "name": "模块C-红线：引用废止法律的作业",
+      "module": "C",
+      "input_text": "根据《民法通则》第X条规定...",
+      "course_type": "general",
+      "expected": {
+        "red_line_triggered": true,
+        "total_score": 0,
+        "d1_score": 0
+      }
+    },
+    {
+      "id": "TC009",
+      "name": "模块D-完整：三维规制符合性评估",
+      "module": "D",
+      "input": "请评估当前AI法律助手的三维规制符合性",
+      "expected": {
+        "technology_items_evaluated": 5,
+        "education_items_evaluated": 4,
+        "legal_items_evaluated": 4
+      }
+    },
+    {
+      "id": "TC010",
+      "name": "全流程：AI回复完整审核流程",
+      "module": "all",
+      "description": "端到端测试：AI回复文本 → 失效模式检测 → 纠正建议 → 四维评分 → 审核报告",
+      "expected": {
+        "all_scripts_executable": true,
+        "output_contains_report": true
+      }
+    }
+  ],
+  "regression_baseline": {
+    "description": "每次版本更新后应重跑全部10个测试用例，确保无功能回退",
+    "critical_tests": ["TC001", "TC004", "TC008"],
+    "performance_target": "单个测试用例执行时间<30秒"
+  }
+}
