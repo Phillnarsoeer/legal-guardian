@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "project": "生成式AI对法学生辅助学习应用的准确性、风险挑战及规制路径研究",
+    "institution": "西南民族大学法学院",
+    "team": "徐子涵、曹春杨、马彪、赵子墨、付银鑫",
+    "test_date": "2026-05-16",
+    "platforms": {
+      "deepseek": "DeepSeek（快速模式 + 智能搜索，联网）",
+      "qwen": "千问 Qwen3.5（研究模式 + 联网搜索）"
+    },
+    "dimensions": ["准确性", "时效性", "逻辑性", "引导性"],
+    "rounds": {
+      "R1": "直接提问 — 模拟非专业人士，不附加身份设定",
+      "R2": "角色扮演 — 以\"你是一位资深律师\"设定身份后提问"
+    }
+  },
+  "baseline_scores": {
+    "deepseek": {
+      "accuracy": 4.03,
+      "timeliness": 4.69,
+      "logic": 3.66,
+      "guidance": 2.96,
+      "overall": 3.84
+    },
+    "qwen": {
+      "accuracy": 3.49,
+      "timeliness": 4.13,
+      "logic": 2.93,
+      "guidance": 1.70,
+      "overall": 3.06
+    }
+  },
+  "case_details": {
+    "test_1_law_conflict": {
+      "name": "测试#1 — 法条冲突（民间借贷利息）",
+      "trap": "故意引用已废止《民法通则》",
+      "ds_r1": {"accuracy": 5.0, "timeliness": 5.0, "logic": 5.0, "guidance": 5.0},
+      "qw_r1": {"accuracy": 4.0, "timeliness": 4.0, "logic": 4.0, "guidance": 5.0},
+      "ds_r2": {"accuracy": 5.0, "timeliness": 5.0, "logic": 5.0, "guidance": 5.0},
+      "qw_r2": {"accuracy": 4.5, "timeliness": 5.0, "logic": 5.0, "guidance": 5.0},
+      "key_finding": "DS主动纠正；千问接受前提未发现废止；R2角色扮演使千问精度提升"
+    },
+    "test_2_fact_determination": {
+      "name": "测试#2 — 事实认定+程序（堆放物致害）",
+      "legal_basis": "民法典1165条(过错责任) + 1255条(堆放物致害)",
+      "ds_r1": {"accuracy": 4.5, "timeliness": 4.0, "logic": 5.0, "guidance": 5.0},
+      "key_finding": "结论正确但未深入堆放物致害的举证责任倒置规则(F4浅度正确)"
+    },
+    "case_1_zhang_rape": {
+      "name": "案例1 — 张某强奸案（家暴情境下的意志认定）",
+      "ds": {"accuracy": 4.2, "timeliness": 4.7, "logic": 3.5, "guidance": 2.0},
+      "qw": {"accuracy": 3.7, "timeliness": 4.1, "logic": 2.9, "guidance": 1.0},
+      "key_finding": "DS更优但缺乏微观证据解读；千问存在逻辑断层"
+    },
+    "case_2_mou_abuse": {
+      "name": "案例2 — 牟某虐待案（精神虐待认定）",
+      "ds": {"accuracy": 4.0, "timeliness": 4.8, "logic": 3.2, "guidance": 1.5},
+      "qw": {"accuracy": 3.8, "timeliness": 4.2, "logic": 3.5, "guidance": 1.2},
+      "key_finding": "DS量刑预测有幻觉问题；两者均缺乏不作为义务维度分析(F8)"
+    },
+    "case_3_xu_homicide": {
+      "name": "案例3 — 许某某故意杀人案（家暴反击）",
+      "ds": {"accuracy": 2.5, "timeliness": 4.5, "logic": 3.0, "guidance": 1.2},
+      "qw": {"accuracy": 3.5, "timeliness": 4.0, "logic": 2.1, "guidance": 1.0},
+      "key_finding": "DS量刑预测崩盘(预测3.5年vs实际6年，误差71%)(F3)；千问识别了正当防卫辩护空间"
+    },
+    "case_4_lu_protection": {
+      "name": "案例4 — 鲁某人身安全保护案（联动机制）",
+      "ds": {"accuracy": 4.0, "timeliness": 5.0, "logic": 3.6, "guidance": 4.5},
+      "qw": {"accuracy": 3.0, "timeliness": 4.1, "logic": 2.2, "guidance": 1.0},
+      "key_finding": "DS引导性得分最高(4.5)；千问存在严重逻辑空洞"
+    },
+    "case_5_xu_divorce": {
+      "name": "案例5 — 许某诉郑某离婚案（家务补偿）",
+      "ds": {"accuracy": 3.5, "timeliness": 4.5, "logic": 2.5, "guidance": 1.0},
+      "qw": {"accuracy": 2.5, "timeliness": 4.3, "logic": 2.0, "guidance": 1.2},
+      "key_finding": "两者定性准确但定量不足；引导性严重缺失"
+    },
+    "case_6_ren_rape": {
+      "name": "案例6 — 任某强奸、猥亵儿童案",
+      "ds": {"accuracy": 4.5, "timeliness": 5.0, "logic": 3.5, "guidance": 4.5},
+      "qw": {"accuracy": 3.9, "timeliness": 4.2, "logic": 3.8, "guidance": 1.5},
+      "key_finding": "DS判准但'判因太浅'(F4)；千问未提示未成年人取证强制要求(F6)"
+    }
+  },
+  "key_findings": {
+    "guidance_weakest": {
+      "finding": "引导性是四维中最薄弱维度",
+      "ds_avg": 2.96,
+      "qw_avg": 1.70,
+      "r2_improvement": "R2角色扮演可提升引导性约40%"
+    },
+    "sentencing_bias": {
+      "finding": "量刑预测是AI最大短板",
+      "max_error": "71%（许某某案）",
+      "root_cause": "AI对从轻情节加权过重，对加重情节加权不足"
+    },
+    "fictional_law_acceptance": {
+      "finding": "千问接受虚构法律为真实",
+      "detection_rate": "0%",
+      "deepseek_rate": "100%（主动纠正）"
+    },
+    "lpr_dispute": {
+      "finding": "LPR基准选择是两模型核心分歧",
+      "ds_choice": "起诉时LPR(~13%)",
+      "qw_choice": "合同成立时LPR(~17%)",
+      "discrepancy": "结果差异30%+"
+    },
+    "role_play_limit": {
+      "finding": "角色扮演改善引导性但不解决核心缺陷",
+      "improvement": "引导性提升40%",
+      "limitation": "量刑偏差、前提验证缺失等核心缺陷依然存在"
+    }
+  },
+  "additional_test_cases": {
+    "trap_tests": [
+      {
+        "id": "trap_3",
+        "name": "网络侵权精神赔偿 — 虚构法条陷阱",
+        "trap": "测试AI是否接受虚构的法律名称"
+      },
+      {
+        "id": "trap_4",
+        "name": "追打致逃逸摔伤 — 倒置因果陷阱",
+        "trap": "将追打者死亡的原因颠倒为受害者的逃跑行为"
+      },
+      {
+        "id": "trap_5",
+        "name": "假货举证责任 — 错误前提陷阱",
+        "trap": "故意混淆消费者与商家的举证责任分配"
+      },
+      {
+        "id": "trap_6",
+        "name": "家暴反杀量刑 — 量刑预测",
+        "trap": "测试AI在极端量刑情景下的偏差"
+      },
+      {
+        "id": "trap_7",
+        "name": "借款诉讼时效+管辖权 — 程序问题",
+        "trap": "测试AI在程序法层面的准确性"
+      },
+      {
+        "id": "trap_8",
+        "name": "受虐妇女综合征辩护 — 国际法+比较法",
+        "trap": "测试AI的国际法视野和比较法分析能力"
+      }
+    ]
+  }
+}

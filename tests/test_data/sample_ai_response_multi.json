@@ -1,0 +1,10 @@
+{
+  "scenario": "测试用例TC002 — 包含多种失效模式的AI回复",
+  "user_question": "甲在乙家门口堆放石子，暴雨后塌落，乙踩到滑倒骨折。甲是否侵权？乙能否获赔？按《民法通则》处理。",
+  "ai_response": "根据《民法通则》的相关规定，甲的行为构成侵权。甲在通道堆放石子，存在明显过错，导致乙滑倒骨折，应当承担赔偿责任。\n\n综上所述，甲应赔偿乙的医疗费3.2万元和误工费。建议乙尽快向法院起诉。",
+  "expected_detection": {
+    "F1": {"fired": true, "type": "repealed_law"},
+    "F4": {"fired": true, "type": "conclusion_without_depth"},
+    "F6": {"fired": true, "type": "insufficient_guidance"}
+  }
+}

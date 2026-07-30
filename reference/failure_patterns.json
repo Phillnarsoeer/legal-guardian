@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "source": "西南民族大学法学院大创项目 — 14案例×2轮×4维实证测评",
+    "date": "2026-05-16",
+    "team": "徐子涵团队",
+    "platforms_tested": ["DeepSeek（快速模式+智能搜索）", "千问 Qwen3.5（研究模式+联网搜索）"]
+  },
+  "patterns": [
+    {
+      "id": "F1",
+      "name": "法条幻视",
+      "name_en": "Law Ghosting",
+      "severity": "critical",
+      "frequency": "extremely_high",
+      "phenomenon": "AI接受虚构法律名称为真实，或引用已被废止/修订的法律而未标注",
+      "evidence": [
+        {
+          "case_id": "虚构法条陷阱测试",
+          "detail": "千问接受「人格权侵害惩治条例」为真实法律，全程未质疑其存在性",
+          "platform": "千问",
+          "score_impact": {"accuracy": "fatal"}
+        },
+        {
+          "case_id": "测试#1 法条冲突",
+          "detail": "用户故意引用已废止《民法通则》。DS主动纠正(5/5)，千问识别但计算矛盾(4/5)",
+          "platform": "both",
+          "ds_score": 5.0,
+          "qw_score": 4.0
+        }
+      ],
+      "detection_keywords": {
+        "legal_citation_patterns": ["根据《", "依据《", "按照《", "适用《", "参照《"],
+        "suspect_laws": ["民法通则", "经济合同法", "技术合同法", "涉外经济合同法", "治安管理处罚条例"],
+        "suspect_indicators": ["人格权侵害惩治条例", "网络信息内容生态治理条例", "数据安全管理办法"],
+        "validity_signals": ["已废止", "已失效", "已被取代", "现行有效", "最新修订"]
+      },
+      "correction_strategy": {
+        "primary": "引用任何法条前，须经存在性+现行有效性双重验证",
+        "verification_sources": ["国家法律法规数据库 flk.npc.gov.cn", "中国法院网", "北大法宝"],
+        "required_response": "发现引用可能废止的法律时，必须先纠正前提，再给出分析"
+      },
+      "checklist_item": "我确认了AI引用的每条法条都在官方渠道核对过"
+    },
+    {
+      "id": "F2",
+      "name": "罪名定性降维",
+      "name_en": "Charge Downleveling",
+      "severity": "high",
+      "frequency": "high",
+      "phenomenon": "AI倾向于将行为定性为更轻的罪名，回避争议性较大的定性",
+      "evidence": [
+        {
+          "case_id": "量刑预测测试",
+          "detail": "对「趁熟睡持刀捅刺胸部致重伤」，DS仅分析故意伤害(234条)，完全未讨论故意杀人未遂(232条)",
+          "platform": "DeepSeek",
+          "score_impact": {"accuracy": "罪名定性不完整"}
+        },
+        {
+          "case_id": "案例2 牟某虐待案",
+          "detail": "忽略「先行行为引起的保证人地位」这一不作为义务维度",
+          "platform": "both",
+          "ds_logic_score": 3.2,
+          "qw_logic_score": 3.5
+        }
+      ],
+      "detection_keywords": {
+        "charge_indicators": ["故意伤害", "故意杀人", "过失致人死亡", "寻衅滋事", "聚众斗殴", "抢劫", "抢夺", "诈骗", "盗窃"],
+        "downgrade_signals": ["可能构成", "应认定为", "更符合", "倾向于"],
+        "missing_alternative_signal": "单一罪名分析多于一页但未提及替代罪名"
+      },
+      "correction_strategy": {
+        "primary": "当罪名定性存在多种可能时，须标注争议性，列出替代分析路径",
+        "required_output": "必须从控方（最重可能）和辩方（最轻可能）两个角度分别分析"
+      },
+      "checklist_item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）"
+    },
+    {
+      "id": "F3",
+      "name": "量刑乐观偏差",
+      "name_en": "Sentencing Optimism",
+      "severity": "high",
+      "frequency": "high",
+      "phenomenon": "AI系统性地低估刑期，对从轻情节（自首、谅解）加权过重，对加重情节（预谋、要害部位）加权不足",
+      "evidence": [
+        {
+          "case_id": "案例3 许某某故意杀人案",
+          "detail": "DS预测3.5年 vs 实际判决6年，误差71%。对「趁熟睡捅刺胸部致重伤」预测缓刑",
+          "platform": "DeepSeek",
+          "prediction_error": "71%"
+        },
+        {
+          "case_id": "家暴反杀量刑测试",
+          "detail": "DS对家暴反击案预测3年缓刑，对加重情节评估不足",
+          "platform": "DeepSeek",
+          "ds_accuracy_score": 2.5
+        }
+      ],
+      "detection_keywords": {
+        "sentencing_signals": ["可能判处", "预计刑期", "量刑建议", "可能面临", "刑期大约", "判决预测"],
+        "optimism_indicators": ["缓刑", "从轻", "减轻", "酌情", "初犯", "自首", "谅解书"],
+        "missing_aggravation": ["预谋", "要害部位", "手段残忍", "后果严重", "累犯", "社会危害"]
+      },
+      "correction_strategy": {
+        "primary": "不做精确刑期预测，只给出法定刑范围和参考案例的实际量刑区间",
+        "required_warning": "量刑预测误差可达71%，仅供学术参考，不得作为决策依据"
+      },
+      "checklist_item": "我不用AI做量刑预测作为决策依据"
+    },
+    {
+      "id": "F4",
+      "name": "浅度正确",
+      "name_en": "Shallow Correctness",
+      "severity": "critical",
+      "frequency": "extremely_high",
+      "phenomenon": "AI结论正确但缺乏深度——不分析替代法律理论、不穿透到法理底层、不会「追问式的探索」",
+      "evidence": [
+        {
+          "case_id": "测试#2 堆放物致害案",
+          "detail": "仅分析一般过错责任(1165条)，未深入到堆放物致害特别规范(1255条)和举证责任倒置",
+          "platform": "DeepSeek",
+          "ds_accuracy_score": 4.5,
+          "note": "结论正确但分析深度不足"
+        },
+        {
+          "case_id": "案例6 任某强奸案",
+          "detail": "判准但「判因太浅」——结论正确但论证深度不足",
+          "platform": "DeepSeek",
+          "ds_accuracy_score": 4.5
+        }
+      ],
+      "detection_keywords": {
+        "shallow_signals": ["综上所述", "因此", "总的来说", "简而言之"],
+        "depth_gap_indicators": "回答了'是什么'但未回答'为什么是这样而不是那样'"
+      },
+      "correction_strategy": {
+        "primary": "结论正确的基础上追问：有没有替代法律理论？有没有例外情形？有没有法理争议？",
+        "required_depth": "涉及特别法与一般法关系时，必须两层面都分析"
+      },
+      "checklist_item": "我问了自己：AI有没有遗漏关键事实或法律争点？"
+    },
+    {
+      "id": "F5",
+      "name": "前提验证盲区",
+      "name_en": "Premise Blindness",
+      "severity": "critical",
+      "frequency": "extremely_high",
+      "phenomenon": "AI不验证用户问题中的前提假设是否成立，天然地「相信」用户输入",
+      "evidence": [
+        {
+          "case_id": "测试#1 R1",
+          "detail": "用户说「按《民法通则》」→ 千问接受前提、追问信息而非发现废止",
+          "platform": "千问",
+          "behavior": "展示了律师般的谨慎（追问4个关键信息）但恰恰在最根本的问题上失守"
+        },
+        {
+          "case_id": "倒置因果陷阱测试",
+          "detail": "测试通过颠倒因果关系构建陷阱问题",
+          "platform": "both"
+        }
+      ],
+      "detection_keywords": {
+        "premise_signals": ["假设", "前提是", "如果", "根据你所说的", "按照你说的"],
+        "user_input_traps": ["根据《已废止法律》", "按照《不存在的规定》", "依据XX条例"]
+      },
+      "correction_strategy": {
+        "primary": "回答任何法律问题前，必须先执行前提验证（法律存在性→现行有效性→适用条件满足性）",
+        "required_behavior": "发现前提错误时，先纠正前提再回答，而非在错误前提下给出'完美但无用'的答案"
+      },
+      "checklist_item": "我标注了AI回答中需要人工核实的部分"
+    },
+    {
+      "id": "F6",
+      "name": "引导性赤字",
+      "name_en": "Guidance Deficit",
+      "severity": "high",
+      "frequency": "high",
+      "phenomenon": "AI提供法律分析但不提供实务操作指导——告诉你'问题在哪'但不告诉'怎么解决'",
+      "evidence": [
+        {
+          "case_id": "6个历史案例汇总",
+          "detail": "DS引导性平均2.96/5，千问引导性平均1.70/5。为四维中最弱维度",
+          "platform": "both",
+          "ds_guidance_avg": 2.96,
+          "qw_guidance_avg": 1.70
+        },
+        {
+          "case_id": "R2角色扮演测试",
+          "detail": "R2引导性比R1提升约40%，说明角色设定可显著改善但核心缺陷仍在",
+          "improvement": "40%"
+        }
+      ],
+      "detection_keywords": {
+        "guidance_gap_signals": ["综上所述", "因此答案是", "结论是", "建议咨询律师"],
+        "missing_guidance_elements": ["证据清单", "操作步骤", "时间节点", "风险提示", "替代方案"]
+      },
+      "correction_strategy": {
+        "primary": "每条法律分析必须附带：证据收集建议（去哪收集+如何公证）+操作步骤+时间节点+风险提示",
+        "role_play_enhancement": "设置角色（如'资深律师'）可提升引导性40%"
+      },
+      "checklist_item": "我没有让AI替代律师出具正式法律意见"
+    },
+    {
+      "id": "F7",
+      "name": "计算推理不一致",
+      "name_en": "Calculation Inconsistency",
+      "severity": "medium_high",
+      "frequency": "medium",
+      "phenomenon": "AI的结论与自身计算示例存在内部矛盾，多步推理中context窗口信息丢失",
+      "evidence": [
+        {
+          "case_id": "测试#1 R1 千问",
+          "detail": "结论说逾期利息按LPR×4（约13.2%），但计算示例仍按24%",
+          "platform": "千问",
+          "qw_accuracy_score": 4.0,
+          "note": "结论正确但内部不一致"
+        },
+        {
+          "case_id": "测试#1 R2 LPR基准争议",
+          "detail": "DS选择起诉时LPR(~13%)，千问选择合同成立时LPR(~17%)，结果差30%",
+          "platform": "both",
+          "discrepancy": "30%+"
+        }
+      ],
+      "detection_keywords": {
+        "calculation_signals": ["利息=", "赔偿金额=", "总额=", "计算如下", "合计"],
+        "inconsistency_indicators": "结论数值与示例数值偏差超过5%"
+      },
+      "correction_strategy": {
+        "primary": "涉及数值计算的法律问题，须内置计算验证步骤，确保结论与示例一致",
+        "lpr_rule": "LPR基准选择必须标注：合同成立时还是起诉时？并说明选择理由"
+      },
+      "checklist_item": "我确认回答中的计算与结论一致，无内部矛盾"
+    },
+    {
+      "id": "F8",
+      "name": "因果关系过度简化",
+      "name_en": "Causal Oversimplification",
+      "severity": "high",
+      "frequency": "high",
+      "phenomenon": "AI将复杂多因一果的事实简化为线性因果，回避多因素交叉分析",
+      "evidence": [
+        {
+          "case_id": "案例2 牟某虐待案",
+          "detail": "忽略「先行行为引起的保证人地位」这一不作为义务维度",
+          "platform": "both",
+          "ds_logic_score": 3.2,
+          "qw_logic_score": 3.5
+        },
+        {
+          "case_id": "案例4 鲁某保护案",
+          "detail": "忽略联动机制的动态复杂性，将多部门协同简化为单一流程",
+          "platform": "千问",
+          "qw_logic_score": 2.2,
+          "note": "千问存在严重逻辑空洞"
+        }
+      ],
+      "detection_keywords": {
+        "causal_simplification_signals": ["直接原因是", "根本原因是", "主要因为", "因果关系明确"],
+        "missing_factors": ["不作为", "先行行为", "多因一果", "共同侵权", "共同危险行为"]
+      },
+      "correction_strategy": {
+        "primary": "分析因果关系时须考虑多因一果、不作为义务、共同行为等复杂维度",
+        "required_check": "是否只分析了作为侵权而忽略了不作为侵权？是否有先行行为产生的义务？"
+      },
+      "checklist_item": "我问了自己：AI有没有遗漏关键事实或法律争点？（同F4）"
+    },
+    {
+      "id": "F9",
+      "name": "国际法视野缺失",
+      "name_en": "International Law Gap",
+      "severity": "medium",
+      "frequency": "medium",
+      "phenomenon": "AI分析局限于国内法，不引用国际公约和比较法案例",
+      "evidence": [
+        {
+          "case_id": "国际法测试",
+          "detail": "历史案例均未提及CEDAW（消除对妇女歧视公约）",
+          "platform": "both"
+        },
+        {
+          "case_id": "R2国际法测试",
+          "detail": "R2中DS国际法引用有显著改善，但仍为个别现象",
+          "platform": "DeepSeek",
+          "improvement": "R2显著改善但未系统化"
+        }
+      ],
+      "detection_keywords": {
+        "international_gap_signals": ["我国法律", "根据中国", "国内法"],
+        "missing_international": ["CEDAW", "ICCPR", "ICESCR", "CRC", "UNCAT", "比较法", "域外"]
+      },
+      "correction_strategy": {
+        "primary": "对涉及基本人权的案件，应提示相关的国际公约和比较法参考",
+        "template": "使用T5（实操指引型）模板时，可追加国际法维度"
+      }
+    },
+    {
+      "id": "F10",
+      "name": "用户差异化风险盲区",
+      "name_en": "User Heterogeneity Blindness",
+      "severity": "critical",
+      "frequency": "extremely_high",
+      "phenomenon": "AI对不同认知水平的用户给出相同回答。同样的错误，法学生可能识别，非专业人士可能完全采信",
+      "evidence": [
+        {
+          "case_id": "核心研究主题",
+          "detail": "项目核心研究主题——法学生vs非专业人士对AI错误的识别能力存在显著差异",
+          "platform": "both",
+          "note": "非专业人士可能完全采信AI错误输出，风险比法学生高数倍"
+        }
+      ],
+      "detection_keywords": {
+        "user_type_indicators": ["我是法学生", "我是律师", "我有法律基础", "我不懂法律", "普通人"],
+        "risk_uniformity_signal": "对明显不同背景的用户给出了几乎相同的回答"
+      },
+      "correction_strategy": {
+        "primary": "回答前先识别用户背景。法学生→深度法理分析；非专业人士→通俗解释+醒目风险警示+律师咨询建议",
+        "required_differentiation": "法学生版本的引导性≥4.0，非专业版本的引导性≥4.5（因需更强的风险保护）"
+      },
+      "checklist_item": "我标注了AI回答中需要人工核实的部分（同F5）+我没有让AI替代律师出具正式法律意见（同F6）"
+    }
+  ],
+  "candidate_patterns": [],
+  "dimension_mapping": {
+    "准确性": ["F1", "F2", "F3", "F7"],
+    "时效性": ["F1", "F5"],
+    "逻辑性": ["F4", "F7", "F8"],
+    "引导性": ["F6", "F9", "F10"]
+  }
+}
