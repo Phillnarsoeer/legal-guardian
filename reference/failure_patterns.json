@@ -321,10 +321,219 @@
     }
   ],
   "candidate_patterns": [],
+  "patterns_v2": [
+    {
+      "id": "F11",
+      "name": "选项混淆偏误",
+      "name_en": "Option Confusion Bias",
+      "severity": "high",
+      "frequency": "high",
+      "target_question_types": ["T1_single_choice", "T2_multi_choice"],
+      "phenomenon": "学生在选择题中将相似但本质不同的法律概念混淆，典型如：可撤销 vs 无效、效力待定 vs 无效、解除 vs 撤销、终止 vs 中止、应当 vs 可以、从轻 vs 减轻",
+      "evidence": [
+        {
+          "case_id": "法考真题校准",
+          "detail": "2025法考客观题中，'可撤销vs无效'是最常见混淆对，约40%的民法选择题涉及此区分",
+          "source": "2022-2025年法考客观题真题分析"
+        }
+      ],
+      "confusion_pairs": [
+        ["可撤销", "无效"],
+        ["效力待定", "无效"],
+        ["解除", "撤销"],
+        ["终止", "中止"],
+        ["应当", "可以"],
+        ["从轻", "减轻"],
+        ["过失", "故意"],
+        ["间接故意", "过于自信的过失"]
+      ],
+      "detection_keywords": {
+        "confusion_pairs": ["可撤销.*无效", "效力待定.*无效", "解除.*撤销", "终止.*中止"],
+        "ambiguity_signals": ["可能", "也许", "不确定", "或者"]
+      },
+      "correction_strategy": {
+        "primary": "检测到混淆对时，标注正确答案的区分标准和对应的法条依据",
+        "teaching_tip": "推荐使用对比表格展示混淆概念的核心差异"
+      }
+    },
+    {
+      "id": "F12",
+      "name": "采分点遗漏",
+      "name_en": "Scoring Point Omission",
+      "severity": "high",
+      "target_question_types": ["T5_short_answer"],
+      "phenomenon": "简答题回答遗漏了答案键中的关键采分点，导致即使部分正确也得分偏低。常见于学生只答了最明显的1-2点而遗漏了次要点。",
+      "evidence": [
+        {
+          "case_id": "法考主观题参考答案分析",
+          "detail": "法考主观题参考答案通常含4-8个采分点，每个采分点独立计分。学生普遍遗漏20%-40%的采分点",
+          "source": "2022-2025年法考主观题真题参考答案结构分析"
+        }
+      ],
+      "detection_keywords": {
+        "omission_signals": ["此外", "另外", "还有", "不仅如此", "值得注意的是"],
+        "coverage_check": "学生答案的采分点覆盖率 < 60%"
+      },
+      "correction_strategy": {
+        "primary": "输出时标注已覆盖和未覆盖的采分点，给出完整采分点清单",
+        "required_output": "每个遗漏的采分点附带：该点的得分值 + 为什么该点是必要的"
+      }
+    },
+    {
+      "id": "F13",
+      "name": "定义要素缺失",
+      "name_en": "Definition Element Deficiency",
+      "severity": "medium_high",
+      "target_question_types": ["T4_term_definition"],
+      "phenomenon": "名词解释缺少主体/客体/内容/目的/构成要件等核心要素。如解释'正当防卫'只写了'制止不法侵害'而未提'正在进行'的要件。",
+      "evidence": [
+        {
+          "case_id": "法学本科名词解释评分标准",
+          "detail": "完整的名词解释通常需要：核心概念定义(50%) + 构成要件/特征(30%) + 法律来源(20%)",
+          "source": "法学本科教学评价标准"
+        }
+      ],
+      "detection_keywords": {
+        "required_elements": ["主体", "客体", "内容", "目的", "构成要件", "法律特征", "适用范围"],
+        "incomplete_signals": "定义字数 < 30字 或 仅有单一句式"
+      },
+      "correction_strategy": {
+        "primary": "输出时标注定义中缺失的要素维度，给出完整定义作为参照"
+      }
+    },
+    {
+      "id": "F14",
+      "name": "判对错但不给理由",
+      "name_en": "Bare Judgment Without Reasoning",
+      "severity": "medium_high",
+      "target_question_types": ["T3_true_false"],
+      "phenomenon": "判断题学生只写了'正确'或'错误'但不附法律依据。如果题目要求说明理由，仅判对错应扣50%以上的分数。",
+      "evidence": [
+        {
+          "case_id": "法学本科判断题评分标准",
+          "detail": "多数法学课程中，判断题若要求附理由，理由部分占60%-70%分值。仅判断对错不附理由最多得30%。",
+          "source": "法学本科教学评价标准"
+        }
+      ],
+      "detection_keywords": {
+        "bare_judgment": "学生答案仅含'正确/错误/对/错'等判断词，无《》引用的法条或解释性文字",
+        "reasoning_required": "题目明确要求'说明理由'或'简述原因'，但学生未提供"
+      },
+      "correction_strategy": {
+        "primary": "标注：判对错得分 + 缺少理由扣分。给出正确的理由表述。"
+      }
+    },
+    {
+      "id": "F15",
+      "name": "法条解构不完整",
+      "name_en": "Incomplete Statutory Deconstruction",
+      "severity": "high",
+      "target_question_types": ["T7_statutory_analysis"],
+      "phenomenon": "法条分析缺少构成要件→法律后果的完整映射。如分析《民法典》1165条只写了'过错责任'但未分析过错推定的第2款和举证责任倒置。",
+      "evidence": [
+        {
+          "case_id": "测试#2 堆放物致害案",
+          "detail": "仅分析1165条一般过错责任，未深入到1255条堆放物致害特别规范和举证责任倒置",
+          "related_failure": "F4 浅度正确"
+        }
+      ],
+      "detection_keywords": {
+        "required_structure": ["构成要件", "法律后果", "适用范围", "举证责任", "与其他法条的关系"],
+        "incomplete_signals": "分析法条时只提到了条文本身，未展开规范结构"
+      },
+      "correction_strategy": {
+        "primary": "分析法条必须包含：条文定位→规范结构(构成要件+法律后果)→适用范围→与相关法条的关系",
+        "template": "使用T7评分标准的四维框架"
+      }
+    },
+    {
+      "id": "F16",
+      "name": "论述偏离题眼",
+      "name_en": "Essay Off-Topic Drift",
+      "severity": "medium_high",
+      "target_question_types": ["T6_essay"],
+      "phenomenon": "论述题回答偏题，未紧扣题干提出的核心法律争点。大段引用与题眼无关的材料或法条，或者过度展开次要观点而忽略题目要求的主线。",
+      "evidence": [
+        {
+          "case_id": "法考主观题评分标准",
+          "detail": "法考主观题评分中，'偏离题眼'通常导致直接扣50%以上的分数。2025理论法要求'结合法治思想谈传承中华法系'，偏离者得分极低。",
+          "source": "2022-2025年法考主观题真题分析"
+        }
+      ],
+      "detection_keywords": {
+        "off_topic_signals": ["此外", "顺便提到", "另外值得注意", "不仅如此", "值得一提的是"],
+        "core_topic_mismatch": "学生答案的核心关键词与题干的争议焦点关键词重叠率 < 30%"
+      },
+      "correction_strategy": {
+        "primary": "检查学生回答的核心关键词与题干争议焦点的重叠度，标注偏离部分。推荐重新构建论证主线。"
+      }
+    },
+    {
+      "id": "F17",
+      "name": "三段论结构缺失",
+      "name_en": "Missing Syllogism Structure",
+      "severity": "high",
+      "target_question_types": ["T8_case_analysis"],
+      "phenomenon": "案例分析缺少大前提(法律规则)→小前提(案件事实)→结论的完整三段论推理。直接跳到结论而不展示推理过程，或者将事实和法律混在一起。",
+      "evidence": [
+        {
+          "case_id": "法学本科案例分析评分标准",
+          "detail": "完整的案例分析三段论结构占逻辑性评分的核心权重(约40%)。缺少任一环节至少扣该维度的1/3。",
+          "source": "法学本科教学评价标准"
+        }
+      ],
+      "detection_keywords": {
+        "syllogism_elements": {
+          "major_premise": ["根据《", "依据《", "法律规定", "按照《"],
+          "minor_premise": ["本案中", "本案", "案情", "事实", "证据显示"],
+          "conclusion": ["因此", "综上所述", "综上", "故", "应认定", "所以"]
+        },
+        "structure_gap": "三者缺一即标记F17"
+      },
+      "correction_strategy": {
+        "primary": "输出时标注三段论的完整性状态（大前提✓/小前提✓/结论✓），标注缺失环节。对缺失环节给出建议片段。"
+      }
+    },
+    {
+      "id": "F18",
+      "name": "要件事实识别错误",
+      "name_en": "Material Fact Misidentification",
+      "severity": "critical",
+      "target_question_types": ["T8_case_analysis"],
+      "phenomenon": "将非关键事实误认为法律要件事实，或遗漏案件中的决定性要件事实。例如在堆放物致害案中，将'暴雨'（天气因素）误认为免责事由，而忽略了'堆放人未证明自己无过错'才是核心。",
+      "evidence": [
+        {
+          "case_id": "测试#2 堆放物致害案",
+          "detail": "学生可能将'暴雨'作为免责事由，忽略了1255条过错推定原则下堆放人的举证责任",
+          "related_failure": "F4 浅度正确"
+        }
+      ],
+      "detection_keywords": {
+        "fact_misidentification": ["关键", "重要", "决定性", "核心事实", "次要", "无关"],
+        "missing_material_fact": "学生分析中缺失了案情中决定法律适用的关键事实",
+        "irrelevant_fact_emphasis": "学生对非关键事实做了过多的分析论述"
+      },
+      "correction_strategy": {
+        "primary": "标注案情中的法律要件事实清单，与学生的识别结果对比。标注遗漏的要件事实和过度分析的非关键事实。"
+      }
+    }
+  ],
   "dimension_mapping": {
-    "准确性": ["F1", "F2", "F3", "F7"],
+    "准确性": ["F1", "F2", "F3", "F7", "F11", "F18"],
     "时效性": ["F1", "F5"],
-    "逻辑性": ["F4", "F7", "F8"],
-    "引导性": ["F6", "F9", "F10"]
+    "逻辑性": ["F4", "F7", "F8", "F17"],
+    "引导性": ["F6", "F9", "F10"],
+    "题型特化": {
+      "客观题(T1-T3)": ["F11", "F14"],
+      "半客观题(T4-T5)": ["F12", "F13"],
+      "主观题(T6-T8)": ["F15", "F16", "F17", "F18"]
+    }
+  },
+  "dimension_mapping_v2": {
+    "法律依据准确性": ["F1", "F2", "F3", "F7", "F11", "F18"],
+    "时效性": ["F1", "F5"],
+    "逻辑性": ["F4", "F7", "F8", "F12", "F15", "F17"],
+    "引导性": ["F6", "F9", "F10", "F14"],
+    "题型适配": ["F13", "F16"]
   }
 }

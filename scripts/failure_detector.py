@@ -196,29 +196,195 @@ def detect_f10(text, pat):
             'severity': 'critical', 'detections': dets if dets else None}
 
 
+# =============================================================================
+# v4.0.0: 题型特化失效模式检测 (F11-F18)
+# =============================================================================
+
+def detect_f11(text, pat):
+    """F11: 选项混淆偏误 — 选择题中将相似法律概念混淆"""
+    confusion_pairs = [
+        (['可撤销', '无效'], '可撤销≠无效。可撤销行为在被撤销前有效；无效行为自始无效。'),
+        (['效力待定', '无效'], '效力待定≠无效。效力待定经追认可有效；无效不可追认。'),
+        (['解除', '撤销'], '解除≠撤销。解除面向将来；撤销溯及既往。'),
+        (['终止', '中止'], '终止=永久结束；中止=暂时停止。'),
+        (['应当', '可以'], '应当=强制性义务；可以=授权性权利。'),
+        (['从轻', '减轻'], '从轻=在法定刑幅度内偏轻；减轻=突破法定刑下限。'),
+    ]
+    dets = []
+    for (term1, term2), explanation in confusion_pairs:
+        # 检测两个混淆词同时出现且未明确区分
+        if term1 in text and term2 in text:
+            # 检查是否有区分性表述
+            has_clarification = any(w in text for w in ['不同于', '区别于', '不等于', '不是', '≠', '区分'])
+            if not has_clarification:
+                dets.append({
+                    'type': 'concept_confusion',
+                    'term1': term1,
+                    'term2': term2,
+                    'recommendation': explanation
+                })
+    return {'fired': len(dets) > 0, 'probability': min(len(dets) * 0.35, 1.0),
+            'severity': 'high', 'detections': dets if dets else None}
+
+
+def detect_f12(text, pat):
+    """F12: 采分点遗漏 — 简答题遗漏关键采分点"""
+    # 此检测需要答案键配合，独立检测只能标记潜在遗漏
+    omission_signals = ['此外', '另外', '还有', '不仅如此', '值得注意的是']
+    has_omission_marker = any(s in text for s in omission_signals)
+    dets = []
+    if has_omission_marker:
+        dets.append({
+            'type': 'potential_omission',
+            'recommendation': '检测到补充性过渡词，可能存在采分点遗漏。建议与答案键的scoring_points进行覆盖对比。'
+        })
+    # 检查文本长度是否过短（可能遗漏）
+    if len(text) < 100:
+        dets.append({
+            'type': 'answer_too_short',
+            'recommendation': '简答题答案过短(<100字)，大概率遗漏采分点。建议对照答案键逐点覆盖。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.6 if len(dets) >= 2 else 0.3 if dets else 0.1,
+            'severity': 'high', 'detections': dets if dets else None}
+
+
+def detect_f13(text, pat):
+    """F13: 定义要素缺失 — 名词解释缺少核心要素"""
+    required_elements = ['主体', '客体', '内容', '目的', '构成要件', '法律特征', '适用范围',
+                        '是指', '指的是', '即', '又称']
+    found = [e for e in required_elements if e in text]
+    dets = []
+    if len(text) < 30 and len(text) > 0:
+        dets.append({
+            'type': 'definition_too_short',
+            'recommendation': '定义过于简短(<30字)，大概率缺少构成要件要素。完整的名词解释应包含核心概念+构成要件+法律来源。',
+            'found_elements': found
+        })
+    elif len(found) < 3 and len(text) > 0:
+        dets.append({
+            'type': 'definition_elements_missing',
+            'recommendation': f'定义中检测到的要素信号较少(仅{len(found)}个)。建议补充：主体/客体/内容/目的/构成要件等要素。',
+            'found_elements': found
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.5 if dets else 0.15,
+            'severity': 'medium_high', 'detections': dets if dets else None}
+
+
+def detect_f14(text, pat):
+    """F14: 判对错但不给理由 — 判断题缺法律依据"""
+    # 检测纯判断词（正确/错误）且无法律引用
+    judgment_words = ['正确', '错误', '对', '错', '✓', '✗', '✅', '❌', '√', '×']
+    has_judgment = any(w in text for w in judgment_words)
+    has_legal_ref = bool(re.search(r'《[^》]+》', text)) or any(
+        w in text for w in ['根据', '依据', '因为', '由于', '理由是'])
+    dets = []
+    if has_judgment and not has_legal_ref and len(text) < 30:
+        dets.append({
+            'type': 'bare_judgment',
+            'recommendation': '仅给出判断结果但未附法律依据。如果题目要求说明理由，应扣分。正确的理由应引用具体法条号。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.8 if dets else 0.1,
+            'severity': 'medium_high', 'detections': dets if dets else None}
+
+
+def detect_f15(text, pat):
+    """F15: 法条解构不完整 — 缺少构成要件→法律后果映射"""
+    law_refs = re.findall(r'《([^》]+)》', text)
+    has_structure = any(w in text for w in ['构成要件', '法律后果', '适用范围', '规范结构', '立法目的'])
+    dets = []
+    if len(law_refs) >= 1 and not has_structure:
+        dets.append({
+            'type': 'incomplete_deconstruction',
+            'laws_referenced': law_refs,
+            'recommendation': f'引用了{len(law_refs)}部法律但未进行规范结构解构。法条分析应包含：条文定位→构成要件→法律后果→适用范围→与相关法条的关系。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.55 if dets else 0.1,
+            'severity': 'high', 'detections': dets if dets else None}
+
+
+def detect_f16(text, pat):
+    """F16: 论述偏离题眼 — 论述题未紧扣核心争点"""
+    # 检测大量使用偏离性过渡词
+    off_topic_signals = ['此外', '顺便提到', '另外值得注意', '值得一提的是']
+    off_topic_count = sum(1 for s in off_topic_signals if s in text)
+    dets = []
+    if off_topic_count >= 2 and len(text) > 500:
+        dets.append({
+            'type': 'potential_off_topic',
+            'off_topic_marker_count': off_topic_count,
+            'recommendation': f'检测到{off_topic_count}个偏离性过渡词，可能存在论述偏题。建议检查核心关键词与题干争议焦点的重叠率。'
+        })
+    return {'fired': len(dets) > 0, 'probability': min(off_topic_count * 0.25, 0.8),
+            'severity': 'medium_high', 'detections': dets if dets else None}
+
+
+def detect_f17(text, pat):
+    """F17: 三段论结构缺失 — 案例分析缺少三段论推理"""
+    major = any(w in text for w in ['根据《', '依据《', '法律规定', '按照《', '法条规定'])
+    minor = any(w in text for w in ['本案中', '本案', '案情', '事实', '证据显示', '本案的'])
+    conclusion = any(w in text for w in ['因此', '综上所述', '综上', '故', '应认定', '所以'])
+    syllogism = sum([major, minor, conclusion])
+    dets = []
+    if syllogism < 3 and len(text) > 100:
+        missing = []
+        if not major: missing.append('大前提(法律规则)')
+        if not minor: missing.append('小前提(案件事实)')
+        if not conclusion: missing.append('结论')
+        dets.append({
+            'type': 'syllogism_gap',
+            'completeness': f'{syllogism}/3',
+            'missing_elements': missing,
+            'recommendation': f'三段论结构不完整({syllogism}/3)，缺少: {", ".join(missing)}。完整的案例分析应展示：大前提(法律规则)→小前提(案件事实)→结论的推理链条。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.7 if syllogism == 2 else 0.9 if syllogism <= 1 else 0.1,
+            'severity': 'high', 'detections': dets if dets else None,
+            'syllogism_completeness': f'{syllogism}/3'}
+
+
+def detect_f18(text, pat):
+    """F18: 要件事实识别错误 — 混淆关键/非关键事实"""
+    fact_emphasis = re.findall(r'(关键|重要|决定性|核心|次要|无关).{0,10}(事实|情节|情况|因素)', text)
+    dets = []
+    if len(fact_emphasis) >= 2:
+        dets.append({
+            'type': 'potential_misidentification',
+            'fact_emphasis_count': len(fact_emphasis),
+            'recommendation': f'检测到{len(fact_emphasis)}处事实重要性的标注。需人工核查：被标注为关键的事实确实是法律要件事实，而非不必要的背景信息。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.4 if dets else 0.1,
+            'severity': 'critical', 'detections': dets if dets else None}
+
+
 DETECTORS = {
     'F1': detect_f1, 'F2': detect_f2, 'F3': detect_f3, 'F4': detect_f4, 'F5': detect_f5,
     'F6': detect_f6, 'F7': detect_f7, 'F8': detect_f8, 'F9': detect_f9, 'F10': detect_f10,
+    'F11': detect_f11, 'F12': detect_f12, 'F13': detect_f13, 'F14': detect_f14,
+    'F15': detect_f15, 'F16': detect_f16, 'F17': detect_f17, 'F18': detect_f18,
 }
 
 
 def detect_all(text):
     pd = load_failure_patterns()
     patterns = pd['patterns']
+    # v4.0.0: 加载F11-F18题型特化模式
+    patterns_v2 = pd.get('patterns_v2', [])
+    all_patterns = patterns + patterns_v2
     results = {}
-    for p in patterns:
+    for p in all_patterns:
         pid = p['id']
         detector = DETECTORS.get(pid)
         results[pid] = detector(text, p) if detector else {'fired': False, 'probability': 0, 'severity': 'unknown', 'detections': None}
     fired = sum(1 for r in results.values() if r['fired'])
     critical = sum(1 for r in results.values() if r['fired'] and r['severity'] == 'critical')
     high = sum(1 for r in results.values() if r['fired'] and r['severity'] == 'high')
-    dm = pd['dimension_mapping']
+    dm = pd.get('dimension_mapping_v2', pd.get('dimension_mapping', {}))
     dim_scores = {}
     for dim, related in dm.items():
-        rf = [pid for pid in related if results.get(pid, {}).get('fired')]
-        dim_scores[dim] = round(5 * (1 - len(rf) / len(related)), 1) if related else 5.0
-    return {'meta': {'text_length': len(text), 'total_patterns': 10, 'fired_patterns': fired,
+        if isinstance(related, list):
+            rf = [pid for pid in related if results.get(pid, {}).get('fired')]
+            dim_scores[dim] = round(5 * (1 - len(rf) / len(related)), 1) if related else 5.0
+    total_patterns = len(all_patterns)
+    return {'meta': {'text_length': len(text), 'total_patterns': total_patterns, 'fired_patterns': fired,
                      'critical_fired': critical, 'high_fired': high,
                      'overall_risk': 'high' if critical > 0 else 'medium' if high > 0 else 'low'},
             'dimension_scores': dim_scores,

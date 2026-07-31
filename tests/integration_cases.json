@@ -122,9 +122,71 @@
       }
     }
   ],
+  "v4_test_cases": [
+    {
+      "id": "TC011",
+      "name": "模块C-v4：单项选择题评分(T1)",
+      "module": "C",
+      "input_text": "甲食品公司生产的一种饮料所使用的'红牛'商标是国内知名品牌...对乙食品公司的行为应认定为？\nA．不构成侵权\nB．构成不正当竞争\nC．合法注册不侵权\nD．只是违反道德\n答案：B",
+      "answer_key": {"correct": "B", "max_score": 1, "explanation": "构成不正当竞争", "legal_basis": "《反不正当竞争法》第6条"},
+      "expected": {
+        "question_type": "T1_single_choice",
+        "is_correct": true,
+        "score": 1
+      }
+    },
+    {
+      "id": "TC012",
+      "name": "模块C-v4：多项选择题评分(T2)",
+      "module": "C",
+      "input_text": "下列哪些行为侵犯了著作权？\nA．销售盗版书\nB．购买盗版书供借阅\nC．出租盗版书\nD．个人购买阅读\n答案：ABC",
+      "answer_key": {"correct": "ABC", "max_score": 2, "partial_credit": true},
+      "expected": {
+        "question_type": "T2_multi_choice",
+        "is_correct": true,
+        "score": 2
+      }
+    },
+    {
+      "id": "TC013",
+      "name": "模块C-v4：判断题评分(T3)",
+      "module": "C",
+      "input_text": "判断：可撤销的民事法律行为等同于无效民事法律行为。答案：错误",
+      "answer_key": {"correct": "错误", "max_score": 1, "explanation": "可撤销≠无效"},
+      "expected": {
+        "question_type": "T3_true_false",
+        "is_correct": true,
+        "score": 1,
+        "f11_fired": true
+      }
+    },
+    {
+      "id": "TC014",
+      "name": "模块C-v4：三段论缺失检测(F17)",
+      "module": "C",
+      "input_text": "【案情】甲在公共通道堆放石子，乙踩到滑倒骨折，花医疗费3.2万元，误工45天。【问题】分析侵权责任。【答案】甲应当赔偿。因为甲有过错。乙可以起诉甲要求赔偿全部损失。乙骨折与甲堆放石子有因果关系。所以综上所述甲应承担赔偿责任。总之乙的受伤与甲的行为有关联。因此法院应判甲赔偿。以上是关于此案的法律分析结论。故此甲需要赔偿乙的全部损失合计约4万元。最后总结：甲有责任。",
+      "expected": {
+        "question_type": "T8_case_analysis",
+        "f17_fired": true,
+        "syllogism_incomplete": true
+      }
+    },
+    {
+      "id": "TC015",
+      "name": "模块C-v4：全流程统一评估器v2",
+      "module": "C",
+      "description": "端到端测试：输入→题型识别→路由评分→18模式失效检测→完整报告",
+      "expected": {
+        "type_identified": true,
+        "scoring_returned": true,
+        "failure_detection_run": true,
+        "report_structure_valid": true
+      }
+    }
+  ],
   "regression_baseline": {
-    "description": "每次版本更新后应重跑全部10个测试用例，确保无功能回退",
-    "critical_tests": ["TC001", "TC004", "TC008"],
+    "description": "每次版本更新后应重跑全部15个测试用例(TC001-TC015)，确保无功能回退",
+    "critical_tests": ["TC001", "TC004", "TC008", "TC013", "TC014"],
     "performance_target": "单个测试用例执行时间<30秒"
   }
 }
