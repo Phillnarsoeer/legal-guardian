@@ -16,6 +16,12 @@ import sys
 import json
 import os
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 def load_baseline() -> dict:
     """加载实证基线数据"""

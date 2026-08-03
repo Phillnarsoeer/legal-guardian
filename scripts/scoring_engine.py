@@ -18,6 +18,12 @@ import json
 import os
 import re
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 def load_baseline() -> dict:
     script_dir = os.path.dirname(os.path.abspath(__file__))

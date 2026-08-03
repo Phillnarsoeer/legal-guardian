@@ -14,6 +14,12 @@ LegalGuardian v4.0 法学作业统一评估器 (Unified Assignment Evaluator)
 import sys, json, os, re, subprocess
 from typing import Dict, Any, Optional, List
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 # =============================================================================
 # 配置加载

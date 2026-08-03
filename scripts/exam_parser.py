@@ -9,6 +9,12 @@
 
 import sys, json, os, re
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 def parse_objective_answers(pdf_text: str) -> list:
     """

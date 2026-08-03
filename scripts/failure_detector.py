@@ -8,6 +8,12 @@ Usage: python failure_detector.py <file> | --text "text" | --stdin
 
 import sys, json, re, os
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 def load_failure_patterns():
     script_dir = os.path.dirname(os.path.abspath(__file__))

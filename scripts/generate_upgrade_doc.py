@@ -11,6 +11,12 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import datetime
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 doc = Document()
 
 # Page setup

@@ -9,6 +9,12 @@ LegalGuardian v4.0 — 用黄金标准基准测试集校准各题型评分精度
 
 import sys, json, os
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
     """运行全量校准测试"""

@@ -15,6 +15,12 @@ LegalGuardian v4.0.0
 import sys, json, os, re
 from typing import Dict, Any, List, Optional
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 # =============================================================================
 # 答案键JSON Schema定义（每种题型的标准答案键格式）

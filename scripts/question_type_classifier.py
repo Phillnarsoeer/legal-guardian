@@ -13,6 +13,12 @@ LegalGuardian v4.0.0 — 支持8大法学题型(T1-T8)的自动识别、路由�
 import sys, json, os, re
 from typing import Dict, Any, Optional, List, Tuple
 
+# UTF-8 输出兼容 (Windows GBK 控制台)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 
 # =============================================================================
 # 题型识别规则库 — 基于2022-2025法考真题格式校准
