@@ -355,11 +355,136 @@ def detect_f18(text, pat):
             'severity': 'critical', 'detections': dets if dets else None}
 
 
+# =============================================================================
+# v4.1.0: 教信赛场景特化失效模式检测 (F19-F24)
+# =============================================================================
+
+def detect_f19(text, pat):
+    """F19: 试题歧义偏差 — 试题表述可能产生歧义"""
+    kw = pat['detection_keywords']
+    ambiguity_signals = kw.get('ambiguity_signals', [])
+    found = [s for s in ambiguity_signals if s in text]
+    dets = []
+    if len(found) >= 3:
+        dets.append({
+            'type': 'question_ambiguity',
+            'ambiguity_markers': found,
+            'recommendation': f'题目包含{len(found)}个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。'
+        })
+    return {'fired': len(dets) > 0, 'probability': min(len(found) * 0.2, 0.8),
+            'severity': 'high', 'detections': dets if dets else None}
+
+
+def detect_f20(text, pat):
+    """F20: 评分尺度偏移 — 评分系统性地偏严或偏松"""
+    kw = pat['detection_keywords']
+    grade_anchors = kw.get('grade_anchors', [])
+    inconsistency = kw.get('inconsistency_signals', [])
+    has_grade = any(g in text for g in grade_anchors)
+    has_inconsistency = any(i in text for i in inconsistency)
+    dets = []
+    if has_grade and has_inconsistency:
+        dets.append({
+            'type': 'scoring_drift',
+            'recommendation': '检测到评分尺度偏移信号。建议引入评分锚定机制：对每个维度设置明确的锚点样例（DS最佳5.0/DS平均3.84/千问最弱1.70），并使用基准测试集校准评分者。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.7 if dets else 0.1,
+            'severity': 'high', 'detections': dets if dets else None}
+
+
+def detect_f21(text, pat):
+    """F21: 答案格式违规 — 答案格式不符合题目要求"""
+    kw = pat['detection_keywords']
+    format_signals = kw.get('format_violation_signals', [])
+    # 论述题要求段落式论证，若通篇使用要点列表则触发
+    has_format_signals = sum(1 for s in format_signals if s in text)
+    has_essay_prose = any(p in text for p in ['综上所述', '首先', '其次', '最后', '论证', '分析如下'])
+    dets = []
+    if has_format_signals >= 3 and not has_essay_prose and len(text) > 150:
+        dets.append({
+            'type': 'format_violation',
+            'format_marker_count': has_format_signals,
+            'recommendation': '答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。'
+        })
+    return {'fired': len(dets) > 0, 'probability': min(has_format_signals * 0.15, 0.6),
+            'severity': 'medium_high', 'detections': dets if dets else None}
+
+
+def detect_f22(text, pat):
+    """F22: 跨题一致性破裂 — 同一概念在不同题目中矛盾"""
+    kw = pat['detection_keywords']
+    contradiction_signals = kw.get('contradiction_signals', [])
+    # 检测同一文本中对立概念共存（需要多题联合输入，此处做基础检测）
+    opposing_pairs = [('有效', '无效'), ('可撤销', '自始无效'), ('应当', '可以'),
+                      ('有罪', '无罪'), ('合法', '违法')]
+    dets = []
+    for (a, b) in opposing_pairs:
+        if a in text and b in text:
+            dets.append({
+                'type': 'cross_question_contradiction',
+                'term_pair': f'{a} vs {b}',
+                'recommendation': f'检测到「{a}」与「{b}」对立表述共存。若属于同一学生的多题答案，可能存在跨题一致性破裂：同一法律原则在不同题目中应保持一致的判断。'
+            })
+            break
+    return {'fired': len(dets) > 0, 'probability': 0.6 if dets else 0.1,
+            'severity': 'high', 'detections': dets if dets else None,
+            'cross_question_analysis': True}
+
+
+def detect_f23(text, pat):
+    """F23: 采分点粒度失当 — 答案键采分点过粗或过细"""
+    kw = pat['detection_keywords']
+    # 检测采分点数量（以"采分点""评分点"后的数字或列表项数量判断）
+    import re as _re
+    point_refs = _re.findall(r'[分点采分点评分点].{0,5}?(\d{1,2})', text)
+    bullet_count = len(_re.findall(r'(?:1[\.、）]|2[\.、）]|3[\.、）]|4[\.、）]|5[\.、）]|6[\.、）]|7[\.、）]|8[\.、）]|9[\.、）]|10[\.、）])', text))
+    total_points = max(len(point_refs), bullet_count)
+    dets = []
+    if 0 < total_points < 3:
+        dets.append({
+            'type': 'too_few_points',
+            'point_count': total_points,
+            'recommendation': f'答案键采分点仅{total_points}个，粒度过粗导致区分度不足。建议扩充至3-8个，每个采分点对应一个明确考点。'
+        })
+    elif total_points > 10:
+        dets.append({
+            'type': 'too_many_points',
+            'point_count': total_points,
+            'recommendation': f'答案键采分点多达{total_points}个，粒度过细导致低分泛滥。建议合并至3-8个，与题目分值匹配。'
+        })
+    return {'fired': len(dets) > 0, 'probability': 0.6 if dets else 0.1,
+            'severity': 'medium_high', 'detections': dets if dets else None}
+
+
+def detect_f24(text, pat):
+    """F24: 教学大纲合规偏离 — 教学内容未覆盖必授核心知识点"""
+    kw = pat['detection_keywords']
+    core_kps = kw.get('core_knowledge_points', [])
+    threshold = kw.get('coverage_threshold', 0.8)
+    covered = [kp for kp in core_kps if kp in text]
+    ratio = len(covered) / len(core_kps) if core_kps else 1.0
+    dets = []
+    if ratio < threshold:
+        missing = [kp for kp in core_kps if kp not in text]
+        dets.append({
+            'type': 'syllabus_noncompliance',
+            'coverage_ratio': round(ratio, 2),
+            'covered_count': len(covered),
+            'total_core_points': len(core_kps),
+            'missing_knowledge_points': missing,
+            'recommendation': f'教学内容对核心知识点的覆盖率仅{round(ratio*100)}%（要求{int(threshold*100)}%以上）。缺失知识点: {", ".join(missing)}。建议对照教育部法学类教学质量国家标准补充。'
+        })
+    return {'fired': len(dets) > 0, 'probability': round(1 - ratio, 2),
+            'severity': 'critical', 'detections': dets if dets else None}
+
+
 DETECTORS = {
     'F1': detect_f1, 'F2': detect_f2, 'F3': detect_f3, 'F4': detect_f4, 'F5': detect_f5,
     'F6': detect_f6, 'F7': detect_f7, 'F8': detect_f8, 'F9': detect_f9, 'F10': detect_f10,
     'F11': detect_f11, 'F12': detect_f12, 'F13': detect_f13, 'F14': detect_f14,
     'F15': detect_f15, 'F16': detect_f16, 'F17': detect_f17, 'F18': detect_f18,
+    'F19': detect_f19, 'F20': detect_f20, 'F21': detect_f21, 'F22': detect_f22,
+    'F23': detect_f23, 'F24': detect_f24,
 }
 
 

@@ -1,264 +1,559 @@
 {
-  "meta": {
-    "version": "4.0.0",
-    "description": "LegalGuardian v4.0 法学8大题型的差异化评分标准",
-    "calibration_source": "2022-2025年法考客观题+主观题真题",
-    "scoring_modes": {
-      "objective": "答案键精确对比法 — T1/T2/T3",
-      "semi_objective": "采分点关键词覆盖法 — T4/T5",
-      "subjective": "五维加权结构化评分法 — T6/T7/T8"
-    },
-    "extends": "assignment_rubric.json (D1-D5), failure_patterns.json (F1-F10), failure_patterns_v2_supplement.json (F11-F18)"
+ "meta": {
+  "version": "4.1.0",
+  "description": "LegalGuardian v4.0 法学8大题型的差异化评分标准",
+  "calibration_source": "2022-2025年法考客观题+主观题真题",
+  "scoring_modes": {
+   "objective": "答案键精确对比法 — T1/T2/T3",
+   "semi_objective": "采分点关键词覆盖法 — T4/T5",
+   "subjective": "五维加权结构化评分法 — T6/T7/T8"
   },
-
-  "question_types": {
-
-    "T1_single_choice": {
-      "name": "单项选择题",
-      "scoring_method": "exact_match",
-      "max_score_default": 1,
-      "evaluation_logic": "学生答案==答案键 → 满分(1分)；不匹配 → 0分。无部分得分。",
-      "failure_patterns_relevant": ["F1", "F11"],
-      "F11_risk": "选项混淆偏误 — 学生将可撤销与无效、效力待定与无效混淆",
-      "metadata_fields": ["correct_option", "distractor_analysis", "legal_basis_per_option", "common_error_option"],
-      "answer_key_schema": {
-        "correct": "A-D单个字母",
-        "max_score": "默认1分",
-        "explanation": "解析（含各选项正误原因）",
-        "legal_basis": "对应法条",
-        "distractors": {"A": "为什么错", "B": "为什么错", "C": "为什么错", "D": "为什么对/错"}
-      },
-      "calibration_reference": "2025法考客观题试卷二第1-50题格式",
-      "example": {
-        "stem": "甲食品公司生产的一种饮料所使用的'红牛'商标是国内知名品牌...对乙食品公司的行为应认定为?",
-        "answer_key": {"correct": "B", "explanation": "乙的行为构成不正当竞争，使用近似商标、包装足以引起消费者误认", "legal_basis": "《反不正当竞争法》第6条"}
-      }
-    },
-
-    "T2_multi_choice": {
-      "name": "多项选择题",
-      "scoring_method": "partial_credit",
-      "max_score_default": 2,
-      "evaluation_logic": "全对→满分(2分)；少选→每选对一个选项得(满分/正确选项数)分；多选/错选→0分",
-      "partial_credit_rule": "少选情况下，得分 = 满分 × (学生正确选项数 / 答案键正确选项总数)",
-      "failure_patterns_relevant": ["F1", "F11"],
-      "metadata_fields": ["correct_options", "partial_credit_rule", "min_correct_count"],
-      "answer_key_schema": {
-        "correct": "多字母组合如'ABD'",
-        "max_score": "默认2分",
-        "partial_credit": true,
-        "explanation": "逐选项解析",
-        "legal_basis": "对应法条"
-      },
-      "calibration_reference": "2025法考客观题试卷二第51-85题格式，每题2分",
-      "example": {
-        "stem": "根据《著作权法》，下列哪些行为侵犯了著作权?",
-        "answer_key": {"correct": "ABC", "explanation": "A销售盗版/B购买盗版供借阅/C出租盗版均侵权；D个人购买阅读不侵权", "legal_basis": "《著作权法》第53条"}
-      }
-    },
-
-    "T3_true_false": {
-      "name": "判断题",
-      "scoring_method": "exact_match",
-      "max_score_default": 1,
-      "evaluation_logic": "对/错=答案键 → 满分；否则→0分。若题目要求说明理由，理由评估纳入评分。",
-      "failure_patterns_relevant": ["F1", "F5", "F14"],
-      "F14_risk": "判对错但不给理由 — 判断题只写对/错但不附法律依据，应扣分",
-      "metadata_fields": ["correct_answer", "required_reasoning", "reasoning_score_weight"],
-      "answer_key_schema": {
-        "correct": "'正确'或'错误'",
-        "max_score": "默认1分；如需理由则1分判断+2分理由=3分",
-        "required_reasoning": "是否需要附理由(true/false)",
-        "reasoning_scoring_points": "理由采分点",
-        "explanation": "为什么对/错"
-      },
-      "calibration_reference": "法学本科期末标准格式",
-      "example": {
-        "stem": "判断：根据《民法典》，重大误解实施的民事法律行为属于无效民事法律行为。",
-        "answer_key": {"correct": "错误", "required_reasoning": true, "explanation": "重大误解属于可撤销民事法律行为（第147条），非无效", "legal_basis": "《民法典》第147条"}
-      }
-    },
-
-    "T4_term_definition": {
-      "name": "名词解释",
-      "scoring_method": "keyword_coverage",
-      "max_score_default": 5,
-      "scoring_dimensions": {
-        "核心概念准确": {"weight": 50, "check": "是否精准定义法律概念的核心含义"},
-        "要素完整性": {"weight": 30, "check": "构成要件/法律特征/分类是否完整"},
-        "法条依据": {"weight": 20, "check": "是否标注法律来源（法条号+法律名称）"}
-      },
-      "failure_patterns_relevant": ["F1", "F4", "F13"],
-      "F13_risk": "定义要素缺失 — 缺少主体/客体/内容/目的等要件要素",
-      "answer_key_schema": {
-        "core_keywords": "核心定义必须包含的关键词列表",
-        "element_keywords": "构成要件/特征关键词列表",
-        "source_keywords": "法条来源关键词列表",
-        "max_score": "默认5分",
-        "model_answer": "标准答案全文"
-      },
-      "calibration_reference": "法学本科期末名词解释标准格式",
-      "example": {
-        "term": "正当防卫",
-        "answer_key": {
-          "core_keywords": ["不法侵害", "正在进行", "国家利益", "公共利益", "本人", "他人", "人身", "财产", "制止", "损害"],
-          "element_keywords": ["防卫意图", "防卫起因", "防卫对象", "防卫时间", "防卫限度"],
-          "source_keywords": ["刑法", "第20条", "不负刑事责任"],
-          "model_answer": "正当防卫是指为了使国家、公共利益、本人或者他人的人身、财产和其他权利免受正在进行的不法侵害，而采取的制止不法侵害的行为，对不法侵害人造成损害的，不负刑事责任。（《刑法》第20条）"
-        }
-      }
-    },
-
-    "T5_short_answer": {
-      "name": "简答题",
-      "scoring_method": "scoring_point_coverage",
-      "max_score_default": 10,
-      "scoring_dimensions": {
-        "采分点覆盖率": {"weight": 60, "check": "与答案键的采分点匹配度，每个采分点含关键词和分值"},
-        "法条引用的准确性": {"weight": 25, "check": "法条号+名称是否正确、现行有效"},
-        "表述的精确性": {"weight": 15, "check": "无歧义、无法律概念混淆、语言专业"}
-      },
-      "failure_patterns_relevant": ["F1", "F4", "F5", "F12", "F14"],
-      "F12_risk": "采分点遗漏 — 简答题回答遗漏了答案键中的关键采分点",
-      "answer_key_schema": {
-        "scoring_points": "[{\"point\": \"采分点描述\", \"keywords\": [\"关键词1\", \"关键词2\"], \"score_value\": 2}]",
-        "max_score": "默认10分",
-        "explanation": "整体解析",
-        "legal_basis": "相关法条"
-      },
-      "calibration_reference": "2025法考主观题刑诉法部分格式（案情+问题+参考答案）",
-      "example": {
-        "question": "简述合同无效的法定情形。",
-        "answer_key": {
-          "scoring_points": [
-            {"point": "无民事行为能力人实施的民事法律行为", "keywords": ["无民事行为能力", "实施", "无效"], "score_value": 2},
-            {"point": "以虚假意思表示实施的民事法律行为", "keywords": ["虚假意思表示", "无效"], "score_value": 2},
-            {"point": "违反法律、行政法规的强制性规定的民事法律行为", "keywords": ["违反", "强制性规定", "无效", "第153条"], "score_value": 2.5},
-            {"point": "违背公序良俗的民事法律行为", "keywords": ["违背", "公序良俗", "无效"], "score_value": 2},
-            {"point": "行为人与相对人恶意串通，损害他人合法权益", "keywords": ["恶意串通", "损害", "他人", "无效"], "score_value": 1.5}
-          ],
-          "max_score": 10,
-          "legal_basis": "《民法典》第144条、第146条、第153条、第154条"
-        }
-      }
-    },
-
-    "T6_essay": {
-      "name": "论述题",
-      "scoring_method": "five_dimension_weighted",
-      "max_score_default": 30,
-      "inherits_dimensions": "assignment_rubric.json的D1-D5，但权重调整为论述题特化",
-      "adjusted_weights": {
-        "D1_法律依据准确性": 20,
-        "D2_论证逻辑严密性": 30,
-        "D3_法理深度": 25,
-        "D4_实务操作性": 10,
-        "D5_学术规范": 15
-      },
-      "additional_checks": [
-        "论点是否具有原创性？而非照搬教材",
-        "是否展示批判性思维？而非简单罗列",
-        "是否与学术前沿/司法实践衔接？",
-        "是否符合字数要求？",
-        "是否紧扣题干核心争点而非偏题？"
-      ],
-      "failure_patterns_relevant": ["F1", "F2", "F4", "F6", "F8", "F9", "F10", "F16"],
-      "F16_risk": "论述偏离题眼 — 论述题回答偏题，未紧扣题干核心法律争点",
-      "calibration_reference": "2025法考主观题理论法部分（材料+答题要求600字+参考答案）",
-      "answer_key_schema": {
-        "scoring_points": "论述题的关键采分论点",
-        "model_essay": "参考范文",
-        "min_word_count": "最低字数要求",
-        "key_viewpoints": "必须涉及的核心观点",
-        "max_score": "默认30分"
-      }
-    },
-
-    "T7_statutory_analysis": {
-      "name": "法条分析题",
-      "scoring_method": "structured_rubric",
-      "max_score_default": 20,
-      "scoring_dimensions": {
-        "法条定位准确性": {"weight": 30, "check": "法条号、名称、款/项准确，现行有效性标注"},
-        "立法背景理解": {"weight": 20, "check": "立法目的、修法沿革、法条在体系中的位置"},
-        "规范解构完整性": {"weight": 25, "check": "构成要件→法律后果→适用范围的完整映射"},
-        "学理与实践衔接": {"weight": 25, "check": "学术争议观点+相关判决案例的应用"}
-      },
-      "failure_patterns_relevant": ["F1", "F4", "F5", "F15"],
-      "F15_risk": "法条解构不完整 — 缺少构成要件→法律后果的完整映射",
-      "calibration_reference": "考研法学常见题型",
-      "answer_key_schema": {
-        "statute_ref": "分析的法条引用",
-        "legislative_history": "修法沿革",
-        "normative_structure": "规范结构分解",
-        "academic_views": "相关学术观点",
-        "relevant_cases": "相关案例",
-        "max_score": "默认20分"
-      }
-    },
-
-    "T8_case_analysis": {
-      "name": "案例分析题",
-      "scoring_method": "five_dimension_weighted",
-      "max_score_default": 25,
-      "inherits_dimensions": "assignment_rubric.json的D1-D5，标准权重",
-      "failure_patterns_relevant": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F17", "F18"],
-      "F17_risk": "三段论结构缺失 — 缺少大前提(法律规则)→小前提(案件事实)→结论完整推理",
-      "F18_risk": "要件事实识别错误 — 将非关键事实误认为法律要件事实",
-      "calibration_reference": "2025法考主观题刑诉法/民法部分格式",
-      "additional_checks": [
-        "三段论结构是否完整（大前提→小前提→结论）？",
-        "案件事实是否与法律要件正确对应？",
-        "是否考虑了替代法律理论和抗辩可能性？",
-        "是否从多角度（原告/被告/法官）分析？"
-      ],
-      "answer_key_schema": {
-        "scoring_points": "每个子问题的采分点",
-        "case_facts_summary": "关键事实摘要",
-        "legal_issues": "识别出的法律问题列表",
-        "model_answer": "参考答案",
-        "max_score": "默认25分"
-      }
+  "extends": "assignment_rubric.json (D1-D5), failure_patterns.json (F1-F10), failure_patterns_v2_supplement.json (F11-F18)"
+ },
+ "question_types": {
+  "T1_single_choice": {
+   "name": "单项选择题",
+   "scoring_method": "exact_match",
+   "max_score_default": 1,
+   "evaluation_logic": "学生答案==答案键 → 满分(1分)；不匹配 → 0分。无部分得分。",
+   "failure_patterns_relevant": [
+    "F1",
+    "F11"
+   ],
+   "F11_risk": "选项混淆偏误 — 学生将可撤销与无效、效力待定与无效混淆",
+   "metadata_fields": [
+    "correct_option",
+    "distractor_analysis",
+    "legal_basis_per_option",
+    "common_error_option"
+   ],
+   "answer_key_schema": {
+    "correct": "A-D单个字母",
+    "max_score": "默认1分",
+    "explanation": "解析（含各选项正误原因）",
+    "legal_basis": "对应法条",
+    "distractors": {
+     "A": "为什么错",
+     "B": "为什么错",
+     "C": "为什么错",
+     "D": "为什么对/错"
     }
-  },
-
-  "type_routing_rules": {
-    "priority_order": ["T8", "T1", "T2", "T7", "T6", "T5", "T4", "T3"],
-    "reason": "案例分析T8优先（因可能包含选择题子问题）；选择题次之（特征明确）；法条分析→论述→简答→名词解释→判断",
-    "ambiguous_tiebreaker": "当两种题型得分相同时，按优先级顺序选择。如T1和T2得分相同→选T1（单选）。"
-  },
-
-  "cross_type_failure_mapping": {
-    "F11_选项混淆偏误": {"target_types": ["T1", "T2"], "description": "将可撤销与无效、效力待定与无效混淆"},
-    "F12_采分点遗漏": {"target_types": ["T5"], "description": "简答题遗漏关键采分点"},
-    "F13_定义要素缺失": {"target_types": ["T4"], "description": "名词解释缺少主体/客体/内容等要件"},
-    "F14_判对错不给理由": {"target_types": ["T3"], "description": "判断题只写对/错不附法律依据"},
-    "F15_法条解构不完整": {"target_types": ["T7"], "description": "缺少构成要件→法律后果的映射"},
-    "F16_论述偏离题眼": {"target_types": ["T6"], "description": "论述题未紧扣题干核心争点"},
-    "F17_三段论结构缺失": {"target_types": ["T8"], "description": "缺少大前提→小前提→结论推理"},
-    "F18_要件事实识别错误": {"target_types": ["T8"], "description": "将非关键事实误认为要件事实"}
-  },
-
-  "grade_mapping": {
-    "优秀": {"range": [90, 100], "description": "达到优秀法学作业/考试标准"},
-    "良好": {"range": [80, 89], "description": "良好，存在少量可改进之处"},
-    "中等": {"range": [70, 79], "description": "基本合格，存在若干需要改进的地方"},
-    "及格": {"range": [60, 69], "description": "勉强合格，存在较多问题"},
-    "不及格": {"range": [0, 59], "description": "不合格，存在重大法律错误"}
-  },
-
-  "red_lines": [
-    {
-      "condition": "F1法条幻视触发（引用虚构/废止法律）",
-      "consequence": "法律依据准确性维度直接0分，总分封顶50分",
-      "applies_to": ["T4", "T5", "T6", "T7", "T8"],
-      "reason": "法律依据的根本性错误使分析失去法律基础"
-    },
-    {
-      "condition": "客观题(T1/T2/T3)出现多选/不选",
-      "consequence": "该题0分",
-      "applies_to": ["T1"],
-      "reason": "不选=放弃作答"
+   },
+   "calibration_reference": "2025法考客观题试卷二第1-50题格式",
+   "example": {
+    "stem": "甲食品公司生产的一种饮料所使用的'红牛'商标是国内知名品牌...对乙食品公司的行为应认定为?",
+    "answer_key": {
+     "correct": "B",
+     "explanation": "乙的行为构成不正当竞争，使用近似商标、包装足以引起消费者误认",
+     "legal_basis": "《反不正当竞争法》第6条"
     }
-  ]
+   }
+  },
+  "T2_multi_choice": {
+   "name": "多项选择题",
+   "scoring_method": "partial_credit",
+   "max_score_default": 2,
+   "evaluation_logic": "全对→满分(2分)；少选→每选对一个选项得(满分/正确选项数)分；多选/错选→0分",
+   "partial_credit_rule": "少选情况下，得分 = 满分 × (学生正确选项数 / 答案键正确选项总数)",
+   "failure_patterns_relevant": [
+    "F1",
+    "F11"
+   ],
+   "metadata_fields": [
+    "correct_options",
+    "partial_credit_rule",
+    "min_correct_count"
+   ],
+   "answer_key_schema": {
+    "correct": "多字母组合如'ABD'",
+    "max_score": "默认2分",
+    "partial_credit": true,
+    "explanation": "逐选项解析",
+    "legal_basis": "对应法条"
+   },
+   "calibration_reference": "2025法考客观题试卷二第51-85题格式，每题2分",
+   "example": {
+    "stem": "根据《著作权法》，下列哪些行为侵犯了著作权?",
+    "answer_key": {
+     "correct": "ABC",
+     "explanation": "A销售盗版/B购买盗版供借阅/C出租盗版均侵权；D个人购买阅读不侵权",
+     "legal_basis": "《著作权法》第53条"
+    }
+   }
+  },
+  "T3_true_false": {
+   "name": "判断题",
+   "scoring_method": "exact_match",
+   "max_score_default": 1,
+   "evaluation_logic": "对/错=答案键 → 满分；否则→0分。若题目要求说明理由，理由评估纳入评分。",
+   "failure_patterns_relevant": [
+    "F1",
+    "F5",
+    "F14"
+   ],
+   "F14_risk": "判对错但不给理由 — 判断题只写对/错但不附法律依据，应扣分",
+   "metadata_fields": [
+    "correct_answer",
+    "required_reasoning",
+    "reasoning_score_weight"
+   ],
+   "answer_key_schema": {
+    "correct": "'正确'或'错误'",
+    "max_score": "默认1分；如需理由则1分判断+2分理由=3分",
+    "required_reasoning": "是否需要附理由(true/false)",
+    "reasoning_scoring_points": "理由采分点",
+    "explanation": "为什么对/错"
+   },
+   "calibration_reference": "法学本科期末标准格式",
+   "example": {
+    "stem": "判断：根据《民法典》，重大误解实施的民事法律行为属于无效民事法律行为。",
+    "answer_key": {
+     "correct": "错误",
+     "required_reasoning": true,
+     "explanation": "重大误解属于可撤销民事法律行为（第147条），非无效",
+     "legal_basis": "《民法典》第147条"
+    }
+   }
+  },
+  "T4_term_definition": {
+   "name": "名词解释",
+   "scoring_method": "keyword_coverage",
+   "max_score_default": 5,
+   "scoring_dimensions": {
+    "核心概念准确": {
+     "weight": 50,
+     "check": "是否精准定义法律概念的核心含义"
+    },
+    "要素完整性": {
+     "weight": 30,
+     "check": "构成要件/法律特征/分类是否完整"
+    },
+    "法条依据": {
+     "weight": 20,
+     "check": "是否标注法律来源（法条号+法律名称）"
+    }
+   },
+   "failure_patterns_relevant": [
+    "F1",
+    "F4",
+    "F13"
+   ],
+   "F13_risk": "定义要素缺失 — 缺少主体/客体/内容/目的等要件要素",
+   "answer_key_schema": {
+    "core_keywords": "核心定义必须包含的关键词列表",
+    "element_keywords": "构成要件/特征关键词列表",
+    "source_keywords": "法条来源关键词列表",
+    "max_score": "默认5分",
+    "model_answer": "标准答案全文"
+   },
+   "calibration_reference": "法学本科期末名词解释标准格式",
+   "example": {
+    "term": "正当防卫",
+    "answer_key": {
+     "core_keywords": [
+      "不法侵害",
+      "正在进行",
+      "国家利益",
+      "公共利益",
+      "本人",
+      "他人",
+      "人身",
+      "财产",
+      "制止",
+      "损害"
+     ],
+     "element_keywords": [
+      "防卫意图",
+      "防卫起因",
+      "防卫对象",
+      "防卫时间",
+      "防卫限度"
+     ],
+     "source_keywords": [
+      "刑法",
+      "第20条",
+      "不负刑事责任"
+     ],
+     "model_answer": "正当防卫是指为了使国家、公共利益、本人或者他人的人身、财产和其他权利免受正在进行的不法侵害，而采取的制止不法侵害的行为，对不法侵害人造成损害的，不负刑事责任。（《刑法》第20条）"
+    }
+   }
+  },
+  "T5_short_answer": {
+   "name": "简答题",
+   "scoring_method": "scoring_point_coverage",
+   "max_score_default": 10,
+   "scoring_dimensions": {
+    "采分点覆盖率": {
+     "weight": 60,
+     "check": "与答案键的采分点匹配度，每个采分点含关键词和分值"
+    },
+    "法条引用的准确性": {
+     "weight": 25,
+     "check": "法条号+名称是否正确、现行有效"
+    },
+    "表述的精确性": {
+     "weight": 15,
+     "check": "无歧义、无法律概念混淆、语言专业"
+    }
+   },
+   "failure_patterns_relevant": [
+    "F1",
+    "F4",
+    "F5",
+    "F12",
+    "F14"
+   ],
+   "F12_risk": "采分点遗漏 — 简答题回答遗漏了答案键中的关键采分点",
+   "answer_key_schema": {
+    "scoring_points": "[{\"point\": \"采分点描述\", \"keywords\": [\"关键词1\", \"关键词2\"], \"score_value\": 2}]",
+    "max_score": "默认10分",
+    "explanation": "整体解析",
+    "legal_basis": "相关法条"
+   },
+   "calibration_reference": "2025法考主观题刑诉法部分格式（案情+问题+参考答案）",
+   "example": {
+    "question": "简述合同无效的法定情形。",
+    "answer_key": {
+     "scoring_points": [
+      {
+       "point": "无民事行为能力人实施的民事法律行为",
+       "keywords": [
+        "无民事行为能力",
+        "实施",
+        "无效"
+       ],
+       "score_value": 2
+      },
+      {
+       "point": "以虚假意思表示实施的民事法律行为",
+       "keywords": [
+        "虚假意思表示",
+        "无效"
+       ],
+       "score_value": 2
+      },
+      {
+       "point": "违反法律、行政法规的强制性规定的民事法律行为",
+       "keywords": [
+        "违反",
+        "强制性规定",
+        "无效",
+        "第153条"
+       ],
+       "score_value": 2.5
+      },
+      {
+       "point": "违背公序良俗的民事法律行为",
+       "keywords": [
+        "违背",
+        "公序良俗",
+        "无效"
+       ],
+       "score_value": 2
+      },
+      {
+       "point": "行为人与相对人恶意串通，损害他人合法权益",
+       "keywords": [
+        "恶意串通",
+        "损害",
+        "他人",
+        "无效"
+       ],
+       "score_value": 1.5
+      }
+     ],
+     "max_score": 10,
+     "legal_basis": "《民法典》第144条、第146条、第153条、第154条"
+    }
+   }
+  },
+  "T6_essay": {
+   "name": "论述题",
+   "scoring_method": "five_dimension_weighted",
+   "max_score_default": 30,
+   "inherits_dimensions": "assignment_rubric.json的D1-D5，但权重调整为论述题特化",
+   "adjusted_weights": {
+    "D1_法律依据准确性": 20,
+    "D2_论证逻辑严密性": 30,
+    "D3_法理深度": 25,
+    "D4_实务操作性": 10,
+    "D5_学术规范": 15
+   },
+   "additional_checks": [
+    "论点是否具有原创性？而非照搬教材",
+    "是否展示批判性思维？而非简单罗列",
+    "是否与学术前沿/司法实践衔接？",
+    "是否符合字数要求？",
+    "是否紧扣题干核心争点而非偏题？"
+   ],
+   "failure_patterns_relevant": [
+    "F1",
+    "F2",
+    "F4",
+    "F6",
+    "F8",
+    "F9",
+    "F10",
+    "F16"
+   ],
+   "F16_risk": "论述偏离题眼 — 论述题回答偏题，未紧扣题干核心法律争点",
+   "calibration_reference": "2025法考主观题理论法部分（材料+答题要求600字+参考答案）",
+   "answer_key_schema": {
+    "scoring_points": "论述题的关键采分论点",
+    "model_essay": "参考范文",
+    "min_word_count": "最低字数要求",
+    "key_viewpoints": "必须涉及的核心观点",
+    "max_score": "默认30分"
+   }
+  },
+  "T7_statutory_analysis": {
+   "name": "法条分析题",
+   "scoring_method": "structured_rubric",
+   "max_score_default": 20,
+   "scoring_dimensions": {
+    "法条定位准确性": {
+     "weight": 30,
+     "check": "法条号、名称、款/项准确，现行有效性标注"
+    },
+    "立法背景理解": {
+     "weight": 20,
+     "check": "立法目的、修法沿革、法条在体系中的位置"
+    },
+    "规范解构完整性": {
+     "weight": 25,
+     "check": "构成要件→法律后果→适用范围的完整映射"
+    },
+    "学理与实践衔接": {
+     "weight": 25,
+     "check": "学术争议观点+相关判决案例的应用"
+    }
+   },
+   "failure_patterns_relevant": [
+    "F1",
+    "F4",
+    "F5",
+    "F15"
+   ],
+   "F15_risk": "法条解构不完整 — 缺少构成要件→法律后果的完整映射",
+   "calibration_reference": "考研法学常见题型",
+   "answer_key_schema": {
+    "statute_ref": "分析的法条引用",
+    "legislative_history": "修法沿革",
+    "normative_structure": "规范结构分解",
+    "academic_views": "相关学术观点",
+    "relevant_cases": "相关案例",
+    "max_score": "默认20分"
+   }
+  },
+  "T8_case_analysis": {
+   "name": "案例分析题",
+   "scoring_method": "five_dimension_weighted",
+   "max_score_default": 25,
+   "inherits_dimensions": "assignment_rubric.json的D1-D5，标准权重",
+   "failure_patterns_relevant": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F17",
+    "F18"
+   ],
+   "F17_risk": "三段论结构缺失 — 缺少大前提(法律规则)→小前提(案件事实)→结论完整推理",
+   "F18_risk": "要件事实识别错误 — 将非关键事实误认为法律要件事实",
+   "calibration_reference": "2025法考主观题刑诉法/民法部分格式",
+   "additional_checks": [
+    "三段论结构是否完整（大前提→小前提→结论）？",
+    "案件事实是否与法律要件正确对应？",
+    "是否考虑了替代法律理论和抗辩可能性？",
+    "是否从多角度（原告/被告/法官）分析？"
+   ],
+   "answer_key_schema": {
+    "scoring_points": "每个子问题的采分点",
+    "case_facts_summary": "关键事实摘要",
+    "legal_issues": "识别出的法律问题列表",
+    "model_answer": "参考答案",
+    "max_score": "默认25分"
+   }
+  }
+ },
+ "type_routing_rules": {
+  "priority_order": [
+   "T8",
+   "T1",
+   "T2",
+   "T7",
+   "T6",
+   "T5",
+   "T4",
+   "T3"
+  ],
+  "reason": "案例分析T8优先（因可能包含选择题子问题）；选择题次之（特征明确）；法条分析→论述→简答→名词解释→判断",
+  "ambiguous_tiebreaker": "当两种题型得分相同时，按优先级顺序选择。如T1和T2得分相同→选T1（单选）。"
+ },
+ "cross_type_failure_mapping": {
+  "F11_选项混淆偏误": {
+   "target_types": [
+    "T1",
+    "T2"
+   ],
+   "description": "将可撤销与无效、效力待定与无效混淆"
+  },
+  "F12_采分点遗漏": {
+   "target_types": [
+    "T5"
+   ],
+   "description": "简答题遗漏关键采分点"
+  },
+  "F13_定义要素缺失": {
+   "target_types": [
+    "T4"
+   ],
+   "description": "名词解释缺少主体/客体/内容等要件"
+  },
+  "F14_判对错不给理由": {
+   "target_types": [
+    "T3"
+   ],
+   "description": "判断题只写对/错不附法律依据"
+  },
+  "F15_法条解构不完整": {
+   "target_types": [
+    "T7"
+   ],
+   "description": "缺少构成要件→法律后果的映射"
+  },
+  "F16_论述偏离题眼": {
+   "target_types": [
+    "T6"
+   ],
+   "description": "论述题未紧扣题干核心争点"
+  },
+  "F17_三段论结构缺失": {
+   "target_types": [
+    "T8"
+   ],
+   "description": "缺少大前提→小前提→结论推理"
+  },
+  "F18_要件事实识别错误": {
+   "target_types": [
+    "T8"
+   ],
+   "description": "将非关键事实误认为要件事实"
+  },
+  "F19_试题歧义偏差": {
+   "target_types": [
+    "T1",
+    "T2",
+    "T5"
+   ],
+   "description": "试题表述存在歧义，导致不同学生合理理解不同"
+  },
+  "F20_评分尺度偏移": {
+   "target_types": [
+    "T6",
+    "T7",
+    "T8"
+   ],
+   "description": "不同评分者/批次对同一答案系统性偏严或偏松"
+  },
+  "F21_答案格式违规": {
+   "target_types": [
+    "T5",
+    "T6",
+    "T7",
+    "T8"
+   ],
+   "description": "答案格式不符合题目要求（如论述题用要点列表）"
+  },
+  "F22_跨题一致性破裂": {
+   "target_types": [
+    "ALL"
+   ],
+   "description": "同一学生对同一法律原则在不同题型中给出矛盾回答"
+  },
+  "F23_采分点粒度失当": {
+   "target_types": [
+    "T5",
+    "T6"
+   ],
+   "description": "答案键采分点粒度过粗或过细，影响评分区分度"
+  },
+  "F24_教学大纲合规偏离": {
+   "target_types": [
+    "ALL"
+   ],
+   "description": "教学内容/试题未覆盖教育部课程大纲必授核心知识点"
+  }
+ },
+ "grade_mapping": {
+  "优秀": {
+   "range": [
+    90,
+    100
+   ],
+   "description": "达到优秀法学作业/考试标准"
+  },
+  "良好": {
+   "range": [
+    80,
+    89
+   ],
+   "description": "良好，存在少量可改进之处"
+  },
+  "中等": {
+   "range": [
+    70,
+    79
+   ],
+   "description": "基本合格，存在若干需要改进的地方"
+  },
+  "及格": {
+   "range": [
+    60,
+    69
+   ],
+   "description": "勉强合格，存在较多问题"
+  },
+  "不及格": {
+   "range": [
+    0,
+    59
+   ],
+   "description": "不合格，存在重大法律错误"
+  }
+ },
+ "red_lines": [
+  {
+   "condition": "F1法条幻视触发（引用虚构/废止法律）",
+   "consequence": "法律依据准确性维度直接0分，总分封顶50分",
+   "applies_to": [
+    "T4",
+    "T5",
+    "T6",
+    "T7",
+    "T8"
+   ],
+   "reason": "法律依据的根本性错误使分析失去法律基础"
+  },
+  {
+   "condition": "客观题(T1/T2/T3)出现多选/不选",
+   "consequence": "该题0分",
+   "applies_to": [
+    "T1"
+   ],
+   "reason": "不选=放弃作答"
+  },
+  {
+   "condition": "F24教学大纲合规偏离触发（核心知识点覆盖率<80%）",
+   "consequence": "课程教学大纲合规审核不通过，需补充缺失知识点",
+   "applies_to": [
+    "ALL"
+   ],
+   "reason": "教学内容未覆盖国家标准规定的必授知识点，影响人才培养质量"
+  }
+ ]
 }

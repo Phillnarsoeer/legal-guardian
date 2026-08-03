@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "name": "法学类本科教学质量国家标准 - 核心知识点要求",
+    "version": "4.1.0",
+    "source": "教育部法学类专业本科教学质量国家标准 + 法学主干课程教学基本要求",
+    "purpose": "用于F24教学大纲合规偏离检测：校验教学内容/试题是否覆盖必授核心知识点"
+  },
+  "knowledge_points": [
+    {
+      "id": "KP_FX_001",
+      "discipline": "法理学",
+      "name": "法的本质与特征",
+      "level": "核心",
+      "required_law": null,
+      "keywords": ["法的本质", "法的特征", "法的价值", "法的渊源"],
+      "curriculum_note": "法理学入门第一课，必授"
+    },
+    {
+      "id": "KP_FX_002",
+      "discipline": "法理学",
+      "name": "法律规范与法律关系",
+      "level": "核心",
+      "required_law": null,
+      "keywords": ["法律规范", "法律关系", "法律行为", "权利义务"],
+      "curriculum_note": "法理学核心概念"
+    },
+    {
+      "id": "KP_XF_001",
+      "discipline": "宪法学",
+      "name": "宪法基本原则",
+      "level": "核心",
+      "required_law": "中华人民共和国宪法",
+      "keywords": ["人民主权", "基本人权", "法治原则", "权力制约", "宪法原则"],
+      "curriculum_note": "宪法学核心内容"
+    },
+    {
+      "id": "KP_XF_002",
+      "discipline": "宪法学",
+      "name": "国家机构与公民基本权利",
+      "level": "核心",
+      "required_law": "中华人民共和国宪法",
+      "keywords": ["国家机构", "基本权利", "公民义务", "选举制度", "宪法监督"],
+      "curriculum_note": "宪法学核心内容"
+    },
+    {
+      "id": "KP_MF_001",
+      "discipline": "民法学",
+      "name": "民事法律行为与代理",
+      "level": "核心",
+      "required_law": "中华人民共和国民法典",
+      "keywords": ["民事法律行为", "效力待定", "可撤销", "无效", "代理", "意思表示"],
+      "curriculum_note": "民法典总则编核心，法考高频考点"
+    },
+    {
+      "id": "KP_MF_002",
+      "discipline": "民法学",
+      "name": "物权制度",
+      "level": "核心",
+      "required_law": "中华人民共和国民法典",
+      "keywords": ["物权", "所有权", "用益物权", "担保物权", "抵押", "质押", "留置"],
+      "curriculum_note": "民法典物权编核心"
+    },
+    {
+      "id": "KP_MF_003",
+      "discipline": "民法学",
+      "name": "合同制度",
+      "level": "核心",
+      "required_law": "中华人民共和国民法典",
+      "keywords": ["合同订立", "合同效力", "违约责任", "合同的变更", "合同的解除"],
+      "curriculum_note": "民法典合同编核心，LPR争议考点"
+    },
+    {
+      "id": "KP_MF_004",
+      "discipline": "民法学",
+      "name": "侵权责任",
+      "level": "核心",
+      "required_law": "中华人民共和国民法典",
+      "keywords": ["侵权责任", "过错责任", "无过错责任", "过错推定", "共同侵权", "因果关系"],
+      "curriculum_note": "民法典侵权责任编核心，堆放物案考点"
+    },
+    {
+      "id": "KP_MF_005",
+      "discipline": "民法学",
+      "name": "婚姻家庭与继承",
+      "level": "推荐",
+      "required_law": "中华人民共和国民法典",
+      "keywords": ["婚姻效力", "夫妻共同财产", "离婚", "继承", "遗嘱"],
+      "curriculum_note": "民法典婚姻家庭编/继承编"
+    },
+    {
+      "id": "KP_XF_B_001",
+      "discipline": "刑法学",
+      "name": "犯罪构成理论",
+      "level": "核心",
+      "required_law": "中华人民共和国刑法",
+      "keywords": ["犯罪构成", "四要件", "构成要件", "违法性", "有责性", "正当防卫"],
+      "curriculum_note": "刑法学总论核心，法考必考"
+    },
+    {
+      "id": "KP_XF_B_002",
+      "discipline": "刑法学",
+      "name": "刑罚制度",
+      "level": "核心",
+      "required_law": "中华人民共和国刑法",
+      "keywords": ["刑罚", "主刑", "附加刑", "量刑", "缓刑", "减刑", "假释"],
+      "curriculum_note": "量刑偏差(F3)考点，许某某案"
+    },
+    {
+      "id": "KP_XF_B_003",
+      "discipline": "刑法学",
+      "name": "常见罪名",
+      "level": "核心",
+      "required_law": "中华人民共和国刑法",
+      "keywords": ["故意杀人", "故意伤害", "抢劫", "盗窃", "诈骗", "贪污", "受贿", "强奸"],
+      "curriculum_note": "刑法分则核心罪名"
+    },
+    {
+      "id": "KP_XZ_001",
+      "discipline": "行政法学",
+      "name": "行政主体与行政行为",
+      "level": "核心",
+      "required_law": "中华人民共和国行政诉讼法",
+      "keywords": ["行政主体", "行政行为", "行政许可", "行政处罚", "行政强制"],
+      "curriculum_note": "行政法核心"
+    },
+    {
+      "id": "KP_XZ_002",
+      "discipline": "行政法学",
+      "name": "行政复议与行政诉讼",
+      "level": "核心",
+      "required_law": "中华人民共和国行政诉讼法",
+      "keywords": ["行政复议", "行政诉讼", "行政赔偿", "举证责任", "合法性审查"],
+      "curriculum_note": "行政法核心"
+    },
+    {
+      "id": "KP_SS_001",
+      "discipline": "诉讼法学",
+      "name": "民事诉讼程序",
+      "level": "核心",
+      "required_law": "中华人民共和国民事诉讼法",
+      "keywords": ["民事诉讼", "管辖", "当事人", "证据", "审判程序", "执行"],
+      "curriculum_note": "民事诉讼法核心"
+    },
+    {
+      "id": "KP_SS_002",
+      "discipline": "诉讼法学",
+      "name": "刑事诉讼程序",
+      "level": "核心",
+      "required_law": "中华人民共和国刑事诉讼法",
+      "keywords": ["刑事诉讼", "侦查", "起诉", "审判", "辩护", "强制措施"],
+      "curriculum_note": "刑事诉讼法核心"
+    },
+    {
+      "id": "KP_GJ_001",
+      "discipline": "国际法学",
+      "name": "国际法基本原则",
+      "level": "推荐",
+      "required_law": null,
+      "keywords": ["国家主权", "条约", "国际公约", "CEDAW", "人权公约", "习惯国际法"],
+      "curriculum_note": "国际法核心，F9国际法视野考点"
+    },
+    {
+      "id": "KP_JS_001",
+      "discipline": "经济法学",
+      "name": "市场监管与反垄断",
+      "level": "推荐",
+      "required_law": "中华人民共和国反垄断法",
+      "keywords": ["反垄断", "不正当竞争", "消费者权益", "市场监管", "价格法"],
+      "curriculum_note": "经济法核心"
+    }
+  ],
+  "syllabus_coverage_threshold": {
+    "core_required_ratio": 0.8,
+    "explanation": "教学大纲/教学内容应覆盖80%以上的核心知识点，否则触发F24教学大纲合规偏离"
+  }
+}

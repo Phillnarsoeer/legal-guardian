@@ -46,8 +46,33 @@ def analyze_question(question: str, templates_data: dict, legal_kb: dict) -> dic
         'detected_laws': [],
         'detected_articles': [],
         'traps': [],
-        'complexity': 'simple'
+        'complexity': 'simple',
+        # v4.1.0: 教信赛竞赛场景检测
+        'competition_scene': None,
+        'has_syllabus_audit': False,
+        'has_exam_design': False,
+        'has_scoring_consistency': False,
+        'has_compliance_audit': False
     }
+
+    # v4.1.0: 教信赛竞赛场景识别
+    competition_keywords = {
+        'has_syllabus_audit': ['教学大纲', '大纲审核', '课程大纲', '课程标准', '培养方案', '教案审核'],
+        'has_exam_design': ['试卷', '出题', '命题', '题库', '试题设计', '组卷', '考试设计', '试卷编制'],
+        'has_scoring_consistency': ['评分', '阅卷', '评分标准', '评分一致性', '批改', '给分', '采分点'],
+        'has_compliance_audit': ['合规', '合规审核', '合规性', '课程要求', '国家标准', '教育部']
+    }
+    for field, keywords in competition_keywords.items():
+        if any(kw in question for kw in keywords):
+            analysis[field] = True
+    if analysis['has_syllabus_audit']:
+        analysis['competition_scene'] = '教学大纲合规审核'
+    elif analysis['has_scoring_consistency']:
+        analysis['competition_scene'] = '评分一致性'
+    elif analysis['has_exam_design']:
+        analysis['competition_scene'] = '智能考试设计'
+    elif analysis['has_compliance_audit']:
+        analysis['competition_scene'] = '合规审核'
 
     # 检测具体法律名称
     repealed_laws = legal_kb.get('civil_law', {}).get('民法典', {}).get('repealed_laws_warning', {})
@@ -170,6 +195,25 @@ def match_templates(analysis: dict, templates_data: dict) -> list:
         scores['T3'] += 15
         scores['T5'] += 10
 
+    # v4.1.0 规则9-12: 教信赛竞赛场景 → 模板组合推荐
+    if analysis['has_syllabus_audit']:
+        # 教学大纲合规审核 → T1(法条验证)+T4(前提挑战) 组合
+        scores['T1'] += 50
+        scores['T4'] += 50
+        scores['T5'] += 20
+    if analysis['has_exam_design']:
+        # 智能考试设计 → T3(多假设追问)+T5(实操指引)
+        scores['T3'] += 40
+        scores['T5'] += 40
+    if analysis['has_scoring_consistency']:
+        # 评分一致性 → T5(实操指引)+T4(前提挑战)
+        scores['T5'] += 45
+        scores['T4'] += 30
+    if analysis['has_compliance_audit']:
+        # 合规审核 → T1(法条验证)+T4(前提挑战)
+        scores['T1'] += 35
+        scores['T4'] += 35
+
     # 排序取前3
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     top_templates = [t for t, score in ranked if score > 0][:3]
@@ -280,6 +324,7 @@ def main():
     templates = {t['id']: t for t in templates_data['templates']}
     result = {
         'analysis': analysis,
+        'competition_scene': analysis.get('competition_scene'),
         'recommended_templates': [
             {
                 'id': tid,

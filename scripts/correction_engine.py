@@ -368,7 +368,490 @@ def generate_correction_for_f10(detection_detail: dict, baseline: dict, regulati
     }
 
 
-# 纠正函数映射
+# =============================================================================
+# v4.1.0: 题型特化失效模式纠正生成器 (F11-F18)
+# =============================================================================
+
+def generate_correction_for_f11(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F11选项混淆偏误生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'concept_confusion':
+            term1 = d.get('term1', '概念A')
+            term2 = d.get('term2', '概念B')
+            corrections.append({
+                'failure_id': 'F11',
+                'failure_name': '选项混淆偏误',
+                'severity': '🟠 高',
+                'original_issue': f'混淆了「{term1}」与「{term2}」两个相似但本质不同的法律概念',
+                'empirical_evidence': {
+                    'test_case': '法考真题校准',
+                    'finding': f'2022-2025法考客观题中「{term1}vs{term2}」是高频混淆对，民法选择题约40%涉及此类区分',
+                    'source': '2022-2025年法考客观题真题分析'
+                },
+                'correction_direction': f'在选择题分析中明确区分「{term1}」与「{term2}」：标注两者的成立要件差异、法律效果差异和适用场景',
+                'suggested_rewrite': f'「{term1}」与「{term2}」的核心区别在于：{term1}（[要件/效果描述]），而{term2}（[要件/效果描述]）。本选项属于[正确答案]',
+                'teaching_tip': '推荐使用对比表格展示混淆概念的核心差异'
+            })
+        elif d.get('type') == 'ambiguity_signal':
+            corrections.append({
+                'failure_id': 'F11',
+                'failure_name': '选项混淆偏误',
+                'severity': '🟠 高',
+                'original_issue': '分析中使用模糊表述（可能/也许/不确定）替代明确法律判断',
+                'empirical_evidence': {
+                    'test_case': '法考真题校准',
+                    'finding': '模糊表述降低了选择题分析的确定性，导致学生难以确定正确选项'
+                },
+                'correction_direction': '用明确的法律要件对比替代模糊表述',
+                'suggested_rewrite': '根据[法条]第[X]条，本案应定性为[明确结论]。理由：[要件]均满足/不满足。'
+            })
+
+    if not corrections:
+        corrections.append({
+            'failure_id': 'F11',
+            'failure_name': '选项混淆偏误',
+            'severity': '🟡 预警',
+            'original_issue': '检测到选择题中存在相似法律概念的混淆风险',
+            'empirical_evidence': {
+                'test_case': '法考真题校准',
+                'finding': '相似概念混淆是客观题失分的主要原因之一'
+            },
+            'correction_direction': '对每个选项核验其对应的法律概念定义与成立要件',
+            'suggested_rewrite': '请逐项核验：1）每个选项对应的法律概念定义；2）概念间区分标准；3）与题干事实的匹配'
+        })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '概念混淆直接影响客观题得分，且反映学生对核心法律概念的掌握不足',
+        'checklist_item': 'C2: 我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）'
+    }
+
+
+def generate_correction_for_f12(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F12采分点遗漏生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'potential_omission':
+            corrections.append({
+                'failure_id': 'F12',
+                'failure_name': '采分点遗漏',
+                'severity': '🟠 高',
+                'original_issue': '简答题答案存在潜在采分点遗漏（检测到补充性过渡词）',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '采分点覆盖不足是简答题失分的首要原因，答案键中的每个采分点都有对应分值'
+                },
+                'correction_direction': '对照答案键的scoring_points逐点覆盖，使用「首先/其次/再次/最后」结构明确列出各采分点',
+                'suggested_rewrite': '答案应包含以下采分点：1）[采分点1]... 2）[采分点2]... 3）[采分点3]...'
+            })
+        elif d.get('type') == 'answer_too_short':
+            corrections.append({
+                'failure_id': 'F12',
+                'failure_name': '采分点遗漏',
+                'severity': '🟠 高',
+                'original_issue': '简答题答案过短(<100字)，大概率遗漏关键采分点',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '字数与采分点覆盖呈正相关，过短答案通常遗漏2个以上采分点'
+                },
+                'correction_direction': '按答案键逐点补充回答，确保每个采分点都有对应论述',
+                'suggested_rewrite': '建议扩充答案，覆盖：[列出答案键缺失的采分点]'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '采分点遗漏直接损失分值，是简答题提分的关键突破口',
+        'checklist_item': 'C5: 我问了自己：AI有没有遗漏关键事实或法律争点？'
+    }
+
+
+def generate_correction_for_f13(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F13定义要素缺失生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        found = d.get('found_elements', [])
+        if d.get('type') == 'definition_too_short':
+            corrections.append({
+                'failure_id': 'F13',
+                'failure_name': '定义要素缺失',
+                'severity': '🟡 中高',
+                'original_issue': '名词解释过于简短(<30字)，缺少构成要件要素',
+                'empirical_evidence': {
+                    'test_case': '法考客观题校准',
+                    'finding': '完整的名词解释应包含核心概念+构成要件+法律来源，过短定义无法获得要素维度分值'
+                },
+                'correction_direction': '补充完整的名词解释三要素：核心概念+构成要件+法律来源',
+                'suggested_rewrite': f'「[概念]」是指[核心概念定义]。其构成要件包括：1）主体... 2）客体... 3）内容...。法律依据见[法条]'
+            })
+        elif d.get('type') == 'definition_elements_missing':
+            corrections.append({
+                'failure_id': 'F13',
+                'failure_name': '定义要素缺失',
+                'severity': '🟡 中高',
+                'original_issue': f'定义中检测到的要素信号较少(仅{len(found)}个)',
+                'empirical_evidence': {
+                    'test_case': '法考客观题校准',
+                    'finding': '名词解释评分按三维关键词覆盖：核心概念50%+要素完整30%+法律来源20%'
+                },
+                'correction_direction': '补充主体/客体/内容/目的/构成要件等定义要素',
+                'suggested_rewrite': f'已检测到要素: {", ".join(found) if found else "无"}。建议补充：[缺失要素]'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'medium',
+        'reason': '定义要素缺失反映学生对概念本质的理解不足',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f14(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F14判对错不给理由生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'bare_judgment':
+            corrections.append({
+                'failure_id': 'F14',
+                'failure_name': '判对错不给理由',
+                'severity': '🟡 中高',
+                'original_issue': '判断题仅给出判断结果(对/错)但未附法律依据',
+                'empirical_evidence': {
+                    'test_case': '法考客观题校准',
+                    'finding': '要求说明理由的判断题若未附依据应扣分，正确理由应引用具体法条号'
+                },
+                'correction_direction': '补充法律依据：引用具体法条号+解释判断逻辑',
+                'suggested_rewrite': '本题答案为[正确/错误]。依据《[法律名称]》第[X]条，[法条内容]。因此，[判断逻辑推理]。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'medium',
+        'reason': '判断题不给理由无法检验学生的法律推理能力',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f15(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F15法条解构不完整生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'incomplete_deconstruction':
+            laws = d.get('laws_referenced', [])
+            corrections.append({
+                'failure_id': 'F15',
+                'failure_name': '法条解构不完整',
+                'severity': '🟠 高',
+                'original_issue': f'引用了{len(laws)}部法律但未进行规范结构解构',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '法条分析题评分要求四维结构化：条文定位→构成要件→法律后果→适用范围'
+                },
+                'correction_direction': '按规范结构完整解构：条文定位→构成要件→法律后果→适用范围→与相关法条关系',
+                'suggested_rewrite': f'对《{"》《".join(laws)}》的解构：1）条文定位... 2）构成要件... 3）法律后果... 4）适用范围...'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '法条解构不完整无法体现学生对法条规范结构的深入理解',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f16(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F16论述偏离题眼生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'potential_off_topic':
+            count = d.get('off_topic_marker_count', 0)
+            corrections.append({
+                'failure_id': 'F16',
+                'failure_name': '论述偏离题眼',
+                'severity': '🟡 中高',
+                'original_issue': f'论述题检测到{count}个偏离性过渡词，可能存在偏题风险',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '论述题评分注重围绕核心争点展开，偏离题眼会导致论证密度不足'
+                },
+                'correction_direction': '紧扣题干核心争点展开，检查核心关键词与题干争议焦点的重叠率',
+                'suggested_rewrite': '论述结构应聚焦：[题干核心争点]。1）问题界定... 2）法理分析... 3）现实意义...'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'medium',
+        'reason': '论述偏离题眼会显著降低论证深度评分',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f17(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F17三段论结构缺失生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'syllogism_gap':
+            missing = d.get('missing_elements', [])
+            completeness = d.get('completeness', '?/3')
+            corrections.append({
+                'failure_id': 'F17',
+                'failure_name': '三段论结构缺失',
+                'severity': '🟠 高',
+                'original_issue': f'三段论结构不完整({completeness})，缺少: {", ".join(missing)}',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '案例分析题评分要求完整三段论：大前提(法律规则)→小前提(案件事实)→结论'
+                },
+                'correction_direction': f'补齐缺失的三段论要素: {", ".join(missing)}',
+                'suggested_rewrite': '大前提：根据《[法律名称]》第[X]条，[法律规则]... 小前提：本案中，[案件事实]... 结论：因此，[法律判断]'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '三段论结构缺失直接影响案例分析的法律推理质量',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f18(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F18要件事实识别错误生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'potential_misidentification':
+            count = d.get('fact_emphasis_count', 0)
+            corrections.append({
+                'failure_id': 'F18',
+                'failure_name': '要件事实识别错误',
+                'severity': '🔴 关键',
+                'original_issue': f'检测到{count}处事实重要性的标注，需核查是否将非关键事实误认为法律要件事实',
+                'empirical_evidence': {
+                    'test_case': '测试#2 堆放物致害案',
+                    'finding': "学生可能将'暴雨'作为免责事由，忽略了1255条过错推定原则下堆放人的举证责任",
+                    'related_failure': 'F4 浅度正确'
+                },
+                'correction_direction': '标注案情中的法律要件事实清单，与学生的识别结果对比',
+                'suggested_rewrite': '本案的法律要件事实清单：1）[要件事实1]（对应[法条]要件）... 2）[要件事实2]... 非关键背景事实：[列出可省略的]'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'highest',
+        'reason': '要件事实识别错误会导致法律定性错误，是最根本性的问题之一',
+        'checklist_item': 'C5: 我问了自己：AI有没有遗漏关键事实或法律争点？'
+    }
+
+
+# =============================================================================
+# v4.1.0: 教信赛场景特化纠正生成器 (F19-F24)
+# =============================================================================
+
+def generate_correction_for_f19(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F19试题歧义偏差生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'question_ambiguity':
+            markers = d.get('ambiguity_markers', [])
+            corrections.append({
+                'failure_id': 'F19',
+                'failure_name': '试题歧义偏差',
+                'severity': '🟠 高',
+                'original_issue': f'试题表述包含{len(markers)}个歧义信号词: {", ".join(markers)}',
+                'empirical_evidence': {
+                    'test_case': '教信赛智慧评价赛道',
+                    'finding': '歧义表述导致不同学生对同一题目产生不同且均合理的理解，直接影响评分公平性'
+                },
+                'correction_direction': '为题目增加限定条件：明确法律生效时间、法域范围、主体/客体/情景边界',
+                'suggested_rewrite': '【修改建议】题目应限定：1）适用的法律及生效时间；2）案件发生法域；3）关键要素的具体范围。示例：「根据2021年1月1日施行的《民法典》合同编，以下情形...」'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '试题歧义直接影响评分公平性，是考试设计质量的核心问题',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f20(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F20评分尺度偏移生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'scoring_drift':
+            corrections.append({
+                'failure_id': 'F20',
+                'failure_name': '评分尺度偏移',
+                'severity': '🟠 高',
+                'original_issue': '检测到评分尺度偏移：不同批次/评分者间评分系统性偏严或偏松',
+                'empirical_evidence': {
+                    'test_case': '教学质量多维评价',
+                    'finding': '同一试卷由不同评分者评分差异可达8分。实证基线：DS综合平均3.84/5，千问3.06/5，可作为评分锚定参照'
+                },
+                'correction_direction': '引入评分锚定机制，使用实证基线作为锚点样例校准评分者',
+                'suggested_rewrite': '【评分校准流程】1）每个维度设置锚点：5分=DS最佳表现，3分=DS综合平均3.84，1分=千问最弱1.70；2）评分前用基准测试集校准；3）跨批次抽检一致性。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '评分尺度偏移破坏评分公平性和可复现性，是教育评价的核心关切',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f21(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F21答案格式违规生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'format_violation':
+            count = d.get('format_marker_count', 0)
+            corrections.append({
+                'failure_id': 'F21',
+                'failure_name': '答案格式违规',
+                'severity': '🟡 中高',
+                'original_issue': f'答案以要点/列表为主（检测到{count}个列表信号），缺乏段落式论证',
+                'empirical_evidence': {
+                    'test_case': '教信赛智慧评价赛道',
+                    'finding': '论述题要求段落式论证，纯要点式答案虽含考点但论证深度不足'
+                },
+                'correction_direction': '按题目要求的格式作答：论述题需段落式论证，简答题需分点但保留展开',
+                'suggested_rewrite': '【论述题格式】应包含：1）问题界定（分析本题核心争点）；2）法理分析（引用法条+学理观点）；3）结论论证（逻辑展开）。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'medium',
+        'reason': '格式违规影响答案的论证深度评分',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f22(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F22跨题一致性破裂生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'cross_question_contradiction':
+            pair = d.get('term_pair', 'A vs B')
+            corrections.append({
+                'failure_id': 'F22',
+                'failure_name': '跨题一致性破裂',
+                'severity': '🟠 高',
+                'original_issue': f'同一学生的不同题目答案中对「{pair}」给出矛盾判断',
+                'empirical_evidence': {
+                    'test_case': '综合试卷评估',
+                    'finding': '客观题与主观题对同一法律原则判断不一致，反映学生知识体系存在割裂'
+                },
+                'correction_direction': '跨题联合分析，标注矛盾冲突点，检查学生对核心法律概念的掌握是否成体系',
+                'suggested_rewrite': '【一致性核查】「{pair}」在不同题目的答案应一致。建议：1）列出该概念在所有题目中的判断；2）定位矛盾点；3）补充该概念的定义与适用条件讲解。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'high',
+        'reason': '跨题一致性破裂反映学生知识体系不完整，是诊断性评估的重要信号',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f23(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F23采分点粒度失当生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'too_few_points':
+            corrections.append({
+                'failure_id': 'F23',
+                'failure_name': '采分点粒度失当',
+                'severity': '🟡 中高',
+                'original_issue': f'答案键采分点仅{d.get("point_count", 0)}个，粒度过粗',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '采分点过粗导致高分扎堆，无法区分学生掌握程度'
+                },
+                'correction_direction': '扩充采分点至3-8个，每个对应一个明确考点',
+                'suggested_rewrite': '【采分点设计】建议将答案拆分为3-8个采分点，例如：1）法律依据（法条号）；2）构成要件分析；3）案件事实对应；4）结论。'
+            })
+        elif d.get('type') == 'too_many_points':
+            corrections.append({
+                'failure_id': 'F23',
+                'failure_name': '采分点粒度失当',
+                'severity': '🟡 中高',
+                'original_issue': f'答案键采分点多达{d.get("point_count", 0)}个，粒度过细',
+                'empirical_evidence': {
+                    'test_case': '法考主观题校准',
+                    'finding': '采分点过细导致低分泛滥，评分标准过于苛刻'
+                },
+                'correction_direction': '合并采分点至3-8个，与题目分值匹配',
+                'suggested_rewrite': '【采分点简化】建议合并相邻采分点，控制在3-8个，每个采分点分值与难度匹配。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'medium',
+        'reason': '采分点粒度失当影响评分区分度和公平性',
+        'checklist_item': None
+    }
+
+
+def generate_correction_for_f24(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+    """为F24教学大纲合规偏离生成纠正建议"""
+    detections = detection_detail.get('detections') or []
+    corrections = []
+
+    for d in detections:
+        if d.get('type') == 'syllabus_noncompliance':
+            ratio = d.get('coverage_ratio', 0)
+            missing = d.get('missing_knowledge_points', [])
+            corrections.append({
+                'failure_id': 'F24',
+                'failure_name': '教学大纲合规偏离',
+                'severity': '🔴 关键',
+                'original_issue': f'教学内容对核心知识点的覆盖率仅{round(ratio*100)}%（要求80%以上）',
+                'empirical_evidence': {
+                    'test_case': '教信赛智慧评价赛道-教学大纲合规审核',
+                    'finding': f'缺失核心知识点: {", ".join(missing)}。教育部法学类教学质量国家标准要求核心知识点全覆盖',
+                    'source': 'reference/curriculum_requirements.json'
+                },
+                'correction_direction': f'对照教育部课程标准补充缺失知识点: {", ".join(missing)}',
+                'suggested_rewrite': '【大纲修订建议】本学期教学大纲需补充以下必授核心知识点：1）' + '；'.join(missing) + '。同时更新课程教学目标、学时分配和考核方式。'
+            })
+
+    return {
+        'corrections': corrections,
+        'priority': 'highest',
+        'reason': '教学大纲未覆盖国家标准必授知识点，直接影响人才培养质量和课程评估结果',
+        'checklist_item': None
+    }
+
+
+# 纠正函数映射 (v4.1.0: 覆盖 F1-F24)
 CORRECTION_GENERATORS = {
     'F1': generate_correction_for_f1,
     'F2': generate_correction_for_f2,
@@ -380,6 +863,20 @@ CORRECTION_GENERATORS = {
     'F8': generate_correction_for_f8,
     'F9': generate_correction_for_f9,
     'F10': generate_correction_for_f10,
+    'F11': generate_correction_for_f11,
+    'F12': generate_correction_for_f12,
+    'F13': generate_correction_for_f13,
+    'F14': generate_correction_for_f14,
+    'F15': generate_correction_for_f15,
+    'F16': generate_correction_for_f16,
+    'F17': generate_correction_for_f17,
+    'F18': generate_correction_for_f18,
+    'F19': generate_correction_for_f19,
+    'F20': generate_correction_for_f20,
+    'F21': generate_correction_for_f21,
+    'F22': generate_correction_for_f22,
+    'F23': generate_correction_for_f23,
+    'F24': generate_correction_for_f24,
 }
 
 
