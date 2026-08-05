@@ -15,11 +15,18 @@ except Exception:
     pass
 
 
+_FAILURE_PATTERNS_CACHE = None
+
+
 def load_failure_patterns():
+    global _FAILURE_PATTERNS_CACHE
+    if _FAILURE_PATTERNS_CACHE is not None:
+        return _FAILURE_PATTERNS_CACHE
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(script_dir, '..', 'reference', 'failure_patterns.json')
     with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        _FAILURE_PATTERNS_CACHE = json.load(f)
+    return _FAILURE_PATTERNS_CACHE
 
 
 def extract_context(text, keyword, ctx=80):
@@ -114,12 +121,11 @@ def detect_f5(text, pat):
     else:
         trap_items = traps if isinstance(traps, list) else []
     dets = []
+    has_corr = any(p in text for p in ['repealed', 'replaced', 'does not exist', 'not found', 'please verify', 'needs verification'])
     for trap in trap_items:
-        if trap in text:
-            has_corr = any(p in text for p in ['repealed', 'replaced', 'does not exist', 'not found', 'please verify', 'needs verification'])
-            if not has_corr:
-                dets.append({'type': 'trap_accepted', 'evidence_text': 'AI accepted potentially problematic premise: ' + trap,
-                             'recommendation': 'First verify if ' + trap + ' is real and valid'})
+        if trap in text and not has_corr:
+            dets.append({'type': 'trap_accepted', 'evidence_text': 'AI accepted potentially problematic premise: ' + trap,
+                         'recommendation': 'First verify if ' + trap + ' is real and valid'})
     return {'fired': len(dets) > 0, 'probability': min(len(dets) * 0.4, 1.0),
             'severity': 'critical', 'detections': dets if dets else None}
 
@@ -208,7 +214,7 @@ def detect_f10(text, pat):
 
 def detect_f11(text, pat):
     """F11: 选项混淆偏误 — 选择题中将相似法律概念混淆"""
-    confusion_pairs = [
+    default_pairs = [
         (['可撤销', '无效'], '可撤销≠无效。可撤销行为在被撤销前有效；无效行为自始无效。'),
         (['效力待定', '无效'], '效力待定≠无效。效力待定经追认可有效；无效不可追认。'),
         (['解除', '撤销'], '解除≠撤销。解除面向将来；撤销溯及既往。'),
@@ -216,6 +222,23 @@ def detect_f11(text, pat):
         (['应当', '可以'], '应当=强制性义务；可以=授权性权利。'),
         (['从轻', '减轻'], '从轻=在法定刑幅度内偏轻；减轻=突破法定刑下限。'),
     ]
+    kw = pat.get('detection_keywords', {})
+    raw_pairs = kw.get('confusion_pairs', default_pairs)
+    # patterns_v2 中 confusion_pairs 为 "可撤销.*无效" 正则字符串格式，统一转成 [(term1, term2), explanation]
+    confusion_pairs = []
+    if isinstance(raw_pairs, list):
+        for item in raw_pairs:
+            if isinstance(item, str):
+                terms = re.split(r'\s*[.．]\*\s*|\s*[、,，]\s*', item)
+                if len(terms) >= 2:
+                    confusion_pairs.append(([terms[0].strip(), terms[1].strip()], ''))
+            elif isinstance(item, (list, tuple)) and len(item) >= 2:
+                if isinstance(item[0], (list, tuple)):
+                    confusion_pairs.append((list(item[0]), item[1] if len(item) > 1 else ''))
+                elif all(isinstance(x, str) for x in item):
+                    confusion_pairs.append(([item[0], item[1]], ''))
+    if not confusion_pairs:
+        confusion_pairs = default_pairs
     dets = []
     for (term1, term2), explanation in confusion_pairs:
         # 检测两个混淆词同时出现且未明确区分
@@ -227,7 +250,7 @@ def detect_f11(text, pat):
                     'type': 'concept_confusion',
                     'term1': term1,
                     'term2': term2,
-                    'recommendation': explanation
+                    'recommendation': explanation or f'注意区分「{term1}」与「{term2}」的实质差异。'
                 })
     return {'fired': len(dets) > 0, 'probability': min(len(dets) * 0.35, 1.0),
             'severity': 'high', 'detections': dets if dets else None}
@@ -236,7 +259,8 @@ def detect_f11(text, pat):
 def detect_f12(text, pat):
     """F12: 采分点遗漏 — 简答题遗漏关键采分点"""
     # 此检测需要答案键配合，独立检测只能标记潜在遗漏
-    omission_signals = ['此外', '另外', '还有', '不仅如此', '值得注意的是']
+    kw = pat.get('detection_keywords', {})
+    omission_signals = kw.get('omission_signals', ['此外', '另外', '还有', '不仅如此', '值得注意的是'])
     has_omission_marker = any(s in text for s in omission_signals)
     dets = []
     if has_omission_marker:
@@ -256,9 +280,18 @@ def detect_f12(text, pat):
 
 def detect_f13(text, pat):
     """F13: 定义要素缺失 — 名词解释缺少核心要素"""
-    required_elements = ['主体', '客体', '内容', '目的', '构成要件', '法律特征', '适用范围',
-                        '是指', '指的是', '即', '又称']
-    found = [e for e in required_elements if e in text]
+    kw = pat.get('detection_keywords', {})
+    required_elements = kw.get('required_elements',
+                               ['主体', '客体', '内容', '目的', '构成要件', '法律特征', '适用范围',
+                                '是指', '指的是', '即', '又称'])
+    found = []
+    for e in required_elements:
+        if len(e) <= 1:
+            # 单字要素需独立成词，避免 即使/立即 等误报
+            if re.search(r'(?<![一-鿿])' + re.escape(e) + r'(?![一-鿿])', text):
+                found.append(e)
+        elif e in text:
+            found.append(e)
     dets = []
     if len(text) < 30 and len(text) > 0:
         dets.append({
@@ -279,8 +312,19 @@ def detect_f13(text, pat):
 def detect_f14(text, pat):
     """F14: 判对错但不给理由 — 判断题缺法律依据"""
     # 检测纯判断词（正确/错误）且无法律引用
-    judgment_words = ['正确', '错误', '对', '错', '✓', '✗', '✅', '❌', '√', '×']
-    has_judgment = any(w in text for w in judgment_words)
+    kw = pat.get('detection_keywords', {})
+    judgment_words = kw.get('judgment_words',
+                            ['正确', '错误', '对', '错', '✓', '✗', '✅', '❌', '√', '×'])
+    has_judgment = False
+    for w in judgment_words:
+        if len(w) <= 1:
+            # 单字判断词需独立成词，避免 针对/对立 等误报
+            if re.search(r'(?<![一-鿿])' + re.escape(w) + r'(?![一-鿿])', text):
+                has_judgment = True
+                break
+        elif w in text:
+            has_judgment = True
+            break
     has_legal_ref = bool(re.search(r'《[^》]+》', text)) or any(
         w in text for w in ['根据', '依据', '因为', '由于', '理由是'])
     dets = []
@@ -295,8 +339,10 @@ def detect_f14(text, pat):
 
 def detect_f15(text, pat):
     """F15: 法条解构不完整 — 缺少构成要件→法律后果映射"""
+    kw = pat.get('detection_keywords', {})
+    structure_signals = kw.get('required_structure', ['构成要件', '法律后果', '适用范围', '规范结构', '立法目的'])
     law_refs = re.findall(r'《([^》]+)》', text)
-    has_structure = any(w in text for w in ['构成要件', '法律后果', '适用范围', '规范结构', '立法目的'])
+    has_structure = any(w in text for w in structure_signals)
     dets = []
     if len(law_refs) >= 1 and not has_structure:
         dets.append({
@@ -311,7 +357,8 @@ def detect_f15(text, pat):
 def detect_f16(text, pat):
     """F16: 论述偏离题眼 — 论述题未紧扣核心争点"""
     # 检测大量使用偏离性过渡词
-    off_topic_signals = ['此外', '顺便提到', '另外值得注意', '值得一提的是']
+    kw = pat.get('detection_keywords', {})
+    off_topic_signals = kw.get('off_topic_signals', ['此外', '顺便提到', '另外值得注意', '值得一提的是'])
     off_topic_count = sum(1 for s in off_topic_signals if s in text)
     dets = []
     if off_topic_count >= 2 and len(text) > 500:
@@ -326,9 +373,14 @@ def detect_f16(text, pat):
 
 def detect_f17(text, pat):
     """F17: 三段论结构缺失 — 案例分析缺少三段论推理"""
-    major = any(w in text for w in ['根据《', '依据《', '法律规定', '按照《', '法条规定'])
-    minor = any(w in text for w in ['本案中', '本案', '案情', '事实', '证据显示', '本案的'])
-    conclusion = any(w in text for w in ['因此', '综上所述', '综上', '故', '应认定', '所以'])
+    kw = pat.get('detection_keywords', {})
+    syll_elem = kw.get('syllogism_elements', {})
+    major_words = syll_elem.get('major_premise', ['根据《', '依据《', '法律规定', '按照《', '法条规定'])
+    minor_words = syll_elem.get('minor_premise', ['本案中', '本案', '案情', '事实', '证据显示', '本案的'])
+    conclusion_words = syll_elem.get('conclusion', ['因此', '综上所述', '综上', '故', '应认定', '所以'])
+    major = any(w in text for w in major_words)
+    minor = any(w in text for w in minor_words)
+    conclusion = any(w in text for w in conclusion_words)
     syllogism = sum([major, minor, conclusion])
     dets = []
     if syllogism < 3 and len(text) > 100:
@@ -349,7 +401,10 @@ def detect_f17(text, pat):
 
 def detect_f18(text, pat):
     """F18: 要件事实识别错误 — 混淆关键/非关键事实"""
-    fact_emphasis = re.findall(r'(关键|重要|决定性|核心|次要|无关).{0,10}(事实|情节|情况|因素)', text)
+    kw = pat.get('detection_keywords', {})
+    fact_words = kw.get('fact_misidentification', ['关键', '重要', '决定性', '核心', '次要', '无关'])
+    fact_re = r'(' + '|'.join(re.escape(w) for w in fact_words) + r').{0,10}(事实|情节|情况|因素)'
+    fact_emphasis = re.findall(fact_re, text)
     dets = []
     if len(fact_emphasis) >= 2:
         dets.append({
@@ -434,16 +489,15 @@ def detect_f22(text, pat):
             break
     return {'fired': len(dets) > 0, 'probability': 0.6 if dets else 0.1,
             'severity': 'high', 'detections': dets if dets else None,
-            'cross_question_analysis': True}
+            'cross_question_analysis': len(dets) > 0}
 
 
 def detect_f23(text, pat):
     """F23: 采分点粒度失当 — 答案键采分点过粗或过细"""
     kw = pat['detection_keywords']
     # 检测采分点数量（以"采分点""评分点"后的数字或列表项数量判断）
-    import re as _re
-    point_refs = _re.findall(r'[分点采分点评分点].{0,5}?(\d{1,2})', text)
-    bullet_count = len(_re.findall(r'(?:1[\.、）]|2[\.、）]|3[\.、）]|4[\.、）]|5[\.、）]|6[\.、）]|7[\.、）]|8[\.、）]|9[\.、）]|10[\.、）])', text))
+    point_refs = re.findall(r'[分点采分点评分点].{0,5}?(\d{1,2})', text)
+    bullet_count = len(re.findall(r'(?:1[\.、）]|2[\.、）]|3[\.、）]|4[\.、）]|5[\.、）]|6[\.、）]|7[\.、）]|8[\.、）]|9[\.、）]|10[\.、）])', text))
     total_points = max(len(point_refs), bullet_count)
     dets = []
     if 0 < total_points < 3:
@@ -505,9 +559,24 @@ def detect_all(text):
         pid = p['id']
         detector = DETECTORS.get(pid)
         results[pid] = detector(text, p) if detector else {'fired': False, 'probability': 0, 'severity': 'unknown', 'detections': None}
-    fired = sum(1 for r in results.values() if r['fired'])
-    critical = sum(1 for r in results.values() if r['fired'] and r['severity'] == 'critical')
-    high = sum(1 for r in results.values() if r['fired'] and r['severity'] == 'high')
+    fired = 0
+    critical = 0
+    high = 0
+    medium_high = 0
+    medium = 0
+    for r in results.values():
+        if not r['fired']:
+            continue
+        fired += 1
+        sev = r['severity']
+        if sev == 'critical':
+            critical += 1
+        elif sev == 'high':
+            high += 1
+        elif sev == 'medium_high':
+            medium_high += 1
+        elif sev == 'medium':
+            medium += 1
     dm = pd.get('dimension_mapping_v2', pd.get('dimension_mapping', {}))
     dim_scores = {}
     for dim, related in dm.items():
@@ -515,9 +584,19 @@ def detect_all(text):
             rf = [pid for pid in related if results.get(pid, {}).get('fired')]
             dim_scores[dim] = round(5 * (1 - len(rf) / len(related)), 1) if related else 5.0
     total_patterns = len(all_patterns)
+    if critical > 0:
+        overall_risk = 'critical'
+    elif high > 0:
+        overall_risk = 'high'
+    elif medium_high > 0:
+        overall_risk = 'medium'   # 词汇表仅含 low/medium/high/critical，medium_high 档归入 medium
+    elif medium > 0:
+        overall_risk = 'medium'
+    else:
+        overall_risk = 'low'
     return {'meta': {'text_length': len(text), 'total_patterns': total_patterns, 'fired_patterns': fired,
                      'critical_fired': critical, 'high_fired': high,
-                     'overall_risk': 'high' if critical > 0 else 'medium' if high > 0 else 'low'},
+                     'overall_risk': overall_risk},
             'dimension_scores': dim_scores,
             'detections': {pid: r for pid, r in results.items() if r['fired']},
             'all_detections': results}

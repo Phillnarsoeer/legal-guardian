@@ -38,6 +38,24 @@ def load_legal_knowledge() -> dict:
         return json.load(f)
 
 
+# 标准模板ID集合：分数写入与推荐均只针对这些ID，模板缺失/重命名时优雅降级
+TEMPLATE_IDS = ('T1', 'T2', 'T3', 'T4', 'T5')
+
+# 模块级缓存: id -> 模板映射, 避免在 generate_optimized_question 与 main 中重复构建
+_templates_map_cache = None
+_templates_map_cache_key = None
+
+
+def get_templates_map(templates_data: dict) -> dict:
+    """构建 {模板id: 模板} 映射并缓存, 避免重复构建同一份数据"""
+    global _templates_map_cache, _templates_map_cache_key
+    key = id(templates_data)
+    if _templates_map_cache_key != key:
+        _templates_map_cache = {t['id']: t for t in templates_data['templates']}
+        _templates_map_cache_key = key
+    return _templates_map_cache
+
+
 def analyze_question(question: str, templates_data: dict, legal_kb: dict) -> dict:
     """分析用户问题中的潜在陷阱和特征"""
 
@@ -163,7 +181,11 @@ def match_templates(analysis: dict, templates_data: dict) -> list:
     matching_rules = templates_data['matching_rules']
     templates = templates_data['templates']
 
-    scores = {t['id']: 0 for t in templates}
+    # 以标准模板ID集合初始化分数，避免模板缺失/重命名时对 scores['T1']..['T5'] 的写入引发 KeyError
+    scores = {tid: 0 for tid in TEMPLATE_IDS}
+    for t in templates:
+        if t['id'] not in scores:
+            scores[t['id']] = 0
 
     # 规则1: 有法律名称引用 → T1+T4优先
     if analysis['has_legal_name']:
@@ -234,7 +256,7 @@ def generate_optimized_question(question: str, analysis: dict, recommended_templ
                                  templates_data: dict, legal_kb: dict) -> dict:
     """基于原始问题和推荐模板生成优化后的提问"""
 
-    templates = {t['id']: t for t in templates_data['templates']}
+    templates = get_templates_map(templates_data)
     primary_template = templates.get(recommended_templates[0]) if recommended_templates else None
 
     modifications = []
@@ -281,14 +303,19 @@ def generate_optimized_question(question: str, analysis: dict, recommended_templ
     if any(m['type'] == 'add_verification_step' for m in modifications):
         optimized_parts.append('【验证步骤】请先确认以下前提是否成立：')
 
+    # 原始问题是否已追加到优化结果（显式布尔跟踪，避免子串扫描误判）
+    question_added = False
+
     # 添加T4模板前缀（如果需要前提挑战）
     if 'T4' in recommended_templates:
         for law in analysis['detected_laws']:
             if law in repealed_laws:
                 optimized_parts.append(f'我原来以为根据《{law}》可以...但请先帮我确认《{law}》是否仍然有效。如果已废止，请用现行法律分析。')
 
-    if not any('原来以为' in p for p in optimized_parts):
+    # 原始问题必须始终包含在优化问题中
+    if not question_added:
         optimized_parts.append(question)
+        question_added = True
 
     # 添加模板补充要求
     if primary_template:
@@ -327,7 +354,7 @@ def main():
     recommended = match_templates(analysis, templates_data)
     optimized = generate_optimized_question(question, analysis, recommended, templates_data, legal_kb)
 
-    templates = {t['id']: t for t in templates_data['templates']}
+    templates = get_templates_map(templates_data)
     result = {
         'analysis': analysis,
         'competition_scene': analysis.get('competition_scene'),

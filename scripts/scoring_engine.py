@@ -28,8 +28,13 @@ except Exception:
 def load_baseline() -> dict:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     baseline_path = os.path.join(script_dir, '..', 'reference', 'test_baseline.json')
-    with open(baseline_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    if not os.path.exists(baseline_path):
+        raise FileNotFoundError(f'基线文件不存在: {baseline_path}')
+    try:
+        with open(baseline_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise ValueError(f'基线文件解析失败: {baseline_path} ({e})') from e
 
 
 def score_accuracy(text: str) -> dict:
@@ -40,7 +45,7 @@ def score_accuracy(text: str) -> dict:
     bonuses = 0
     if any(phrase in text for phrase in ['根据《民法典》', '根据《中华人民共和国刑法》', '现行有效']):
         bonuses += 0.5
-    if any(phrase in text for phrase in ['第X条', '第X款规定']):
+    if re.search(r'第[一二三四五六七八九十百千万0-9]+条', text):
         bonuses += 0.3
     if re.search(r'(?:生效|施行|修订).*(?:\d{4})', text):
         bonuses += 0.2
@@ -199,8 +204,16 @@ def score_all(text: str, failure_detection: dict = None) -> dict:
             fired_count = sum(1 for fid in related_failures if detections.get(fid, {}).get('fired'))
             if fired_count > 0:
                 penalty = min(fired_count * 0.5, 2.0)
-                dimensions[dim]['score'] = max(1.0, dimensions[dim]['score'] - penalty)
+                final_score = max(1.0, dimensions[dim]['score'] - penalty)
+                dimensions[dim]['score'] = final_score
                 dimensions[dim]['failure_penalty'] = f'-{penalty} ({fired_count}个相关失效模式)'
+                # 扣分后重新计算评估标签（与score_accuracy等保持一致阈值）
+                dimensions[dim]['assessment'] = (
+                    '优秀' if final_score >= 4.5 else
+                    '良好' if final_score >= 3.5 else
+                    '一般' if final_score >= 2.5 else
+                    '不足'
+                )
 
     # 计算总平均和评级
     scores = [d['score'] for d in dimensions.values()]
@@ -208,8 +221,11 @@ def score_all(text: str, failure_detection: dict = None) -> dict:
     overall_grade = 'A' if overall >= 4.0 else 'B' if overall >= 3.0 else 'C' if overall >= 2.0 else 'D'
 
     # 与baseline对比
-    ds_baseline = baseline['baseline_scores']['deepseek']
-    qw_baseline = baseline['baseline_scores']['qwen']
+    baseline_scores = baseline.get('baseline_scores', {})
+    ds_baseline = baseline_scores.get('deepseek')
+    qw_baseline = baseline_scores.get('qwen')
+    if not isinstance(ds_baseline, dict) or not isinstance(qw_baseline, dict):
+        raise ValueError('基线文件缺少 baseline_scores.deepseek/qwen 字段')
 
     comparison = {
         'vs_deepseek': {
@@ -238,7 +254,7 @@ def score_all(text: str, failure_detection: dict = None) -> dict:
             'overall_score': overall,
             'overall_grade': overall_grade
         },
-        'dimensions': {dim: {k: v for k, v in data.items()} for dim, data in dimensions.items()},
+        'dimensions': dimensions,
         'comparison': comparison,
         'baseline_reference': f'DeepSeek综合{ds_baseline["overall"]}，千问综合{qw_baseline["overall"]}'
     }
@@ -269,7 +285,11 @@ def main():
         print(json.dumps({'error': '未提供文本'}, ensure_ascii=False))
         sys.exit(1)
 
-    results = score_all(text, failure_detection)
+    try:
+        results = score_all(text, failure_detection)
+    except (FileNotFoundError, ValueError, KeyError, TypeError, AttributeError) as e:
+        print(json.dumps({'error': f'评分失败: {e}'}, ensure_ascii=False))
+        sys.exit(1)
     print(json.dumps(results, ensure_ascii=False, indent=2))
 
 

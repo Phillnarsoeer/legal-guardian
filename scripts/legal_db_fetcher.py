@@ -7,7 +7,6 @@
 
 用法:
     python legal_db_fetcher.py --search "民法典" [--exact] [--status 3]
-    python legal_db_fetcher.py --fetch <法律ID> [--format docx]
     python legal_db_fetcher.py --article <法律ID> "第X条"
 
 注意:
@@ -19,7 +18,6 @@
 import sys
 import json
 import os
-import re
 
 # UTF-8 输出兼容 (Windows GBK 控制台)
 try:
@@ -38,7 +36,7 @@ def load_local_kb() -> dict:
     return {}
 
 
-def search_local(text: str, kb: dict) -> list:
+def search_local(text: str, kb: dict, exact: bool = False) -> list:
     """在本地知识库中搜索"""
     results = []
 
@@ -53,7 +51,12 @@ def search_local(text: str, kb: dict) -> list:
             article_content = article_data.get('content', '')
             search_text = f'{article_title} {article_content}'
 
-            if text in search_text or text in article_id or text in article_title:
+            if exact:
+                is_match = (text == article_title or text == article_content)
+            else:
+                is_match = (text in search_text or text in article_id)
+
+            if is_match:
                 results.append({
                     'source': 'local_knowledge_base',
                     'section': section_name,
@@ -73,7 +76,12 @@ def search_local(text: str, kb: dict) -> list:
         article_title = article_data.get('title', '')
         search_text = f'{article_title} {article_data.get("sentencing", "")}'
 
-        if text in search_text or text in article_id or text in article_title:
+        if exact:
+            is_match = (text == article_title or text == article_data.get('sentencing', ''))
+        else:
+            is_match = (text in search_text or text in article_id)
+
+        if is_match:
             results.append({
                 'source': 'local_knowledge_base',
                 'section': '刑法',
@@ -132,7 +140,7 @@ def search_online(query: str, exact: bool = False, status: int = 3) -> dict:
     import subprocess
     download_script = os.path.join(cn_law_hub_path, 'scripts', 'download.py')
 
-    cmd = ['python3', download_script, '--search', query]
+    cmd = [sys.executable, download_script, '--search', query]
     if exact:
         cmd.append('--exact')
     if status:
@@ -156,7 +164,7 @@ def search_online(query: str, exact: bool = False, status: int = 3) -> dict:
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({
-            'error': '用法: python legal_db_fetcher.py --search "关键词" [--exact] [--status 3] [--online] | --article "法条号" | --fetch "法律ID"',
+            'error': '用法: python legal_db_fetcher.py --search "关键词" [--exact] [--status 3] [--online] | --article "法条号"',
             'examples': [
                 'python legal_db_fetcher.py --search "民法典"',
                 'python legal_db_fetcher.py --search "民法通则" --exact',
@@ -171,6 +179,7 @@ def main():
     use_online = False
     exact = False
     status = 3
+    status_set = False
     article_query = None
     fetch_id = None
 
@@ -183,7 +192,14 @@ def main():
             exact = True
             i += 1
         elif args[i] == '--status' and i + 1 < len(args):
-            status = int(args[i + 1])
+            try:
+                status = int(args[i + 1])
+            except ValueError:
+                print(json.dumps({
+                    'error': f'--status 参数必须是整数，实际收到: {args[i + 1]}'
+                }, ensure_ascii=False, indent=2))
+                sys.exit(1)
+            status_set = True
             i += 2
         elif args[i] == '--online':
             use_online = True
@@ -195,6 +211,7 @@ def main():
             fetch_id = args[i + 1]
             i += 2
         else:
+            sys.stderr.write(f'警告: 未识别的参数: {args[i]}\n')
             i += 1
 
     results = {
@@ -212,11 +229,14 @@ def main():
     else:
         kb = load_local_kb()
         if query:
-            local_results = search_local(query, kb)
+            local_results = search_local(query, kb, exact)
         elif article_query:
-            local_results = search_local(article_query, kb)
+            local_results = search_local(article_query, kb, exact)
         else:
             local_results = []
+
+        if status_set:
+            sys.stderr.write('警告: --status 参数仅对 --online 模式生效，本地检索已忽略该参数。\n')
 
         results['results'] = local_results
         results['total_results'] = len(local_results)

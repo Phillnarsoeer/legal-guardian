@@ -23,23 +23,65 @@ except Exception:
     pass
 
 
+def _load_json_reference(path: str, label: str) -> dict:
+    """加载参考JSON文件；缺失或解析失败时输出脚本化JSON错误并退出，避免抛出原始FileNotFoundError"""
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(json.dumps({'error': f'{label}文件不存在: {path}'}, ensure_ascii=False))
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(json.dumps({'error': f'{label}文件解析失败: {path}'}, ensure_ascii=False))
+        sys.exit(1)
+
+
 def load_baseline() -> dict:
     """加载实证基线数据"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    baseline_path = os.path.join(script_dir, '..', 'reference', 'test_baseline.json')
-    with open(baseline_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    return _load_json_reference(
+        os.path.join(script_dir, '..', 'reference', 'test_baseline.json'), '基线数据')
 
 
 def load_regulation() -> dict:
     """加载三维规制路径"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    reg_path = os.path.join(script_dir, '..', 'reference', 'three_d_regulation.json')
-    with open(reg_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    return _load_json_reference(
+        os.path.join(script_dir, '..', 'reference', 'three_d_regulation.json'), '规制数据')
 
 
-def generate_correction_for_f1(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def _extract_detection_context(detection_detail: dict) -> tuple:
+    """从检测明细中提取法律名称与证据文本，用于纠正文本插值"""
+    law_names = []
+    evidence = ''
+    for d in (detection_detail.get('detections') or []):
+        if isinstance(d, dict):
+            if d.get('law_name'):
+                law_names.append(str(d['law_name']))
+            if d.get('evidence_text') and not evidence:
+                evidence = str(d['evidence_text'])
+    return law_names, evidence
+
+
+def _context_suffix(law_names: list, evidence: str) -> str:
+    """生成检测上下文后缀（法律名称/证据文本），无内容时返回空字符串"""
+    parts = []
+    if law_names:
+        parts.append('涉及法律: ' + '、'.join(law_names))
+    if evidence:
+        parts.append('证据: ' + evidence)
+    return ('；' + '；'.join(parts)) if parts else ''
+
+
+def _reg_desc(regulation: dict, key: str) -> str:
+    """安全提取三维规制中技术规范描述，缺失时返回空字符串"""
+    try:
+        return regulation['dimensions']['technology']['items'][key]['description']
+    except (KeyError, TypeError):
+        return ''
+
+
+def generate_correction_for_f1(detection_detail: dict, regulation: dict) -> dict:
     """为F1法条幻视生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -65,7 +107,7 @@ def generate_correction_for_f1(detection_detail: dict, baseline: dict, regulatio
                 'regulation_reference': f'对应技术规范T1：内置法律知识验证层。{regulation["dimensions"]["technology"]["items"]["T1"]["description"]}'
             })
 
-        elif d_type == 'possible_fictional_law':
+        elif d_type == 'possible_fictional':
             corrections.append({
                 'failure_id': 'F1',
                 'failure_name': '法条幻视',
@@ -81,7 +123,7 @@ def generate_correction_for_f1(detection_detail: dict, baseline: dict, regulatio
                 'regulation_reference': f'对应技术规范T1：虚构法条识别率应达到100%'
             })
 
-        elif d_type == 'missing_validity_note':
+        elif d_type == 'missing_validity':
             corrections.append({
                 'failure_id': 'F1',
                 'failure_name': '法条幻视',
@@ -119,7 +161,7 @@ def generate_correction_for_f1(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f2(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f2(detection_detail: dict, regulation: dict) -> dict:
     """为F2罪名定性降维生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -152,13 +194,13 @@ def generate_correction_for_f2(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f3(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f3(detection_detail: dict, regulation: dict) -> dict:
     """为F3量刑乐观偏差生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
 
     for d in detections:
-        if d['type'] == 'sentencing_without_confidence':
+        if d['type'] == 'no_confidence':
             corrections.append({
                 'failure_id': 'F3',
                 'failure_name': '量刑乐观偏差',
@@ -196,13 +238,15 @@ def generate_correction_for_f3(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f4(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f4(detection_detail: dict, regulation: dict) -> dict:
     """为F4浅度正确生成纠正建议"""
+    law_names, evidence = _extract_detection_context(detection_detail)
+    suffix = _context_suffix(law_names, evidence)
     corrections = [{
         'failure_id': 'F4',
         'failure_name': '浅度正确',
         'severity': '🟠 高',
-        'original_issue': 'AI结论正确但缺乏深度法理分析和替代法律理论探讨',
+        'original_issue': f'AI结论正确但缺乏深度法理分析和替代法律理论探讨{suffix}',
         'empirical_evidence': {
             'test_case': '测试#2 堆放物致害+案例6任某强奸案',
             'finding': 'DS结论正确但分析深度不足——堆放物案未深入1255条特别规范，任某案「判因太浅」',
@@ -221,13 +265,16 @@ def generate_correction_for_f4(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f5(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f5(detection_detail: dict, regulation: dict) -> dict:
     """为F5前提验证盲区生成纠正建议"""
+    law_names, evidence = _extract_detection_context(detection_detail)
+    suffix = _context_suffix(law_names, evidence)
+    reg_t1 = _reg_desc(regulation, 'T1')
     corrections = [{
         'failure_id': 'F5',
         'failure_name': '前提验证盲区',
         'severity': '🔴 关键',
-        'original_issue': 'AI未验证用户问题中的前提条件是否成立，直接基于可能错误的前提进行分析',
+        'original_issue': f'AI未验证用户问题中的前提条件是否成立，直接基于可能错误的前提进行分析{suffix}',
         'empirical_evidence': {
             'test_case': '测试#1 R1 千问',
             'finding': '千问接受《民法通则》陷阱→追问细节信息而非发现法律已废止。展示了「律师般的谨慎」但恰恰在最根本的问题上失守',
@@ -236,7 +283,7 @@ def generate_correction_for_f5(detection_detail: dict, baseline: dict, regulatio
         },
         'correction_direction': '回答任何法律问题前，必须先执行三步前提验证：1）法律存在性检查；2）法律现行有效性检查；3）前提条件适用性检查',
         'suggested_rewrite': '在回答您的问题之前，请允许我先确认几个前提：首先，您提到的《XX法》...经查询...其次，您所述的事实是否...',
-        'regulation_reference': f'对应技术规范T1+T5：法律知识验证层+用户画像感知。使用T4模板（前提挑战型）可从源头规避此问题'
+        'regulation_reference': f'对应技术规范T1+T5：法律知识验证层+用户画像感知。使用T4模板（前提挑战型）可从源头规避此问题{(" 规范说明：" + reg_t1) if reg_t1 else ""}'
     }]
     return {
         'corrections': corrections,
@@ -246,7 +293,7 @@ def generate_correction_for_f5(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f6(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f6(detection_detail: dict, regulation: dict) -> dict:
     """为F6引导性赤字生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = [{
@@ -274,7 +321,7 @@ def generate_correction_for_f6(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f7(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f7(detection_detail: dict, regulation: dict) -> dict:
     """为F7计算推理不一致生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = [{
@@ -300,13 +347,15 @@ def generate_correction_for_f7(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f8(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f8(detection_detail: dict, regulation: dict) -> dict:
     """为F8因果关系过度简化生成纠正建议"""
+    law_names, evidence = _extract_detection_context(detection_detail)
+    suffix = _context_suffix(law_names, evidence)
     corrections = [{
         'failure_id': 'F8',
         'failure_name': '因果关系过度简化',
         'severity': '🟠 高',
-        'original_issue': 'AI将复杂多因一果的事实简化为线性因果关系',
+        'original_issue': f'AI将复杂多因一果的事实简化为线性因果关系{suffix}',
         'empirical_evidence': {
             'test_case': '案例2牟某虐待案+案例4鲁某保护案',
             'finding': '牟某案忽略「先行行为引起的保证人地位」不作为维度(DS逻辑3.2/千问3.5)；鲁某案忽略联动机制复杂性(千问逻辑2.2)',
@@ -325,13 +374,16 @@ def generate_correction_for_f8(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f9(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f9(detection_detail: dict, regulation: dict) -> dict:
     """为F9国际法视野缺失生成纠正建议"""
+    law_names, evidence = _extract_detection_context(detection_detail)
+    suffix = _context_suffix(law_names, evidence)
+    reg_t5 = _reg_desc(regulation, 'T5')
     corrections = [{
         'failure_id': 'F9',
         'failure_name': '国际法视野缺失',
         'severity': '🟡 中等',
-        'original_issue': '涉及基本人权的法律分析仅局限于国内法，未引用国际公约或比较法',
+        'original_issue': f'涉及基本人权的法律分析仅局限于国内法，未引用国际公约或比较法{suffix}',
         'empirical_evidence': {
             'test_case': '国际法+比较法测试',
             'finding': '历史案例均未提及CEDAW（消除对妇女歧视公约）。R2中DS有改善但仍为个别现象',
@@ -339,7 +391,7 @@ def generate_correction_for_f9(detection_detail: dict, baseline: dict, regulatio
         },
         'correction_direction': '对涉及基本人权的案件，增加国际公约和比较法的参考维度',
         'suggested_rewrite': '## 国际法与比较法参考\n本案涉及的基本权利在国际法层面有以下相关依据：1）[相关国际公约]... 2）比较法视角：在[其他国家/地区]的类似案件中...',
-        'regulation_reference': '使用T5模板（实操指引型）时可追加国际法维度'
+        'regulation_reference': f'使用T5模板（实操指引型）时可追加国际法维度{(" 规范说明：" + reg_t5) if reg_t5 else ""}'
     }]
     return {
         'corrections': corrections,
@@ -349,13 +401,15 @@ def generate_correction_for_f9(detection_detail: dict, baseline: dict, regulatio
     }
 
 
-def generate_correction_for_f10(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f10(detection_detail: dict, regulation: dict) -> dict:
     """为F10用户差异化风险盲区生成纠正建议"""
+    law_names, evidence = _extract_detection_context(detection_detail)
+    suffix = _context_suffix(law_names, evidence)
     corrections = [{
         'failure_id': 'F10',
         'failure_name': '用户差异化风险盲区',
         'severity': '🔴 关键',
-        'original_issue': 'AI未识别用户背景（法学生/非专业人士），输出未做差异化处理',
+        'original_issue': f'AI未识别用户背景（法学生/非专业人士），输出未做差异化处理{suffix}',
         'empirical_evidence': {
             'test_case': '项目核心研究主题',
             'finding': '法学生与非专业人士对AI错误的识别能力存在显著差异。非专业人士可能完全采信AI错误输出，风险比法学生高数倍',
@@ -378,7 +432,7 @@ def generate_correction_for_f10(detection_detail: dict, baseline: dict, regulati
 # v4.1.0: 题型特化失效模式纠正生成器 (F11-F18)
 # =============================================================================
 
-def generate_correction_for_f11(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f11(detection_detail: dict, regulation: dict) -> dict:
     """为F11选项混淆偏误生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -437,7 +491,7 @@ def generate_correction_for_f11(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f12(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f12(detection_detail: dict, regulation: dict) -> dict:
     """为F12采分点遗漏生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -478,7 +532,7 @@ def generate_correction_for_f12(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f13(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f13(detection_detail: dict, regulation: dict) -> dict:
     """为F13定义要素缺失生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -520,7 +574,7 @@ def generate_correction_for_f13(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f14(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f14(detection_detail: dict, regulation: dict) -> dict:
     """为F14判对错不给理由生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -548,7 +602,7 @@ def generate_correction_for_f14(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f15(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f15(detection_detail: dict, regulation: dict) -> dict:
     """为F15法条解构不完整生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -577,7 +631,7 @@ def generate_correction_for_f15(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f16(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f16(detection_detail: dict, regulation: dict) -> dict:
     """为F16论述偏离题眼生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -606,7 +660,7 @@ def generate_correction_for_f16(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f17(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f17(detection_detail: dict, regulation: dict) -> dict:
     """为F17三段论结构缺失生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -636,7 +690,7 @@ def generate_correction_for_f17(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f18(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f18(detection_detail: dict, regulation: dict) -> dict:
     """为F18要件事实识别错误生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -670,7 +724,7 @@ def generate_correction_for_f18(detection_detail: dict, baseline: dict, regulati
 # v4.1.0: 教信赛场景特化纠正生成器 (F19-F24)
 # =============================================================================
 
-def generate_correction_for_f19(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f19(detection_detail: dict, regulation: dict) -> dict:
     """为F19试题歧义偏差生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -699,7 +753,7 @@ def generate_correction_for_f19(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f20(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f20(detection_detail: dict, regulation: dict) -> dict:
     """为F20评分尺度偏移生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -727,7 +781,7 @@ def generate_correction_for_f20(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f21(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f21(detection_detail: dict, regulation: dict) -> dict:
     """为F21答案格式违规生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -756,7 +810,7 @@ def generate_correction_for_f21(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f22(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f22(detection_detail: dict, regulation: dict) -> dict:
     """为F22跨题一致性破裂生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -774,7 +828,7 @@ def generate_correction_for_f22(detection_detail: dict, baseline: dict, regulati
                     'finding': '客观题与主观题对同一法律原则判断不一致，反映学生知识体系存在割裂'
                 },
                 'correction_direction': '跨题联合分析，标注矛盾冲突点，检查学生对核心法律概念的掌握是否成体系',
-                'suggested_rewrite': '【一致性核查】「{pair}」在不同题目的答案应一致。建议：1）列出该概念在所有题目中的判断；2）定位矛盾点；3）补充该概念的定义与适用条件讲解。'
+                'suggested_rewrite': f'【一致性核查】「{pair}」在不同题目的答案应一致。建议：1）列出该概念在所有题目中的判断；2）定位矛盾点；3）补充该概念的定义与适用条件讲解。'
             })
 
     return {
@@ -785,7 +839,7 @@ def generate_correction_for_f22(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f23(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f23(detection_detail: dict, regulation: dict) -> dict:
     """为F23采分点粒度失当生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -826,7 +880,7 @@ def generate_correction_for_f23(detection_detail: dict, baseline: dict, regulati
     }
 
 
-def generate_correction_for_f24(detection_detail: dict, baseline: dict, regulation: dict) -> dict:
+def generate_correction_for_f24(detection_detail: dict, regulation: dict) -> dict:
     """为F24教学大纲合规偏离生成纠正建议"""
     detections = detection_detail.get('detections') or []
     corrections = []
@@ -896,14 +950,13 @@ def generate_all_corrections(detection_results: dict) -> dict:
     critical_count = 0
     high_count = 0
 
-    detections = detection_results.get('detections', {})
     all_detections = detection_results.get('all_detections', {})
 
     for pid, result in all_detections.items():
         if result.get('fired'):
             generator = CORRECTION_GENERATORS.get(pid)
             if generator:
-                correction = generator(result, baseline, regulation)
+                correction = generator(result, regulation)
                 corrections[pid] = correction
 
                 if correction.get('checklist_item'):

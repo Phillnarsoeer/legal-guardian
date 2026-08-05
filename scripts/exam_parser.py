@@ -21,36 +21,29 @@ def parse_objective_answers(pdf_text: str) -> list:
     解析客观题答案部分
     格式: "51. 答案：ABD\n解析：..."
     """
-    answer_pattern = re.compile(
-        r'(\d+)[．.].*?答案[：:]\s*([A-Fa-f,，、\s]+)',
-        re.MULTILINE
-    )
-    explanation_pattern = re.compile(
-        r'(\d+)[．.].*?答案[：:]\s*[A-Fa-f,，、\s]+\n解析[：:]\s*(.+?)(?=\n\d+[．.]|\Z)',
+    # 单次扫描同时提取 题号 + 答案 + 解析，避免两个近似正则对全文各跑一遍 finditer
+    combined_pattern = re.compile(
+        r'(\d+)[．.].*?答案[：:]\s*([A-Fa-f,，、\s]+?)(?:\n解析[：:]\s*(.*?))?(?=\n\d+[．.]|\Z)',
         re.DOTALL
     )
 
     answers = []
-    for match in answer_pattern.finditer(pdf_text):
+    for match in combined_pattern.finditer(pdf_text):
         qnum = int(match.group(1))
         answer = match.group(2).strip().upper().replace(',', '').replace('、', '').replace(' ', '')
-        answers.append({
+        entry = {
             "id": f"Q{qnum:03d}",
             "question_number": qnum,
             "correct": answer,
-            "qtype": "T1_single_choice" if qnum <= 50 else "T2_multi_choice" if qnum <= 85 else "T2_multi_choice",
+            # 客观题：1-50 单选(T1)，51-85 多选(T2)；
+            # 86+ 的不定项在当前答案键格式下同样沿用多选(T2) 的 schema，故无需单独分支
+            "qtype": "T1_single_choice" if qnum <= 50 else "T2_multi_choice",
             "max_score": 1 if qnum <= 50 else 2
-        })
-
-    # 匹配解析
-    for match in explanation_pattern.finditer(pdf_text):
-        qnum = int(match.group(1))
-        explanation = match.group(2).strip()
-        # 找到对应answer更新explanation
-        for ans in answers:
-            if ans["question_number"] == qnum:
-                ans["explanation"] = explanation[:500]
-                break
+        }
+        explanation = match.group(3)
+        if explanation:
+            entry["explanation"] = explanation.strip()[:500]
+        answers.append(entry)
 
     return answers
 
@@ -87,6 +80,7 @@ def main():
 
     pdf_path = sys.argv[1]
     exam_type = "objective"
+    output_path = None
 
     for i, arg in enumerate(sys.argv):
         if arg == '--type' and i + 1 < len(sys.argv):
@@ -101,12 +95,20 @@ def main():
     # 提取PDF文本
     try:
         import fitz
-        doc = fitz.open(pdf_path)
-        text = ""
-        for page in doc:
-            text += page.get_text()
     except ImportError:
         print(json.dumps({"error": "需要安装PyMuPDF: pip install pymupdf"}, ensure_ascii=False))
+        sys.exit(1)
+
+    try:
+        with fitz.open(pdf_path) as doc:
+            # 逐页收集文本后一次性 join，避免 O(pages^2) 的字符串拼接
+            page_texts = []
+            for page in doc:
+                page_texts.append(page.get_text())
+            text = "".join(page_texts)
+    except Exception as e:
+        # 覆盖损坏/加密等打开或读取失败的情况，返回JSON错误而非裸traceback
+        print(json.dumps({"error": f"读取PDF失败(文件可能损坏或已加密): {e}"}, ensure_ascii=False))
         sys.exit(1)
 
     result = {}
@@ -134,7 +136,13 @@ def main():
             "questions": questions
         }
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    output_json = json.dumps(result, ensure_ascii=False, indent=2)
+    if output_path:
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(output_json)
+        print(json.dumps({"ok": True, "output": output_path, "total_questions": result["meta"]["total_questions"]}, ensure_ascii=False))
+    else:
+        print(output_json)
 
 
 if __name__ == '__main__':

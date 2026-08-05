@@ -13,7 +13,7 @@ LegalGuardian v4.0.0
 """
 
 import sys, json, os, re
-from typing import Dict, Any, List, Optional
+from typing import Dict, List
 
 # UTF-8 输出兼容 (Windows GBK 控制台)
 try:
@@ -290,7 +290,12 @@ def main():
 
         # 尝试从答案键自身获取题型
         if not qtype:
-            qtype = ak.get("qtype", ak.get("type", "T1_single_choice"))
+            qtype = ak.get("qtype", ak.get("type"))
+
+        if not qtype:
+            print(json.dumps({"error": "缺少题型qtype/type字段，无法确定验证题型（可通过--type T1-T8指定）",
+                              "available_types": list(ANSWER_KEY_SCHEMAS.keys())}, ensure_ascii=False))
+            sys.exit(1)
 
         result = validate_answer_key(ak, qtype)
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -299,12 +304,19 @@ def main():
         # 批量评分
         student_path = None
         key_path = None
-        for i, a in enumerate(args):
+        i = 0
+        while i < len(args):
+            a = args[i]
             if a == '--key' and i + 1 < len(args):
                 key_path = args[i + 1]
-            elif a != '--batch' and not student_path and a != '--key' and not a.startswith('--'):
-                if not student_path:
-                    student_path = a
+                i += 2  # 跳过--key及其值，避免值被误当作位置参数
+                continue
+            if a.startswith('--'):
+                i += 1  # 跳过其他flag本身
+                continue
+            if not student_path:
+                student_path = a
+            i += 1
 
         if not student_path or not key_path:
             print(json.dumps({"error": "用法: python answer_key_evaluator.py --batch <学生答案JSON> --key <答案键JSON>"}, ensure_ascii=False))

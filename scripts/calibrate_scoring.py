@@ -16,6 +16,15 @@ except Exception:
     pass
 
 
+def append_options(text: str, options: dict) -> str:
+    """将题目选项拼接进题干文本，构造完整题目"""
+    if not options:
+        return text
+    for opt_label, opt_text in options.items():
+        text += f"\n{opt_label}．{opt_text}"
+    return text
+
+
 def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
     """运行全量校准测试"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,9 +47,7 @@ def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
     for item in items:
         text = item.get("stem", "")
         # 构造完整题目文本（含选项）
-        if "options" in item:
-            for opt_label, opt_text in item["options"].items():
-                text += f"\n{opt_label}．{opt_text}"
+        text = append_options(text, item.get("options", {}))
 
         classification = classify_question(text)
         is_correct = classification["type"] == item["expected_classification"]
@@ -104,9 +111,7 @@ def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
             continue
 
         text = item.get("input", item.get("stem", ""))
-        if "options" in item:
-            for opt_label, opt_text in item["options"].items():
-                text += f"\n{opt_label}．{opt_text}"
+        text = append_options(text, item.get("options", {}))
 
         result = detect_all(text)
         fired_set = set(result.get("detections", {}).keys())
@@ -185,9 +190,6 @@ def generate_calibration_recommendations(type_acc: float, mae: float, detection_
 
 
 def main():
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
     benchmark_path = None
     quick = False
 

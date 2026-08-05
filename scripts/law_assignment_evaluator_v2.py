@@ -6,13 +6,12 @@ LegalGuardian v4.0 法学作业统一评估器 (Unified Assignment Evaluator)
 用法:
     python law_assignment_evaluator_v2.py <作业文件> [--course <课程类型>] [--answer-key <答案键JSON>]
     python law_assignment_evaluator_v2.py --text "<作业内容>" --answer-key answer.json
-    python law_assignment_evaluator_v2.py --batch <批量配置文件>
 
 输出: JSON格式的完整评估报告
 """
 
-import sys, json, os, re, subprocess
-from typing import Dict, Any, Optional, List
+import sys, json, os, datetime
+from typing import Dict, List
 
 # UTF-8 输出兼容 (Windows GBK 控制台)
 try:
@@ -21,24 +20,8 @@ except Exception:
     pass
 
 
-# =============================================================================
-# 配置加载
-# =============================================================================
-def load_rubric_v1():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(script_dir, '..', 'reference', 'assignment_rubric.json')
-    with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-
-def load_rubric_v2():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(script_dir, '..', 'reference', 'question_type_rubrics.json')
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return None
-
+# 说明：rubric 加载统一复用 law_assignment_evaluator.load_rubric（见 score_subjective），
+# 本文件不再重复实现 load_rubric_v1 / load_rubric_v2。
 
 # =============================================================================
 # 核心评估函数
@@ -94,6 +77,12 @@ def evaluate_assignment_v2(text: str, answer_key: Dict = None, course_type: str 
     # 步骤4：生成统合报告
     total_score = extract_total_score(scoring_result, qtype, answer_key, red_line_triggered)
 
+    # 主观题(T6/T7/T8)的 raw_score 为 0~max_total(30/20/25) 制，
+    # 需归一化到百分制后再查等级；total_score 仍保留原始 raw_score 语义不变
+    grade_score = total_score
+    if scoring_result.get("raw_score") is not None and scoring_result.get("max_score"):
+        grade_score = round(total_score / scoring_result["max_score"] * 100, 1)
+
     report = {
         "meta": {
             "evaluator_version": "4.0.0",
@@ -106,12 +95,12 @@ def evaluate_assignment_v2(text: str, answer_key: Dict = None, course_type: str 
             "is_objective": classification["is_objective"],
             "is_semi_objective": classification["is_semi_objective"],
             "is_subjective": classification["is_subjective"],
-            "evaluation_date": "2026-07-31"
+            "evaluation_date": datetime.date.today().isoformat()
         },
         "classification": classification,
         "scoring": scoring_result,
         "total_score": total_score,
-        "grade": compute_grade(total_score, red_line_triggered),
+        "grade": compute_grade(grade_score, red_line_triggered),
         "red_line_triggered": red_line_triggered,
         "failure_detection": {
             "fired_count": failure_detection.get("meta", {}).get("fired_patterns", 0),
@@ -143,7 +132,6 @@ def score_subjective(text: str, qtype: str, course_type: str) -> Dict:
     )
 
     rubric = load_rubric()
-    rubric_v2 = load_rubric_v2()
 
     # 根据题型调整权重
     if qtype == "T6_essay":
@@ -189,21 +177,22 @@ def score_subjective(text: str, qtype: str, course_type: str) -> Dict:
     }
 
 
-def run_failure_detection(text: str) -> Dict:
-    """运行18种失效模式检测"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    detector_path = os.path.join(script_dir, 'failure_detector.py')
+# 失效模式检测失败时的默认返回（共享常量，避免重复字面量）
+_DETECTION_ERROR = {
+    "meta": {"fired_patterns": 0, "critical_fired": 0, "high_fired": 0, "overall_risk": "error"},
+    "detections": {},
+    "dimension_scores": {}
+}
 
+
+def run_failure_detection(text: str) -> Dict:
+    """运行24种失效模式检测（进程内调用，避免命令行长度限制与启动开销）"""
     try:
-        result = subprocess.run(
-            ['python', detector_path, '--text', text],
-            capture_output=True, text=True, timeout=30
-        )
-        if result.returncode == 0:
-            return json.loads(result.stdout)
-        return {"meta": {"fired_patterns": 0, "critical_fired": 0, "high_fired": 0, "overall_risk": "error"}, "detections": {}, "dimension_scores": {}}
-    except Exception:
-        return {"meta": {"fired_patterns": 0, "critical_fired": 0, "high_fired": 0, "overall_risk": "error"}, "detections": {}, "dimension_scores": {}}
+        from failure_detector import detect_all
+        return detect_all(text)
+    except Exception as e:
+        print(f"[warning] 失效模式检测失败: {e}", file=sys.stderr)
+        return dict(_DETECTION_ERROR)
 
 
 def extract_total_score(scoring: Dict, qtype: str, answer_key: Dict, red_line_triggered: bool) -> float:
@@ -319,7 +308,8 @@ def generate_improvement_plan(scoring: Dict, failure: Dict, qtype: str) -> List[
 # 主入口
 # =============================================================================
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    if not args:
         print(json.dumps({
             "error": "用法: python law_assignment_evaluator_v2.py <作业文件> [--answer-key <JSON>] [--course <类型>] | --text \"内容\"",
             "supported_types": [
@@ -334,30 +324,42 @@ def main():
     answer_key = None
     course_type = "general"
 
-    args = sys.argv[1:]
-
-    if args[0] == '--text':
-        if len(args) < 2:
-            print(json.dumps({"error": "--text 需要提供文本内容"}, ensure_ascii=False))
-            sys.exit(1)
-        text = args[1]
-    elif args[0] == '--stdin':
-        text = sys.stdin.read()
-    elif os.path.exists(args[0]):
-        from law_assignment_evaluator import read_assignment
-        text = read_assignment(args[0])
-    else:
-        text = args[0]
-
-    # 解析可选参数
-    for i, arg in enumerate(args):
-        if arg == '--answer-key' and i + 1 < len(args):
+    # 解析参数：跳过 flag 及其取值，第一个非 flag 参数作为位置参数（文件路径/文本）
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == '--text':
+            if i + 1 >= len(args):
+                print(json.dumps({"error": "--text 需要提供文本内容"}, ensure_ascii=False))
+                sys.exit(1)
+            text = args[i + 1]
+            i += 2
+        elif arg == '--stdin':
+            text = sys.stdin.read()
+            i += 1
+        elif arg == '--answer-key' and i + 1 < len(args):
             ak_path = args[i + 1]
             if os.path.exists(ak_path):
                 with open(ak_path, 'r', encoding='utf-8') as f:
                     answer_key = json.load(f)
-        if arg == '--course' and i + 1 < len(args):
+            i += 2
+        elif arg == '--course' and i + 1 < len(args):
             course_type = args[i + 1]
+            i += 2
+        elif arg.startswith('--'):
+            i += 1  # 跳过未知 flag
+        elif text is None:
+            from law_assignment_evaluator import read_assignment
+            if os.path.exists(arg):
+                text = read_assignment(arg)
+                if text is None:
+                    print(json.dumps({"error": f"读取失败: {arg}。请确认文件有效且已安装 python-docx（pip install python-docx）。"}, ensure_ascii=False))
+                    sys.exit(1)
+            else:
+                text = arg  # 视为直接输入的作业文本
+            i += 1
+        else:
+            i += 1  # 已设置 text，忽略多余位置参数
 
     if not text:
         print(json.dumps({"error": "未提供输入内容"}, ensure_ascii=False))

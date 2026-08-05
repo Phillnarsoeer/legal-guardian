@@ -17,8 +17,8 @@ import sys
 import json
 import os
 import re
-import subprocess
-from typing import Dict, Any, List, Optional
+import datetime
+from functools import lru_cache
 
 # UTF-8 输出兼容 (Windows GBK 控制台)
 try:
@@ -27,17 +27,11 @@ except Exception:
     pass
 
 
+@lru_cache(maxsize=None)
 def load_rubric() -> dict:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     rubric_path = os.path.join(script_dir, '..', 'reference', 'assignment_rubric.json')
     with open(rubric_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-
-def load_failure_patterns() -> dict:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    patterns_path = os.path.join(script_dir, '..', 'reference', 'failure_patterns.json')
-    with open(patterns_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -48,28 +42,26 @@ def read_assignment(filepath: str) -> str:
             from docx import Document
             doc = Document(filepath)
             return '\n'.join(p.text for p in doc.paragraphs if p.text.strip())
-        except ImportError:
-            return '错误：读取.docx需要python-docx库。请使用 pip install python-docx --break-system-packages'
+        except Exception:
+            # 缺少 python-docx 或文件损坏时返回 None，由调用方(main)输出明确的JSON错误
+            return None
     else:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
 
 
 def run_failure_detection(text: str) -> dict:
-    """调用failure_detector.py检测作业中的失效模式"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    detector_path = os.path.join(script_dir, 'failure_detector.py')
-
+    """调用failure_detector.py检测作业中的失效模式（进程内调用，避免命令行长度限制与启动开销）"""
     try:
-        result = subprocess.run(
-            ['python3', detector_path, '--text', text],
-            capture_output=True, text=True, timeout=30
-        )
-        if result.returncode == 0:
-            return json.loads(result.stdout)
+        from failure_detector import detect_all
+        return detect_all(text)
+    except Exception as e:
+        print(f'[warning] 失效模式检测失败: {e}', file=sys.stderr)
         return {}
-    except Exception:
-        return {}
+
+
+# 条款号正则（模块级复用，避免每次重复编译）
+ARTICLE_PATTERN = re.compile(r'第[一二三四五六七八九十百千\d]+条')
 
 
 def evaluate_dimension_1_accuracy(text: str, rubric: dict) -> dict:
@@ -78,6 +70,7 @@ def evaluate_dimension_1_accuracy(text: str, rubric: dict) -> dict:
 
     score = 3.0  # 默认及格线
     issues = []
+    has_articles = False
 
     # 检查是否有法律引用
     law_pattern = re.compile(r'《([^》]+)》')
@@ -87,17 +80,28 @@ def evaluate_dimension_1_accuracy(text: str, rubric: dict) -> dict:
         score = 2.0
         issues.append('作业中未发现任何法律引用')
     else:
-        # 检查引用质量
+        # 检查引用质量（子串包含匹配，完整标题如"中华人民共和国民法通则"也能命中）
         repealed_laws = ['民法通则', '经济合同法', '治安管理处罚条例']
-        has_repealed = any(law in repealed_laws for law in laws_found)
+        has_repealed = any(short in law_name for law_name in laws_found for short in repealed_laws)
 
         if has_repealed:
-            score = 0  # 红线
-            issues.append(f'🔴 红线触发：引用了已废止法律。直接0分')
+            # 红线：引用已废止法律，直接0分并跳过所有加分
+            score = 0
+            issues.append('🔴 红线触发：引用了已废止法律。直接0分')
+            issues.append('由于引用已废止法律，该维度直接计0分。无论其他维度得分如何，总分将受到严重影响。')
+            weighted = round(score * dim['weight'] / 5.0, 1)
+            red_desc = rubric['grade_mapping']['不及格']['description']
+            return {
+                'score': 0,
+                'weighted_contribution': f'{weighted}/{dim["weight"]}',
+                'issues': issues,
+                'laws_found': laws_found,
+                'articles_found': False,
+                'assessment': red_desc if len(red_desc) <= 30 else red_desc[:30] + '...'
+            }
 
         # 检查是否有条款号
-        article_pattern = re.compile(r'第[一二三四五六七八九十百千\d]+条')
-        has_articles = bool(article_pattern.findall(text))
+        has_articles = bool(ARTICLE_PATTERN.findall(text))
 
         if has_articles:
             score = min(5.0, score + 1.0)
@@ -113,21 +117,18 @@ def evaluate_dimension_1_accuracy(text: str, rubric: dict) -> dict:
         if len(laws_found) >= 3:
             score = min(5.0, score + 0.5)
 
-    # D1为0则跳过其他加分
-    if score == 0:
-        issues.append('由于引用已废止法律，该维度直接计0分。无论其他维度得分如何，总分将受到严重影响。')
-
     weighted = round(score * dim['weight'] / 5.0, 1)
+    description = rubric['grade_mapping'][
+        '优秀' if score >= 4.5 else '良好' if score >= 3.5 else '中等' if score >= 2.5 else '不及格'
+    ]['description']
 
     return {
         'score': max(0, score),
         'weighted_contribution': f'{weighted}/{dim["weight"]}',
         'issues': issues,
         'laws_found': laws_found,
-        'articles_found': bool(article_pattern.findall(text)) if laws_found else False,
-        'assessment': rubric['grade_mapping'][
-            '优秀' if score >= 4.5 else '良好' if score >= 3.5 else '中等' if score >= 2.5 else '不及格'
-        ]['description'][:30] + '...'
+        'articles_found': has_articles,
+        'assessment': description if len(description) <= 30 else description[:30] + '...'
     }
 
 
@@ -355,7 +356,7 @@ def evaluate_assignment(text: str, course_type: str = 'general') -> dict:
         'meta': {
             'text_length': len(text),
             'course_type': course_type,
-            'evaluation_date': '2026-07-29',
+            'evaluation_date': datetime.date.today().isoformat(),
             'scoring_system': '五维百分制，锚定于14案例实证基线'
         },
         'total_score': round(total_weighted, 1),
@@ -405,28 +406,39 @@ def generate_improvement_plan(dimensions: dict, failures: dict) -> list:
 
 
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    if not args:
         print(json.dumps({'error': '用法: python law_assignment_evaluator.py <作业文件> [--course <类型>] | --text "内容"'}, ensure_ascii=False))
         sys.exit(1)
 
     text = None
     course_type = 'general'
 
-    args = sys.argv[1:]
-    if args[0] == '--text':
-        text = args[1] if len(args) > 1 else None
-    else:
-        filepath = args[0]
-        if os.path.exists(filepath):
-            text = read_assignment(filepath)
-        else:
-            print(json.dumps({'error': f'文件不存在: {filepath}'}, ensure_ascii=False))
-            sys.exit(1)
-
-    # 检查课程类型参数
-    for i, arg in enumerate(args):
-        if arg == '--course' and i + 1 < len(args):
+    # 解析参数：跳过 flag 及其取值，第一个非 flag 参数作为位置参数（文件路径）
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == '--text':
+            text = args[i + 1] if i + 1 < len(args) else None
+            i += 2
+        elif arg == '--course' and i + 1 < len(args):
             course_type = args[i + 1]
+            i += 2
+        elif arg.startswith('--'):
+            i += 1  # 跳过未知 flag
+        elif text is None:
+            filepath = arg
+            if os.path.exists(filepath):
+                text = read_assignment(filepath)
+                if text is None:
+                    print(json.dumps({'error': f'读取失败: {filepath}。请确认文件有效且已安装 python-docx（pip install python-docx）。'}, ensure_ascii=False))
+                    sys.exit(1)
+            else:
+                print(json.dumps({'error': f'文件不存在: {filepath}'}, ensure_ascii=False))
+                sys.exit(1)
+            i += 1
+        else:
+            i += 1  # 已设置 text，忽略多余位置参数
 
     if not text:
         print(json.dumps({'error': '未提供作业内容'}, ensure_ascii=False))

@@ -1,7 +1,7 @@
-# manifest.yaml - 法律守卫 (LegalGuardian) v4.1.0
+# manifest.yaml - 法律守卫 (LegalGuardian) v4.2.0
 # 基于实证研究的AI法律问答审查纠正、法学全题型作业评估、教学合规审核与RAG增强Skill
 name: legal-guardian
-version: 4.1.0
+version: 4.2.0
 scope: private
 description: >
   基于西南民族大学法学院14案例×2轮×4维实证测评+人民法院案例库5,515真实案例+

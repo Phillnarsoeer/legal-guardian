@@ -11,7 +11,7 @@ LegalGuardian v4.0.0 — 支持8大法学题型(T1-T8)的自动识别、路由�
 """
 
 import sys, json, os, re
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 
 # UTF-8 输出兼容 (Windows GBK 控制台)
 try:
@@ -172,6 +172,11 @@ TYPE_PATTERNS = {
 }
 
 
+# 判断题对错值标准化常量（模块级，避免每次评分重建）
+TRUE_VALUES = {'正确', '对', '✓', '✅', '√', 'TRUE', 'T', 'YES', 'Y', '是'}
+FALSE_VALUES = {'错误', '错', '✗', '❌', '×', 'FALSE', 'F', 'NO', 'N', '否'}
+
+
 def classify_question(text: str) -> Dict[str, Any]:
     """
     识别文本属于哪种法学题型
@@ -278,11 +283,15 @@ def score_objective_question(text: str, answer_key: Dict, qtype: str) -> Dict:
     if not answer_key:
         return {"error": "客观题评分需要答案键(answer_key)", "requires_answer_key": True}
 
+    qtype_config = TYPE_PATTERNS.get(qtype)
+    if qtype_config is None:
+        return {"error": f"未知的客观题类型: {qtype}"}
+
     correct = answer_key.get("correct", answer_key.get("answer", ""))
     if not correct:
         return {"error": "答案键中缺少correct或answer字段"}
 
-    max_score = answer_key.get("max_score", TYPE_PATTERNS[qtype]["max_score_default"])
+    max_score = answer_key.get("max_score", qtype_config["max_score_default"])
     student_answer = extract_student_answer(text, qtype)
 
     if qtype == "T1_single_choice":
@@ -338,10 +347,7 @@ def score_objective_question(text: str, answer_key: Dict, qtype: str) -> Dict:
         }
 
     elif qtype == "T3_true_false":
-        # 标准化对错判断
-        TRUE_VALUES = {'正确', '对', '✓', '✅', '√', 'TRUE', 'T', 'YES', 'Y', '是'}
-        FALSE_VALUES = {'错误', '错', '✗', '❌', '×', 'FALSE', 'F', 'NO', 'N', '否'}
-
+        # 标准化对错判断（使用模块级常量TRUE_VALUES/FALSE_VALUES）
         student_norm = None
         if student_answer:
             if student_answer.upper() in TRUE_VALUES or student_answer in TRUE_VALUES:
@@ -391,9 +397,13 @@ def score_semi_objective(text: str, answer_key: Dict, qtype: str) -> Dict:
     if not answer_key:
         return {"error": "半客观题评分需要答案键(含scoring_points或keywords)", "requires_answer_key": True}
 
+    qtype_config = TYPE_PATTERNS.get(qtype)
+    if qtype_config is None:
+        return {"error": f"未知的半客观题类型: {qtype}"}
+
     scoring_points = answer_key.get("scoring_points", [])
     keywords = answer_key.get("keywords", [])
-    max_score = answer_key.get("max_score", TYPE_PATTERNS[qtype]["max_score_default"])
+    max_score = answer_key.get("max_score", qtype_config["max_score_default"])
 
     if qtype == "T4_term_definition":
         # 三维关键词覆盖
@@ -401,9 +411,18 @@ def score_semi_objective(text: str, answer_key: Dict, qtype: str) -> Dict:
         element_keywords = answer_key.get("element_keywords", [])
         source_keywords = answer_key.get("source_keywords", [])
 
-        core_score = sum(1 for kw in core_keywords if kw in text) / max(len(core_keywords), 1) if core_keywords else 0.5
-        elem_score = sum(1 for kw in element_keywords if kw in text) / max(len(element_keywords), 1) if element_keywords else 0.5
-        source_score = sum(1 for kw in source_keywords if kw in text) / max(len(source_keywords), 1) if source_keywords else 0.5
+        # 评分维度字段缺失时直接报错，避免无rubric的答案键静默拿到约50%分数
+        missing_fields = [name for name, kwlist in (
+            ("core_keywords", core_keywords),
+            ("element_keywords", element_keywords),
+            ("source_keywords", source_keywords),
+        ) if not kwlist]
+        if missing_fields:
+            return {"error": f"答案键缺少T4名词解释评分维度字段: {', '.join(missing_fields)}"}
+
+        core_score = sum(1 for kw in core_keywords if kw in text) / len(core_keywords)
+        elem_score = sum(1 for kw in element_keywords if kw in text) / len(element_keywords)
+        source_score = sum(1 for kw in source_keywords if kw in text) / len(source_keywords)
 
         weighted = core_score * 0.5 + elem_score * 0.3 + source_score * 0.2
         score = round(weighted * max_score, 1)
@@ -464,7 +483,7 @@ def score_semi_objective(text: str, answer_key: Dict, qtype: str) -> Dict:
                 "status": status
             })
 
-        score = round(earned, 1)
+        score = min(round(earned, 1), max_score)
 
         return {
             "qtype": qtype,
@@ -508,9 +527,15 @@ def main():
     for i, arg in enumerate(args):
         if arg == '--answer-key' and i + 1 < len(args):
             ak_path = args[i + 1]
-            if os.path.exists(ak_path):
+            if not os.path.exists(ak_path):
+                print(json.dumps({"error": f"答案键文件不存在: {ak_path}"}, ensure_ascii=False))
+                sys.exit(1)
+            try:
                 with open(ak_path, 'r', encoding='utf-8') as f:
                     answer_key = json.load(f)
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                print(json.dumps({"error": f"答案键文件解析失败: {ak_path} ({e})"}, ensure_ascii=False))
+                sys.exit(1)
 
     if not text:
         print(json.dumps({"error": "未提供输入文本"}, ensure_ascii=False))

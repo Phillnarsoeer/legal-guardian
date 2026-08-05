@@ -10,7 +10,14 @@
     python safety_checker.py <AI回复文本文件路径>
     python safety_checker.py --text "AI回复文本"
     python safety_checker.py --text "AI回复文本" --detections <检测结果JSON文件>
-    python failure_detector.py input.txt | python safety_checker.py --stdin
+    python safety_checker.py <AI回复文本文件路径> --detections <检测结果JSON文件>
+
+注意: --stdin 读取的是待审AI回复文本本身，而非失效模式检测报告。
+若将 failure_detector 的JSON报告直接送入 --stdin，JSON字段名(如 %/critical)会被
+C1-C8当作文本内容误判。如需联动失效模式检测结果，请先将 failure_detector 输出
+保存为文件，再通过 --detections 传入:
+    python failure_detector.py input.txt > det.json
+    python safety_checker.py input.txt --detections det.json
 
 输出: JSON格式的8项安全检查结果
 """
@@ -35,21 +42,13 @@ def load_checklist() -> dict:
         return json.load(f)
 
 
-def load_failure_patterns() -> dict:
-    """加载失效模式知识库(用于检查项与失效模式的关联)"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    patterns_path = os.path.join(script_dir, '..', 'reference', 'failure_patterns.json')
-    with open(patterns_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-
 def extract_text(text: str, filepath: str) -> str:
-    """从文件路径或直接文本中提取待审文本"""
+    """从文件路径或直接文本中提取待审文本；文件不存在时返回None"""
     if filepath:
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as f:
                 return f.read()
-        return ''
+        return None
     return text
 
 
@@ -222,16 +221,16 @@ def main():
     args = sys.argv[1:]
     i = 0
     while i < len(args):
-        if args[i] == '--text':
+        if args[i] == '--text' and i + 1 < len(args):
             text = args[i + 1]
             i += 2
-        elif args[i] == '--detections':
+        elif args[i] == '--detections' and i + 1 < len(args):
             detection_file = args[i + 1]
             i += 2
         elif args[i] == '--stdin':
             text = sys.stdin.read()
             i += 1
-        elif args[i] == '--file' or args[i] == '-f':
+        elif (args[i] == '--file' or args[i] == '-f') and i + 1 < len(args):
             filepath = args[i + 1]
             i += 2
         elif not args[i].startswith('--'):
@@ -243,6 +242,9 @@ def main():
 
     if filepath:
         text = extract_text('', filepath)
+        if text is None:
+            print(json.dumps({'error': f'待审文本文件不存在: {filepath}'}, ensure_ascii=False))
+            sys.exit(1)
 
     if not text.strip():
         print(json.dumps({'error': '未提供待审文本。用法: python safety_checker.py <文件> | --text "文本" | --stdin'},
@@ -250,9 +252,12 @@ def main():
         sys.exit(1)
 
     detection_results = None
-    if detection_file and os.path.exists(detection_file):
-        with open(detection_file, 'r', encoding='utf-8') as f:
-            detection_results = json.load(f)
+    if detection_file:
+        if os.path.exists(detection_file):
+            with open(detection_file, 'r', encoding='utf-8') as f:
+                detection_results = json.load(f)
+        else:
+            print(f'[警告] 检测结果文件不存在: {detection_file}，忽略失效模式联动', file=sys.stderr)
 
     result = run_safety_checks(text, detection_results)
     print(json.dumps(result, ensure_ascii=False, indent=2))
