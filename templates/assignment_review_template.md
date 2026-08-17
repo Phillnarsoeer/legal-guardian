@@ -1,6 +1,6 @@
 # 法学作业评估报告
 
-> 评估工具：LegalGuardian v1.0.0 — 模块C：法学作业评估
+> 评估工具：LegalGuardian v4.2.1 — 模块C：法学作业评估
 > 评估时间：{evaluation_date}
 > 作业类型：{course_type}
 
@@ -13,7 +13,7 @@
 | **总分** | **{total_score}/100** |
 | **等级** | **{grade}** |
 | 红线触发 | {red_line_status} |
-| 失效模式命中 | {failure_count}/10 |
+| 失效模式命中 | {failure_count}/24 |
 
 ---
 
@@ -124,4 +124,4 @@
 
 ---
 
-*报告生成于 {report_generated_at} | LegalGuardian v1.0.0*
+*报告生成于 {report_generated_at} | LegalGuardian v4.2.1*

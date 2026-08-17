@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-v4.2.0 技术文档 PDF 生成器
-使用 PyMuPDF 生成5份技术文档，版本对齐 v4.2.0
+v4.2.1 技术文档 PDF 生成器
+使用 PyMuPDF 生成5份技术文档，版本对齐 v4.2.1
 """
 import fitz
 import os
@@ -161,7 +161,7 @@ class PDFBuilder:
 
 
 def build_req_analysis():
-    b = PDFBuilder('需求分析报告', 'LegalGuardian v4.2.0', '2026-08-05',
+    b = PDFBuilder('需求分析报告', 'LegalGuardian v4.2.1', '2026-08-17',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Requirements Analysis Report')
 
@@ -176,6 +176,8 @@ def build_req_analysis():
     b.add_para('v4.2.0完成全面性能优化与正确性修复：JSON知识库模块级缓存、作业评估进程内检测调用消除子进程启动开销、'
                '主观题评分归一化（满分作文不再误判不及格）、引用已废止法律红线规则修复、F1-F3检测→纠正链路对齐、'
                '全脚本解释器统一与健壮性重构。')
+    b.add_para('v4.2.1完成文档结构优化与版本发布：SKILL.md 547→258行、manifest与模板对齐、校准口径修正（区分快速/全量），'
+               '全量冒烟测试 PASS=28 / FAIL=0。')
 
     b.add_heading('2. 问题定义', 1)
     b.add_bullet('准确性危机：AI可能引用虚构或已废止的法律（千问接受"人格权侵害惩治条例"为真实法律）')
@@ -245,7 +247,7 @@ def build_req_analysis():
 
 
 def build_framework():
-    b = PDFBuilder('框架设计说明书', 'LegalGuardian v4.2.0', '2026-08-05',
+    b = PDFBuilder('框架设计说明书', 'LegalGuardian v4.2.1', '2026-08-17',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Framework Design Specification')
 
@@ -308,7 +310,7 @@ def build_framework():
 
 
 def build_test_cases():
-    b = PDFBuilder('测试用例报告', 'LegalGuardian v4.2.0', '2026-08-05',
+    b = PDFBuilder('测试用例报告', 'LegalGuardian v4.2.1', '2026-08-17',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Test Cases Report')
 
@@ -370,7 +372,7 @@ def build_test_cases():
 
 
 def build_performance():
-    b = PDFBuilder('功能及性能指标', 'LegalGuardian v4.2.0', '2026-08-05',
+    b = PDFBuilder('功能及性能指标', 'LegalGuardian v4.2.1', '2026-08-17',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Functional & Performance Metrics')
 
@@ -438,13 +440,13 @@ def build_performance():
 
 
 def build_manual():
-    b = PDFBuilder('使用说明手册', 'LegalGuardian v4.2.0', '2026-08-05',
+    b = PDFBuilder('使用说明手册', 'LegalGuardian v4.2.1', '2026-08-17',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='User Manual')
 
     b.add_heading('1. 概述', 1)
     b.add_para('LegalGuardian(法律守卫)是基于实证数据的AI法律对话审查纠正与法学作业评估Skill。'
-               'v4.2.0覆盖24种失效模式(F1-F24)、8大题型(T1-T8)、教学大纲AI合规审核，'
+               'v4.2.1覆盖24种失效模式(F1-F24)、8大题型(T1-T8)、教学大纲AI合规审核，'
                '并完成性能优化（知识库模块级缓存、进程内检测调用）与正确性修复'
                '（主观题评分归一化、红线规则、检测→纠正链路对齐）。'
                '面向法学学生/教师、教务管理者、非专业社会人士、AI工具开发者。')
@@ -496,7 +498,7 @@ def build_manual():
 
 
 if __name__ == '__main__':
-    print('=== 生成 LegalGuardian v4.2.0 技术文档 ===')
+    print('=== 生成 LegalGuardian v4.2.1 技术文档 ===')
     build_req_analysis()
     build_framework()
     build_test_cases()

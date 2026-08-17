@@ -1,6 +1,6 @@
 # AI法律回答审核报告
 
-> 审核工具：LegalGuardian v1.0.0
+> 审核工具：LegalGuardian v4.2.1
 > 审核时间：{audit_date}
 > 实证基线：西南民族大学法学院14案例×2轮×4维测评（2026年5月）
 
@@ -11,7 +11,7 @@
 | 项目 | 结果 |
 |------|------|
 | 待审文本长度 | {text_length} 字 |
-| 失效模式命中 | {fired_count}/10 |
+| 失效模式命中 | {fired_count}/24 |
 | 🔴 关键问题 | {critical_count} 项 |
 | 🟠 高度注意 | {high_count} 项 |
 | 🟡 中度提醒 | {medium_count} 项 |
@@ -90,4 +90,4 @@
 
 ---
 
-*报告生成于 {report_generated_at} | LegalGuardian v1.0.0 | 基于西南民族大学法学院大创项目实证数据*
+*报告生成于 {report_generated_at} | LegalGuardian v4.2.1 | 基于西南民族大学法学院大创项目实证数据*
