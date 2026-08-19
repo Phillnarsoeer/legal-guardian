@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>法律守卫 · LegalGuardian 审核案卷</title>
+<style>
+/* ============================================================
+   LegalGuardian 审核案卷 —— 数字案卷设计
+   卷宗纸底 · 判决书宋体 · 印泥朱红 · 数据等宽
+   ============================================================ */
+:root{
+  --paper:#F4EFE3; --paper2:#ECE4D0; --ink:#1E2530; --seal:#B42318;
+  --jade:#176B5B; --brown:#7A5A33; --slate:#5B6673; --line:#D8CCB0;
+  --pass:#176B5B; --warn:#B7791F; --fail:#B42318; --pending:#8A93A0;
+  --font-d:"Songti SC","STSong","SimSun",serif;
+  --font-b:"PingFang SC","Microsoft YaHei","微软雅黑",sans-serif;
+  --font-m:Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.7}
+::selection{background:rgba(180,35,24,.18)}
+
+a{color:var(--jade)}
+button{font-family:var(--font-b);cursor:pointer}
+:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+
+/* ---------- 布局：左侧案卷目录 + 主栏 ---------- */
+.shell{display:flex;min-height:100vh}
+nav.rail{
+  width:232px;flex:0 0 232px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:var(--ink);color:#EDE6D4;padding:26px 18px;z-index:5;
+}
+.rail .brand{font-family:var(--font-d);font-size:20px;letter-spacing:3px;border-bottom:1px solid rgba(237,230,212,.25);padding-bottom:14px;margin-bottom:6px}
+.rail .brand small{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:1px;color:#B9AE94;margin-top:6px;font-weight:normal}
+.rail a{display:flex;gap:10px;align-items:baseline;color:#CFC5A9;text-decoration:none;padding:9px 8px;border-radius:3px;font-size:13.5px;border-left:2px solid transparent}
+.rail a .no{font-family:var(--font-m);font-size:11px;color:#8D8266}
+.rail a:hover{background:rgba(237,230,212,.08);color:#FFF}
+.rail a.active{background:rgba(180,35,24,.25);border-left-color:var(--seal);color:#FFF}
+.rail .foot{margin-top:22px;font-size:11px;color:#8D8266;font-family:var(--font-m);line-height:1.8}
+.rail .ops{margin-top:14px;display:grid;gap:8px}
+.rail .ops button{background:transparent;border:1px solid rgba(237,230,212,.35);color:#EDE6D4;padding:8px 10px;border-radius:3px;font-size:12.5px;text-align:left}
+.rail .ops button:hover{background:rgba(237,230,212,.12)}
+
+main{flex:1;min-width:0;padding:34px 44px 60px}
+@media (max-width:900px){
+  .shell{display:block}
+  nav.rail{position:static;width:100%;height:auto}
+  main{padding:20px 16px 48px}
+}
+
+/* ---------- 页眉 ---------- */
+header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:26px;display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.masthead h1{font-family:var(--font-d);font-size:30px;letter-spacing:6px;font-weight:700}
+.masthead .sub{font-size:13px;color:var(--slate);margin-top:4px}
+.masthead .meta{font-family:var(--font-m);font-size:11.5px;color:var(--brown);margin-top:10px}
+.masthead .meta b{color:var(--ink);font-weight:600}
+.actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.actions button{border:1px solid var(--line);background:var(--paper2);color:var(--ink);padding:8px 14px;border-radius:3px;font-size:13px}
+.actions button:hover{border-color:var(--brown);color:var(--brown)}
+.actions button.primary{background:var(--seal);border-color:var(--seal);color:#FFF}
+.actions button.primary:hover{background:#921B11;color:#FFF}
+
+/* ---------- 分节 ---------- */
+section.docket{background:var(--paper);margin-bottom:34px}
+.docket .eyebrow{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ink);padding-bottom:8px;margin-bottom:16px}
+.docket .eyebrow .no{font-family:var(--font-d);font-size:19px;color:var(--brown);letter-spacing:1px}
+.docket .eyebrow h2{font-family:var(--font-d);font-size:21px;letter-spacing:2px;font-weight:700}
+.docket .eyebrow .hint{margin-left:auto;font-size:12px;color:var(--slate)}
+@media print{.docket{break-inside:avoid-page}}
+
+/* ---------- 风险印章（签名元素） ---------- */
+.seal-wrap{flex:0 0 148px;text-align:center}
+.seal{width:132px;height:132px;transform:rotate(-9deg);animation:stamp .45s cubic-bezier(.2,.8,.3,1.2) both}
+@keyframes stamp{0%{transform:rotate(-9deg) scale(1.35);opacity:0}60%{opacity:1}100%{transform:rotate(-9deg) scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.seal{animation:none}}
+.seal .cap{font-family:var(--font-d);font-size:12px;letter-spacing:2px}
+.seal .lvl{font-family:var(--font-d);font-size:30px;letter-spacing:6px}
+.seal .cnt{font-family:var(--font-m);font-size:10px}
+.seal-ink{color:var(--seal)}
+.seal-steel{color:#4A5260}
+
+/* ---------- 概览关键数字 ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.kpi{border:1px solid var(--line);background:var(--paper2);padding:12px 14px;border-radius:3px}
+.kpi .v{font-family:var(--font-d);font-size:26px;line-height:1.2}
+.kpi .v small{font-size:13px;color:var(--slate);font-family:var(--font-b)}
+.kpi .k{font-size:12px;color:var(--slate);margin-top:2px}
+.kpi.danger .v{color:var(--seal)}
+.kpi.ok .v{color:var(--jade)}
+
+/* ---------- 表格 ---------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--font-d);font-weight:700;text-align:left;background:var(--paper2);border:1px solid var(--line);padding:8px 10px;letter-spacing:1px}
+td{border:1px solid var(--line);padding:8px 10px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(236,228,208,.4)}
+.mono{font-family:var(--font-m);font-size:12px}
+
+/* ---------- 徽章与概率条 ---------- */
+.badge{display:inline-block;padding:2px 9px;border-radius:2px;font-size:12px;font-weight:600;letter-spacing:1px}
+.badge.critical{background:var(--seal);color:#FFF}
+.badge.high{background:#C0563B;color:#FFF}
+.badge.medium_high{background:#D98E32;color:#FFF}
+.badge.medium{background:#C9A227;color:#FFF}
+.badge.low{background:#7E8A99;color:#FFF}
+.badge.pass{background:var(--pass);color:#FFF}
+.badge.warn{background:var(--warn);color:#FFF}
+.badge.fail{background:var(--fail);color:#FFF}
+.badge.pending{background:var(--pending);color:#FFF}
+.badge.unknown{background:#9AA3AD;color:#FFF}
+.prob{display:flex;align-items:center;gap:8px}
+.prob .bar{flex:1;height:7px;background:var(--line);border-radius:2px;overflow:hidden}
+.prob .bar i{display:block;height:100%;background:var(--seal)}
+.prob .bar i.low{background:var(--warn)}
+.prob .bar i.mid{background:var(--brown)}
+.prob .pct{font-family:var(--font-m);font-size:11.5px;width:44px;text-align:right;color:var(--slate)}
+
+/* ---------- 卡片 ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{border:1px solid var(--line);background:var(--paper2);border-radius:3px;padding:14px 16px}
+.card h4{font-family:var(--font-d);font-size:15.5px;letter-spacing:1px;margin-bottom:8px}
+.card .field{font-size:13px;margin-top:7px}
+.card .field .fl{font-family:var(--font-m);font-size:10.5px;color:var(--brown);display:block;letter-spacing:1px}
+.card .evi{border-left:3px solid var(--line);padding:6px 10px;background:var(--paper);font-size:12.5px;color:var(--slate);margin-top:4px;white-space:pre-wrap;word-break:break-all}
+
+/* ---------- 雷达/图 ---------- */
+.chart-row{display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+.chart-box{position:relative}
+canvas{max-width:100%}
+.legend{font-size:12.5px;color:var(--slate)}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;border-radius:2px}
+
+/* ---------- 检查项网格 ---------- */
+.grid8{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.check{border:1px solid var(--line);background:var(--paper2);padding:12px 14px;border-radius:3px;position:relative}
+.check .st{position:absolute;top:10px;right:12px;font-family:var(--font-m);font-size:11px;letter-spacing:1px}
+.check.ok{border-left:4px solid var(--pass)} .check.ok .st{color:var(--pass)}
+.check.warn{border-left:4px solid var(--warn)} .check.warn .st{color:var(--warn)}
+.check.fail{border-left:4px solid var(--fail)} .check.fail .st{color:var(--fail)}
+.check h5{font-size:13.5px;margin-bottom:4px;padding-right:56px}
+.check .why{font-size:12px;color:var(--slate)}
+
+/* ---------- 反馈/计划 ---------- */
+.fb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fb span{border:1px solid var(--line);border-radius:2px;padding:4px 10px;font-size:12.5px;background:var(--paper2)}
+.plan{list-style:none}
+.plan li{border-left:3px solid var(--brown);padding:7px 14px;margin:8px 0;background:var(--paper2);font-size:13px}
+.plan li b{font-family:var(--font-d)}
+.plan li .pri{font-family:var(--font-m);font-size:11px;color:var(--seal);margin-left:8px}
+
+/* ---------- 检索卡片 ---------- */
+.retr .head{font-family:var(--font-d);font-size:14px}
+.retr .case-no{font-family:var(--font-m);font-size:11px;color:var(--brown)}
+.retr .ruling{font-size:12.5px;color:var(--slate);margin-top:6px;white-space:pre-wrap}
+
+/* ---------- 规制 ---------- */
+.dim-group{margin-bottom:18px}
+.dim-group h4{font-family:var(--font-d);font-size:16px;letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.dim-group h4 .score{margin-left:auto;font-family:var(--font-m);font-size:12px;color:var(--brown)}
+.items3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.item3{border:1px solid var(--line);border-radius:3px;padding:10px 12px;background:var(--paper2);font-size:12.5px}
+.item3 .top{display:flex;gap:8px;align-items:center}
+.item3 .id{font-family:var(--font-m);font-size:11px;color:var(--brown)}
+.item3 .nm{flex:1}
+.item3 .ev{margin-top:5px;color:var(--slate);font-size:11.5px}
+
+/* ---------- 红线横幅 ---------- */
+.redline{border:2px solid var(--seal);background:rgba(180,35,24,.07);color:var(--seal);padding:12px 16px;border-radius:3px;font-family:var(--font-d);letter-spacing:2px;margin-bottom:16px;font-size:15px}
+
+/* ---------- 原始数据 ---------- */
+details.raw{border:1px solid var(--line);border-radius:3px;background:#171B22;color:#D6DCE4}
+details.raw summary{padding:10px 14px;cursor:pointer;font-size:13px;color:#B9C0CB}
+details.raw pre{padding:0 14px 14px;overflow:auto;max-height:520px;font-family:var(--font-m);font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-all}
+
+/* ---------- 输入预览 ---------- */
+.preview{border:1px dashed var(--line);padding:12px 16px;background:rgba(255,255,255,.35);font-size:13px;color:var(--slate);white-space:pre-wrap;max-height:180px;overflow:auto}
+
+/* ---------- 页脚 ---------- */
+footer{border-top:3px double var(--ink);margin-top:40px;padding-top:16px;font-size:12px;color:var(--slate);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer .warn{color:var(--seal)}
+
+/* ---------- 空状态/拖放 ---------- */
+.drop{border:2px dashed var(--line);border-radius:4px;padding:44px 20px;text-align:center;color:var(--slate);margin:20px 0;transition:.2s}
+.drop.drag{border-color:var(--jade);background:rgba(23,107,91,.06);color:var(--jade)}
+.drop b{color:var(--ink)}
+.hidden{display:none!important}
+
+/* ---------- 打印 ---------- */
+@media print{
+  body{background:#FFF}
+  nav.rail{display:none}
+  main{padding:0}
+  .actions{display:none}
+  .masthead{break-after:avoid-page}
+  section.docket{break-inside:avoid-page;margin-bottom:18px}
+  .seal{animation:none}
+  details.raw{display:none}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="rail" aria-label="案卷目录">
+  <div class="brand">法律守卫<small>LEGALGUARDIAN · v4.3.0</small></div>
+  <div id="rail-links"></div>
+  <div class="ops">
+    <button type="button" id="btn-demo1">示例 · AI 回答审核</button>
+    <button type="button" id="btn-demo2">示例 · 教学大纲审核</button>
+    <button type="button" id="btn-demo3">示例 · 作业评估</button>
+    <button type="button" id="btn-file">打开审核 JSON…</button>
+    <button type="button" id="btn-print">打印 / 导出 PDF</button>
+  </div>
+  <div class="foot">实证基线：西南民大法学院<br>14案例×2轮×4维 · DS 3.84 / 千问 3.06</div>
+  <input type="file" id="file-input" accept=".json,application/json" class="hidden">
+</nav>
+
+<main>
+  <header class="masthead">
+    <div class="seal-wrap" id="seal-slot"></div>
+    <div>
+      <h1>AI 法律输出审核案卷</h1>
+      <div class="sub">LegalGuardian 实证审核框架 · 检测 → 纠正 → 安全 → 评分 → 检索 → 规制 全链路报告</div>
+      <div class="meta" id="meta-line">尚未载入数据 — 从左侧载入示例，或打开任意模块输出的 JSON 文件。</div>
+    </div>
+    <div class="actions">
+      <button type="button" id="btn-demo1b">示例 · AI 回答审核</button>
+      <button type="button" id="btn-demo2b">示例 · 教学大纲审核</button>
+      <button type="button" id="btn-demo3b">示例 · 作业评估</button>
+      <button type="button" class="primary" id="btn-printb">打印 / 导出 PDF</button>
+    </div>
+  </header>
+
+  <div class="drop" id="dropzone" tabindex="0" role="button" aria-label="拖放或点击载入 JSON">
+    <b>拖放</b>审核报告 JSON 到此处，或点击 <b>打开审核 JSON</b> ——
+    支持 report_builder 全链路报告，以及任意单模块输出（检测 / 纠正 / 安全 / 评分 / 作业 / 模板 / 检索 / 规制）。
+  </div>
+
+  <div id="content"></div>
+
+  <footer>
+    <span>法律守卫 · LegalGuardian v4.3.0 · 实证数据驱动的 AI 法律输出审核与法学教学评估框架</span>
+    <span class="warn">本报告不构成法律意见，不替代律师或教师的专业判断</span>
+    <span class="mono" id="foot-meta"></span>
+  </footer>
+</main>
+</div>
+
+<script type="application/json" id="demo-ai">{"meta": {"builder": "report_builder v4.3.0", "generated_at": "2026-08-19 11:26:24", "tool_name": "LegalGuardian v4.3.0", "input_source": "text", "text_length": 204, "modules_included": ["corrections", "detection", "regulation", "retrieval", "safety", "scoring", "templates"]}, "input": {"text": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这个利率在法律允许的范围内。按照年利率24%计算，您需要支付的利息为借款本金×24%×借款年限。\n\n需要注意的是，如果利息已经支付，超过36%的部分可以要求返还。24%的利率在24%-36%之间，属于自然债务区，已经支付的不能要回，未支付的可以按24%主张。\n\n建议您先与对方协商，如协商不成可以向人民法院提起诉讼。", "question": "我想知道按照《民法通则》我应该还多少利息？2018年的借条，约定利息24%。", "query": "民间借贷 利息 上限"}, "modules": {"detection": {"meta": {"text_length": 204, "total_patterns": 24, "fired_patterns": 1, "critical_fired": 1, "high_fired": 0, "overall_risk": "critical"}, "dimension_scores": {"法律依据准确性": 4.2, "时效性": 2.5, "逻辑性": 5.0, "引导性": 5.0, "题型适配": 5.0, "教学合规": 5.0, "考试设计": 5.0}, "detections": {"F1": {"fired": true, "probability": 0.3, "severity": "critical", "detections": [{"type": "repealed_law", "law_name": "民法通则", "evidence_text": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这...", "recommendation": "民法通则 was replaced by Civil Code on 2021-01-01"}]}}, "all_detections": {"F1": {"fired": true, "probability": 0.3, "severity": "critical", "detections": [{"type": "repealed_law", "law_name": "民法通则", "evidence_text": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这...", "recommendation": "民法通则 was replaced by Civil Code on 2021-01-01"}]}, "F2": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F3": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F4": {"fired": false, "probability": 0.2, "severity": "critical", "detections": null}, "F5": {"fired": false, "probability": 0.0, "severity": "critical", "detections": null}, "F6": {"fired": false, "probability": 0.19999999999999996, "severity": "high", "detections": null}, "F7": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F8": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F9": {"fired": false, "probability": 0.1, "severity": "medium", "detections": null}, "F10": {"fired": false, "probability": 0.2, "severity": "critical", "detections": null}, "F11": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F12": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F13": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F14": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F15": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F16": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F17": {"fired": false, "probability": 0.1, "severity": "high", "detections": null, "syllogism_completeness": "N/A"}, "F18": {"fired": false, "probability": 0.1, "severity": "critical", "detections": null}, "F19": {"fired": false, "probability": 0.4, "severity": "high", "detections": null}, "F20": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F21": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F22": {"fired": false, "probability": 0.1, "severity": "high", "detections": null, "cross_question_analysis": false}, "F23": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F24": {"fired": false, "probability": 0.1, "severity": "critical", "detections": null}}}, "corrections": {"summary": {"total_corrections": 1, "critical_corrections": 1, "high_corrections": 0, "checklist_items_required": ["C1: 我确认了AI引用的每条法条都在官方渠道核对过"]}, "corrections": {"F1": {"corrections": [{"failure_id": "F1", "failure_name": "法条幻视", "severity": "🔴 关键", "original_issue": "引用了已废止的《民法通则》", "empirical_evidence": {"test_case": "测试#1 法条冲突", "finding": "DS主动纠正已废止《民法通则》得5/5准确性，千问识别但计算矛盾得4/5", "ds_score": 5.0, "qw_score": 4.0}, "correction_direction": "将《民法通则》替换为现行有效的《民法典》相关条款", "suggested_rewrite": "《民法通则》已于2021年1月1日被《中华人民共和国民法典》取代。根据现行《民法典》第XXX条...", "regulation_reference": "对应技术规范T1：内置法律知识验证层。Any legal provision cited by AI must pass built-in existence check and validity verification"}], "priority": "highest", "reason": "F1是根本性错误——基于错误法律依据的所有后续分析都可能无效", "checklist_item": "C1: 我确认了AI引用的每条法条都在官方渠道核对过"}}, "baseline_reference": {"ds_overall": 3.84, "qw_overall": 3.06, "key_findings": ["guidance_weakest: 引导性是四维中最薄弱维度", "sentencing_bias: 量刑预测是AI最大短板", "fictional_law_acceptance: 千问接受虚构法律为真实", "lpr_dispute: LPR基准选择是两模型核心分歧", "role_play_limit: 角色扮演改善引导性但不解决核心缺陷"]}}, "safety": {"meta": {"text_length": 204, "total_checks": 8, "pass_count": 1, "fail_count": 1, "warn_count": 4, "not_applicable_count": 2, "passed_ratio": 0.12, "overall_status": "fail"}, "checklist": [{"status": "fail", "reason": "检测到1条法条引用但未标注核实渠道", "id": "C1", "item": "我确认了AI引用的每条法条都在官方渠道核对过", "category": "准确性验证", "target_failures": ["F1"]}, {"status": "not_applicable", "reason": "文本未涉及罪名定性，此项无需执行", "id": "C2", "item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）", "category": "深度审查", "target_failures": ["F2"]}, {"status": "not_applicable", "reason": "文本未涉及量刑预测，此项无需执行", "id": "C3", "item": "我不用AI做量刑预测作为决策依据", "category": "风险边界", "target_failures": ["F3"]}, {"status": "warn", "reason": "重要法律结论建议进行至少两个AI平台的交叉验证", "id": "C4", "item": "我在重要问题上交叉验证了至少两个AI平台", "category": "交叉验证", "target_failures": ["F1", "F5", "F7"]}, {"status": "pass", "reason": "文本较短，浅度正确风险较低", "id": "C5", "item": "我问了自己：AI有没有遗漏关键事实或法律争点？", "category": "完整性审查", "target_failures": ["F4", "F8"]}, {"status": "warn", "reason": "建议在AI回答中标注哪些部分需要人工核实", "id": "C6", "item": "我标注了AI回答中需要人工核实的部分", "category": "追溯管理", "target_failures": ["F5", "F10"]}, {"status": "warn", "reason": "文本未包含\"不构成法律意见/建议咨询律师\"的免责声明", "id": "C7", "item": "我没有让AI替代律师出具正式法律意见", "category": "角色边界", "target_failures": ["F6", "F10"]}, {"status": "warn", "reason": "文本包含数值计算但未显示验证过程（对应F7计算推理不一致）", "id": "C8", "item": "我确认回答中的计算与结论一致，无内部矛盾", "category": "一致性验证", "target_failures": ["F7"]}], "scoring_reference": {"all_passed": "高风险场景通过率100%，可以谨慎参考", "partial_fail": "存在未通过的检查项，建议先完成所有检查再使用AI输出", "critical_fail": "C1/C3/C7任一项未通过，建议暂停使用该AI输出，重新获取或人工补充"}}, "scoring": {"meta": {"text_length": 204, "scoring_system": "四维1-5分制，锚定于14案例实证基线", "overall_score": 2.62, "overall_grade": "C"}, "dimensions": {"准确性": {"score": 1.5, "bonuses": "+0", "penalties": "-2.0", "assessment": "不足", "failure_penalty": "-0.5 (1个相关失效模式)"}, "时效性": {"score": 2.0, "bonuses": "+0", "penalties": "-1.5", "assessment": "不足", "failure_penalty": "-0.5 (1个相关失效模式)"}, "逻辑性": {"score": 3.5, "bonuses": "+0", "penalties": "0", "assessment": "良好"}, "引导性": {"score": 3.5, "elements_found": 3, "elements_total": 6, "assessment": "良好", "improvement_tip": "可进一步提升证据建议和替代方案的完整性"}}, "comparison": {"vs_deepseek": {"accuracy_diff": -2.5, "timeliness_diff": -2.7, "logic_diff": -0.2, "guidance_diff": 0.5, "overall_diff": -1.22, "ds_overall": 3.84}, "vs_qwen": {"accuracy_diff": -2.0, "timeliness_diff": -2.1, "logic_diff": 0.6, "guidance_diff": 1.8, "overall_diff": -0.44, "qw_overall": 3.06}, "guidance_weakest_note": "引导性是AI法律工具中最薄弱维度（DS平均2.96, 千问平均1.70），R2角色扮演可提升40%"}, "baseline_reference": "DeepSeek综合3.84，千问综合3.06"}, "templates": {"question": "我想知道按照《民法通则》我应该还多少利息？2018年的借条，约定利息24%。", "analysis": {"has_legal_name": true, "has_specific_article": false, "has_sentencing_inquiry": false, "has_crime_question": false, "has_practical_need": true, "has_repealed_law_risk": true, "has_unverified_premise": false, "detected_laws": ["民法通则"], "detected_articles": [], "traps": [{"type": "repealed_law", "detail": "《民法通则》已废止（2021-01-01），被民法典取代", "risk": "high"}], "complexity": "medium", "competition_scene": null, "has_syllabus_audit": false, "has_exam_design": false, "has_scoring_consistency": false, "has_compliance_audit": false}, "recommended_template_ids": ["T4", "T1", "T5"], "optimized": {"original_question": "我想知道按照《民法通则》我应该还多少利息？2018年的借条，约定利息24%。", "optimized_question": "【验证步骤】请先确认以下前提是否成立：\n\n我原来以为根据《民法通则》可以...但请先帮我确认《民法通则》是否仍然有效。如果已废止，请用现行法律分析。\n\n我想知道按照《民法通则》我应该还多少利息？2018年的借条，约定利息24%。\n\n\n【回答格式要求】请按以下方式组织回答：我听说根据《[法律名称]》第[X]条[某人]可以[某种权利/主张]。在我继续之前，请先完成以下步骤：1）验证《[法律名称]》是否存在且现行有效；2）核实第[X]条的内容是否与我的理解一致；3）分析我的...\n\n除法律分析外，请提供：证据收集清单、操作步骤、时间节点、风险提示和替代方案。", "modifications": [{"type": "replace_repealed_law", "original": "《民法通则》", "replacement": "《中华人民共和国民法典》", "reason": "已废止（2021-01-01），被民法典取代"}, {"type": "add_verification_step", "description": "在问题前添加前提验证步骤", "suggested_prefix": "在我继续之前，请先完成以下验证步骤：1）确认我引用的法律是否现行有效..."}, {"type": "add_practical_guidance", "description": "添加实务操作指引要求", "suggested_addition": "除法律分析外，请提供：证据收集清单、操作步骤、时间节点、风险提示和替代方案。"}], "primary_template": "前提挑战型"}}, "retrieval": {"meta": {"retriever": "rag_retriever v4.3.0", "corpus_size": 5515, "query": "民间借贷 利息 上限", "terms": ["民间借贷", "利息", "上限"], "top_k": 5, "matched_chunks": 120, "elapsed_ms": 72.3, "deterministic": true}, "results": [{"id": "2023-16-2-103-014", "score": 5, "category": "民事", "subcategory": "借款合同纠纷", "hit_terms": {"title": ["民间借贷"], "category": [], "body": ["利息", "上限"]}, "snippet": "【2023-16-2-103-014】汤某某诉王某甲等民间借贷纠纷案\n案号：（2021）最高法民申1140号\n法院：最高人民法院 | 最高人民法院\n日期：2021.04.21 | 程序：再审\n案由：民事/借款合同纠纷\n裁判要旨：在民间借贷纠纷中，出借人和借款人在借款合同中约定借款人应支付的服务费、咨询费、管理费等其他费", "detail": {"title": "汤某某诉王某甲等民间借贷纠纷案", "case_id": "（2021）最高法民申1140号", "court": "最高人民法院", "date": "2021.04.21", "trial": "再审", "ruling": "在民间借贷纠纷中，出借人和借款人在借款合同中约定借款人应支付的服务费、咨询费、管理费等其他费用，实质是借款人为获得借款支付的成本，性质上与利率无异，故应将其和逾期利息、违约金一并审查，防止当事人变相规避利率保护上限的规定，非法获取高息。而合同约定，如律师费、诉讼费用等，是出借人因借款人未按照约定偿还借款，为维护自身合法权益进行诉讼而产生的支出和损失，不属于出借人因此获得的金钱利益，如借款人如约履行还款义务，并非必然发生，也不属于借款人为获得借款而支付的成本。因此，不应将律师费等因诉讼产生的必要合理支出归入其他费用范畴。当事人在本案中未对律师费金额是否合理提出主张，实践中应结合律师收费标准和当地实际，以及出借人因委托律师获得的利益等因素，综合确定合理的律师费数额。"}}, {"id": "2023-01-2-103-003", "score": 3, "category": "民事", "subcategory": "借款合同纠纷", "hit_terms": {"title": ["民间借贷"], "category": [], "body": []}, "snippet": "【2023-01-2-103-003】陈某诉徐某民间借贷纠纷案\n案号：（2020）最高法民辖43号\n法院：最高人民法院 | 最高人民法院\n日期：2020.08.19 | 程序：其他\n案由：民事/借款合同纠纷\n裁判要旨：上级人民法院指令再审、发回重审的案件，由原审人民法院再审或者重审。再审或者重审期间当事人提出管辖异议的", "detail": {"title": "陈某诉徐某民间借贷纠纷案", "case_id": "（2020）最高法民辖43号", "court": "最高人民法院", "date": "2020.08.19", "trial": "其他", "ruling": "上级人民法院指令再审、发回重审的案件，由原审人民法院再审或者重审。再审或者重审期间当事人提出管辖异议的，人民法院不予审查；审理法院认为没有管辖权的，也不得依职权再自行移送管辖。"}}, {"id": "2023-05-1-404-001", "score": 3, "category": "刑事", "subcategory": "受贿罪", "hit_terms": {"title": [], "category": [], "body": ["民间借贷", "利息", "上限"]}, "snippet": "【2023-05-1-404-001】沈某根受贿案\n案号：（2019）浙0522刑初200号\n法院：长兴县人民法院 | 浙江省\n日期：2019.06.11 | 程序：一审\n案由：刑事/受贿罪\n裁判要旨：1.严格区分国家工作人员合法借贷与以借贷为名收取高额利息的受贿　　2007年最高人民法院、最高人民检察院《关于办理受贿", "detail": {"title": "沈某根受贿案", "case_id": "（2019）浙0522刑初200号", "court": "长兴县人民法院", "date": "2019.06.11", "trial": "一审", "ruling": "1.严格区分国家工作人员合法借贷与以借贷为名收取高额利息的受贿　　2007年最高人民法院、最高人民检察院《关于办理受贿刑事案件适用法律若干问题的意见》列举了实践中纷繁多样的“花式”收受贿赂手段。2016年《最高人民法院、最高人民检察院关于办理贪污贿赂刑事案件适用法律若干问题的解释》进一步明确指出贿赂犯罪中的“财物”包括可以折算为货币的物质利益，如房屋装修、债务免除等。故在现行法律下，认定“贿赂”和受贿罪的关键在于物质利益与行为人职权因素之间的关联性，而不是拘泥于何种物质形式。国家工作人员利用职务上的便利给予请托人照顾，又以个人名义向请托人出借钱款，收取高额利息完成利益输送，属于以借贷为名的受贿行为。　　国家工作人员与其他平等民事主体之间发生的借款及收取利息行为受到法律的保护。根据2020年12月第二次修正的《最高人民法院关于审理民间借贷案件适用法律若干问题的规定》（以下简称《民间借贷规定》），以借贷合同成立时一年期贷款市场报价利率的四倍为法律保护的上限。　　2.关于受贿数额的认定　　对于以个人名义向请托人出借钱款，收取高额利息的受贿行为，以超过同期借款人从他人处借款的最高年息的部分来认定受贿数额。"}}, {"id": "2023-07-2-103-001", "score": 3, "category": "民事", "subcategory": "借款合同纠纷", "hit_terms": {"title": ["民间借贷"], "category": [], "body": []}, "snippet": "【2023-07-2-103-001】张某某诉孙某某、赵某某民间借贷纠纷案\n案号：（2021）鲁1312民初3283号\n法院：临沂市河东区人民法院 | 山东省\n日期：2021.07.22 | 程序：一审\n案由：民事/借款合同纠纷\n裁判要旨：夫妻一方为另一方债务提供担保，本质上是担保一方对该债务形成的知情、同意和决定，是", "detail": {"title": "张某某诉孙某某、赵某某民间借贷纠纷案", "case_id": "（2021）鲁1312民初3283号", "court": "临沂市河东区人民法院", "date": "2021.07.22", "trial": "一审", "ruling": "夫妻一方为另一方债务提供担保，本质上是担保一方对该债务形成的知情、同意和决定，是夫妻对共同财产、共同债务平等处理权的体现，说明夫妻二人对于债务的发生及负担已然有了充分的考虑，债权人也有理由相信其二人对于债务的形成及负担有着共同的意思表示。因此，夫妻一方为另一方提供担保的债务，符合“共债共签”的基本原则，应视为夫妻共同意思表示而形成的夫妻共同债务。"}}, {"id": "2023-16-2-103-006", "score": 3, "category": "民事", "subcategory": "借款合同纠纷", "hit_terms": {"title": ["民间借贷"], "category": [], "body": []}, "snippet": "【2023-16-2-103-006】重庆某路桥工程有限公司诉王某某、安某某民间借贷纠纷案\n案号：（2018）青民再48号\n法院：青海省高级人民法院 | 青海省\n日期：2018.07.03 | 程序：再审\n案由：民事/借款合同纠纷\n裁判要旨：表象材料具有重大瑕疵而相对人没有尽到合理的注意义务，不宜认定善意无过失；相对人", "detail": {"title": "重庆某路桥工程有限公司诉王某某、安某某民间借贷纠纷案", "case_id": "（2018）青民再48号", "court": "青海省高级人民法院", "date": "2018.07.03", "trial": "再审", "ruling": "表象材料具有重大瑕疵而相对人没有尽到合理的注意义务，不宜认定善意无过失；相对人为从事经常性商事活动的个人，对于其注意义务的标准，一般应当高于普通的民事主体。构成代表行为，相对人知道或者应当知道行为人必须是法人的法定代表人或其他组织的负责人，并超越了法定代表人或负责人的权限订立了合同。作为经常从事商事活动的个人，应当对刻有“对外签订合同/收据无效”字样的印章有合理的注意、审查和判断义务，应当审查有无单位的明确授权或者事后追认，在上述实践表象不具备之情形下，不能认定相对人具有善意、无过失。"}}]}, "regulation": {"meta": {"assessor_version": "4.3.0", "tool_name": "LegalGuardian v4.3.0", "regulation_source": "AI Legal Tool 3D Collaborative Regulation Path", "detections_loaded": true, "fired_patterns": ["F1"], "deterministic": true}, "dimensions": {"technology": {"name": "Technology Standards (Developer-facing)", "total": 5, "pass": 0, "fail": 1, "pending": 4, "score": 0.0, "items": [{"id": "T1", "name": "Built-in Legal Knowledge Verification Layer", "status": "FAIL", "basis": "实证证据", "evidence": "失效模式 F1 命中（工具存在对应风险）", "evaluation_criteria": "Fictional law detection rate must reach 100%; repealed law flagging rate must reach 100%"}, {"id": "T2", "name": "Controversy Annotation and Alternative Analysis", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "At least 1 prosecution perspective and 1 defense perspective alternative must be listed"}, {"id": "T3", "name": "Sentencing Confidence Disclosure", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Precise predictions must note: 'for reference only, empirical error can reach 71%'"}, {"id": "T4", "name": "Calculation Verification and Consistency Check", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Conclusion value and example value discrepancy must not exceed 1%"}, {"id": "T5", "name": "User Profile Awareness and Differentiated Output", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Law student version guidance >= 4.0; non-professional version guidance >= 4.5"}]}, "education": {"name": "Education and Guidance (User Literacy)", "total": 4, "pass": 0, "fail": 0, "pending": 4, "score": 0.0, "items": [{"id": "E1", "name": "Law School AI Literacy Required Course", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E2", "name": "Legal Practitioner AI Skills Training", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E3", "name": "Public AI Legal Education", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E4", "name": "Standardized Question Template Promotion", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}]}, "legal": {"name": "Legal Safeguards (Regulatory Recommendations)", "total": 4, "pass": 0, "fail": 2, "pending": 2, "score": 0.0, "items": [{"id": "L1", "name": "AI Legal Tool Tiered Certification", "status": "FAIL", "basis": "实证证据", "evidence": "失效模式 F1 命中（工具存在对应风险）", "evaluation_criteria": ""}, {"id": "L2", "name": "Mandatory Transparency and Explainability", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "L3", "name": "AI Ethics Code for Legal Practitioners", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "L4", "name": "AI Legal Product Regulatory Sandbox", "status": "FAIL", "basis": "实证证据", "evidence": "失效模式 F1 命中（工具存在对应风险）", "evaluation_criteria": ""}]}}, "radar": {"technology": {"score": 0.0, "pass": 0, "total": 5}, "education": {"score": 0.0, "pass": 0, "total": 4}, "legal": {"score": 0.0, "pass": 0, "total": 4}}, "overall": {"score": 0.0, "pass": 0, "fail": 3, "pending": 10, "total": 13, "grade": "D (低合规)"}, "roadmap": {"short_term_2026_2027": ["Complete Pitfall Handbook compilation and distribution", "Law School AI Literacy pilot course", "Submit regulatory recommendations to authorities"], "mid_term_2027_2028": ["AI Legal Tool Tiered Certification draft standards", "Bar Association AI ethics training system", "Public AI legal education promotion", "Standardized question templates embedded in legal tech products"], "long_term_2028_plus": ["Promote mandatory standards legislation for AI legal tools", "Establish independent third-party AI legal tool evaluation mechanism", "Establish AI legal safety incident reporting and traceability system"]}}}}</script>
+<script type="application/json" id="demo-syllabus">{"meta": {"builder": "report_builder v4.3.0", "generated_at": "2026-08-19 11:22:46", "tool_name": "教学大纲合规审核示例", "input_source": "text", "text_length": 79, "modules_included": ["corrections", "detection", "regulation", "safety"]}, "input": {"text": "本教学大纲覆盖民法、刑法、宪法基础内容，包括犯罪构成、民事法律行为、合同制度、侵权责任、刑罚制度；缺少法理学、行政法、诉讼法、国际法、经济法领域的必授知识点。", "question": "审核一下这份教学大纲是否符合国家标准", "query": ""}, "modules": {"detection": {"meta": {"text_length": 79, "total_patterns": 24, "fired_patterns": 1, "critical_fired": 1, "high_fired": 0, "overall_risk": "critical"}, "dimension_scores": {"法律依据准确性": 5.0, "时效性": 5.0, "逻辑性": 5.0, "引导性": 5.0, "题型适配": 5.0, "教学合规": 0.0, "考试设计": 5.0}, "detections": {"F24": {"fired": true, "probability": 0.67, "severity": "critical", "detections": [{"type": "syllabus_noncompliance", "coverage_ratio": 0.33, "covered_count": 6, "total_core_points": 18, "covered_knowledge_points": ["法律规范与法律关系", "民事法律行为与代理", "合同制度", "侵权责任", "犯罪构成理论", "刑罚制度"], "missing_knowledge_points": ["法的本质与特征", "宪法基本原则", "国家机构与公民基本权利", "物权制度", "婚姻家庭与继承", "常见罪名", "行政主体与行政行为", "行政复议与行政诉讼", "民事诉讼程序", "刑事诉讼程序", "国际法基本原则", "市场监管与反垄断"], "recommendation": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）。缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。建议对照教育部法学类教学质量国家标准补充。"}]}}, "all_detections": {"F1": {"fired": false, "probability": 0.0, "severity": "critical", "detections": null}, "F2": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F3": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F4": {"fired": false, "probability": 0.2, "severity": "critical", "detections": null}, "F5": {"fired": false, "probability": 0.0, "severity": "critical", "detections": null}, "F6": {"fired": false, "probability": 0.8, "severity": "high", "detections": null}, "F7": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F8": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F9": {"fired": false, "probability": 0.1, "severity": "medium", "detections": null}, "F10": {"fired": false, "probability": 0.2, "severity": "critical", "detections": null}, "F11": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F12": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F13": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F14": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F15": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F16": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F17": {"fired": false, "probability": 0.9, "severity": "high", "detections": null, "syllogism_completeness": "0/3"}, "F18": {"fired": false, "probability": 0.1, "severity": "critical", "detections": null}, "F19": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F20": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F21": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F22": {"fired": false, "probability": 0.1, "severity": "high", "detections": null, "cross_question_analysis": false}, "F23": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F24": {"fired": true, "probability": 0.67, "severity": "critical", "detections": [{"type": "syllabus_noncompliance", "coverage_ratio": 0.33, "covered_count": 6, "total_core_points": 18, "covered_knowledge_points": ["法律规范与法律关系", "民事法律行为与代理", "合同制度", "侵权责任", "犯罪构成理论", "刑罚制度"], "missing_knowledge_points": ["法的本质与特征", "宪法基本原则", "国家机构与公民基本权利", "物权制度", "婚姻家庭与继承", "常见罪名", "行政主体与行政行为", "行政复议与行政诉讼", "民事诉讼程序", "刑事诉讼程序", "国际法基本原则", "市场监管与反垄断"], "recommendation": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）。缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。建议对照教育部法学类教学质量国家标准补充。"}]}}}, "corrections": {"summary": {"total_corrections": 1, "critical_corrections": 1, "high_corrections": 0, "checklist_items_required": []}, "corrections": {"F24": {"corrections": [{"failure_id": "F24", "failure_name": "教学大纲合规偏离", "severity": "🔴 关键", "original_issue": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）", "empirical_evidence": {"test_case": "教信赛智慧评价赛道-教学大纲合规审核", "finding": "缺失核心知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。教育部法学类教学质量国家标准要求核心知识点全覆盖", "source": "reference/curriculum_requirements.json"}, "correction_direction": "对照教育部课程标准补充缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断", "suggested_rewrite": "【大纲修订建议】本学期教学大纲需补充以下必授核心知识点：1）法的本质与特征；宪法基本原则；国家机构与公民基本权利；物权制度；婚姻家庭与继承；常见罪名；行政主体与行政行为；行政复议与行政诉讼；民事诉讼程序；刑事诉讼程序；国际法基本原则；市场监管与反垄断。同时更新课程教学目标、学时分配和考核方式。"}], "priority": "highest", "reason": "教学大纲未覆盖国家标准必授知识点，直接影响人才培养质量和课程评估结果", "checklist_item": null}}, "baseline_reference": {"ds_overall": 3.84, "qw_overall": 3.06, "key_findings": ["guidance_weakest: 引导性是四维中最薄弱维度", "sentencing_bias: 量刑预测是AI最大短板", "fictional_law_acceptance: 千问接受虚构法律为真实", "lpr_dispute: LPR基准选择是两模型核心分歧", "role_play_limit: 角色扮演改善引导性但不解决核心缺陷"]}}, "safety": {"meta": {"text_length": 79, "total_checks": 8, "pass_count": 1, "fail_count": 0, "warn_count": 3, "not_applicable_count": 4, "passed_ratio": 0.12, "overall_status": "warn"}, "checklist": [{"status": "not_applicable", "reason": "文本中未检测到法条引用，此项无需执行", "id": "C1", "item": "我确认了AI引用的每条法条都在官方渠道核对过", "category": "准确性验证", "target_failures": ["F1"]}, {"status": "not_applicable", "reason": "文本未涉及罪名定性，此项无需执行", "id": "C2", "item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）", "category": "深度审查", "target_failures": ["F2"]}, {"status": "not_applicable", "reason": "文本未涉及量刑预测，此项无需执行", "id": "C3", "item": "我不用AI做量刑预测作为决策依据", "category": "风险边界", "target_failures": ["F3"]}, {"status": "warn", "reason": "重要法律结论建议进行至少两个AI平台的交叉验证", "id": "C4", "item": "我在重要问题上交叉验证了至少两个AI平台", "category": "交叉验证", "target_failures": ["F1", "F5", "F7"]}, {"status": "pass", "reason": "文本较短，浅度正确风险较低", "id": "C5", "item": "我问了自己：AI有没有遗漏关键事实或法律争点？", "category": "完整性审查", "target_failures": ["F4", "F8"]}, {"status": "warn", "reason": "建议在AI回答中标注哪些部分需要人工核实", "id": "C6", "item": "我标注了AI回答中需要人工核实的部分", "category": "追溯管理", "target_failures": ["F5", "F10"]}, {"status": "warn", "reason": "文本未包含\"不构成法律意见/建议咨询律师\"的免责声明", "id": "C7", "item": "我没有让AI替代律师出具正式法律意见", "category": "角色边界", "target_failures": ["F6", "F10"]}, {"status": "not_applicable", "reason": "文本未涉及数值计算，此项无需执行", "id": "C8", "item": "我确认回答中的计算与结论一致，无内部矛盾", "category": "一致性验证", "target_failures": ["F7"]}], "scoring_reference": {"all_passed": "高风险场景通过率100%，可以谨慎参考", "partial_fail": "存在未通过的检查项，建议先完成所有检查再使用AI输出", "critical_fail": "C1/C3/C7任一项未通过，建议暂停使用该AI输出，重新获取或人工补充"}}, "regulation": {"meta": {"assessor_version": "4.3.0", "tool_name": "教学大纲合规审核示例", "regulation_source": "AI Legal Tool 3D Collaborative Regulation Path", "detections_loaded": true, "fired_patterns": ["F24"], "deterministic": true}, "dimensions": {"technology": {"name": "Technology Standards (Developer-facing)", "total": 5, "pass": 0, "fail": 0, "pending": 5, "score": 0.0, "items": [{"id": "T1", "name": "Built-in Legal Knowledge Verification Layer", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Fictional law detection rate must reach 100%; repealed law flagging rate must reach 100%"}, {"id": "T2", "name": "Controversy Annotation and Alternative Analysis", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "At least 1 prosecution perspective and 1 defense perspective alternative must be listed"}, {"id": "T3", "name": "Sentencing Confidence Disclosure", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Precise predictions must note: 'for reference only, empirical error can reach 71%'"}, {"id": "T4", "name": "Calculation Verification and Consistency Check", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Conclusion value and example value discrepancy must not exceed 1%"}, {"id": "T5", "name": "User Profile Awareness and Differentiated Output", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": "Law student version guidance >= 4.0; non-professional version guidance >= 4.5"}]}, "education": {"name": "Education and Guidance (User Literacy)", "total": 4, "pass": 0, "fail": 0, "pending": 4, "score": 0.0, "items": [{"id": "E1", "name": "Law School AI Literacy Required Course", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E2", "name": "Legal Practitioner AI Skills Training", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E3", "name": "Public AI Legal Education", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "E4", "name": "Standardized Question Template Promotion", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}]}, "legal": {"name": "Legal Safeguards (Regulatory Recommendations)", "total": 4, "pass": 0, "fail": 0, "pending": 4, "score": 0.0, "items": [{"id": "L1", "name": "AI Legal Tool Tiered Certification", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "L2", "name": "Mandatory Transparency and Explainability", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "L3", "name": "AI Ethics Code for Legal Practitioners", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}, {"id": "L4", "name": "AI Legal Product Regulatory Sandbox", "status": "PENDING", "basis": "无证据", "evidence": "描述中未检索到对应证据，需人工核验", "evaluation_criteria": ""}]}}, "radar": {"technology": {"score": 0.0, "pass": 0, "total": 5}, "education": {"score": 0.0, "pass": 0, "total": 4}, "legal": {"score": 0.0, "pass": 0, "total": 4}}, "overall": {"score": 0.0, "pass": 0, "fail": 0, "pending": 13, "total": 13, "grade": "D (低合规)"}, "roadmap": {"short_term_2026_2027": ["Complete Pitfall Handbook compilation and distribution", "Law School AI Literacy pilot course", "Submit regulatory recommendations to authorities"], "mid_term_2027_2028": ["AI Legal Tool Tiered Certification draft standards", "Bar Association AI ethics training system", "Public AI legal education promotion", "Standardized question templates embedded in legal tech products"], "long_term_2028_plus": ["Promote mandatory standards legislation for AI legal tools", "Establish independent third-party AI legal tool evaluation mechanism", "Establish AI legal safety incident reporting and traceability system"]}}}}</script>
+<script type="application/json" id="demo-assignment">{"meta": {"builder": "report_builder v4.3.0", "generated_at": "2026-08-19 11:26:24", "tool_name": "法学案例分析作业", "input_source": "text", "text_length": 689, "modules_included": ["assignment", "corrections", "detection", "safety"]}, "input": {"text": "# 法学案例分析作业\n\n## 案件名称：张某与李某相邻关系纠纷案\n\n### 一、案件事实\n\n张某与李某系邻居关系。2025年3月，李某在自家门口通道处堆放建筑石子，堆高近2米。张某多次通过微信要求李某移除石子堆，李某以\"正在施工、过几天就搬\"为由拖延。\n\n2025年5月某日暴雨后，石子堆部分塌落。次日清晨，张某出门上班时踩到散落的石子滑倒，致右腿骨折，花医疗费3.2万元，误工45天。张某遂起诉李某要求赔偿全部损失。\n\n### 二、法律分析\n\n本案的核心问题在于李某的行为是否构成侵权，以及张某能否获得全额赔偿。\n\n根据《中华人民共和国民法典》第一千一百六十五条的规定，行为人因过错侵害他人民事权益造成损害的，应当承担侵权责任。本案中，李某在公共通道堆放石子，未尽到合理的安全保障义务，存在明显过错。其堆放行为与张某的损害之间存在因果关系，因此李某应当承担侵权责任。\n\n根据《民法典》第一千一百七十三条的规定，被侵权人对同一损害的发生或者扩大有过错的，可以减轻侵权人的责任。本案中，张某作为成年人，在暴雨后出门应当预见到地面可能存在碎石，行走时应当保持谨慎。张某未尽到必要的注意义务，对损害的发生也有一定过错。\n\n综合来看，李某应承担主要责任（约70%-80%），张某应承担次要责任（约20%-30%）。\n\n### 三、结论\n\n李某的行为构成侵权，应当赔偿张某的医疗费、误工费等损失。但由于张某自身也有一定过错，李某的赔偿责任可以相应减轻。张某应获得约70%-80%的赔偿，即约2.24万-2.56万元的医疗费，加上相应的误工费。\n\n---\n\n*本作业完成于2026年7月*\n", "question": "张某与李某相邻关系侵权案：请分析李某的侵权责任", "query": ""}, "modules": {"detection": {"meta": {"text_length": 689, "total_patterns": 24, "fired_patterns": 5, "critical_fired": 1, "high_fired": 3, "overall_risk": "critical"}, "dimension_scores": {"法律依据准确性": 4.2, "时效性": 5.0, "逻辑性": 4.4, "引导性": 3.8, "题型适配": 3.3, "教学合规": 5.0, "考试设计": 2.5}, "detections": {"F4": {"fired": true, "probability": 0.5, "severity": "critical", "detections": [{"type": "shallow_conclusion", "recommendation": "Add depth: alternative theories, exceptions, academic disputes"}]}, "F6": {"fired": true, "probability": 0.6, "severity": "high", "detections": [{"type": "insufficient_guidance", "found_elements": ["procedure steps", "risk warning"], "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."}]}, "F11": {"fired": true, "probability": 0.35, "severity": "high", "detections": [{"type": "concept_confusion", "term1": "应当", "term2": "可以", "recommendation": "注意区分「应当」与「可以」的实质差异。"}]}, "F19": {"fired": true, "probability": 0.8, "severity": "high", "detections": [{"type": "question_ambiguity", "ambiguity_markers": ["可能", "可以", "应当", "等", "或"], "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"}]}, "F21": {"fired": true, "probability": 0.6, "severity": "medium_high", "detections": [{"type": "format_violation", "format_marker_count": 5, "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"}]}}, "all_detections": {"F1": {"fired": false, "probability": 0.0, "severity": "critical", "detections": null}, "F2": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F3": {"fired": false, "probability": 0.0, "severity": "high", "detections": null}, "F4": {"fired": true, "probability": 0.5, "severity": "critical", "detections": [{"type": "shallow_conclusion", "recommendation": "Add depth: alternative theories, exceptions, academic disputes"}]}, "F5": {"fired": false, "probability": 0.0, "severity": "critical", "detections": null}, "F6": {"fired": true, "probability": 0.6, "severity": "high", "detections": [{"type": "insufficient_guidance", "found_elements": ["procedure steps", "risk warning"], "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."}]}, "F7": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F8": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F9": {"fired": false, "probability": 0.1, "severity": "medium", "detections": null}, "F10": {"fired": false, "probability": 0.2, "severity": "critical", "detections": null}, "F11": {"fired": true, "probability": 0.35, "severity": "high", "detections": [{"type": "concept_confusion", "term1": "应当", "term2": "可以", "recommendation": "注意区分「应当」与「可以」的实质差异。"}]}, "F12": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F13": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F14": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F15": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F16": {"fired": false, "probability": 0.0, "severity": "medium_high", "detections": null}, "F17": {"fired": false, "probability": 0.1, "severity": "high", "detections": null, "syllogism_completeness": "3/3"}, "F18": {"fired": false, "probability": 0.1, "severity": "critical", "detections": null}, "F19": {"fired": true, "probability": 0.8, "severity": "high", "detections": [{"type": "question_ambiguity", "ambiguity_markers": ["可能", "可以", "应当", "等", "或"], "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"}]}, "F20": {"fired": false, "probability": 0.1, "severity": "high", "detections": null}, "F21": {"fired": true, "probability": 0.6, "severity": "medium_high", "detections": [{"type": "format_violation", "format_marker_count": 5, "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"}]}, "F22": {"fired": false, "probability": 0.1, "severity": "high", "detections": null, "cross_question_analysis": false}, "F23": {"fired": false, "probability": 0.1, "severity": "medium_high", "detections": null}, "F24": {"fired": false, "probability": 0.1, "severity": "critical", "detections": null}}}, "corrections": {"summary": {"total_corrections": 5, "critical_corrections": 0, "high_corrections": 4, "checklist_items_required": ["C5: 我问了自己：AI有没有遗漏关键事实或法律争点？", "C7: 我没有让AI替代律师出具正式法律意见", "C2: 我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）"]}, "corrections": {"F4": {"corrections": [{"failure_id": "F4", "failure_name": "浅度正确", "severity": "🟠 高", "original_issue": "AI结论正确但缺乏深度法理分析和替代法律理论探讨", "empirical_evidence": {"test_case": "测试#2 堆放物致害+案例6任某强奸案", "finding": "DS结论正确但分析深度不足——堆放物案未深入1255条特别规范，任某案「判因太浅」", "ds_accuracy_score": 4.5, "note": "\"判因太浅\"是AI法律分析的普遍问题"}, "correction_direction": "在正确结论的基础上增加：1）特别法与一般法关系分析；2）替代法律理论探讨；3）法理争议和学术观点引用", "suggested_rewrite": "[原有正确结论的基础上] 此外，本案还涉及以下需要深入分析的维度：1）特别规范vs一般原则的适用关系... 2）学理上对此存在不同观点...", "regulation_reference": "对应教育引导E1：法学院AI素养课程。Incorporate AI 10 failure patterns into law school curriculum for critical AI usage skills"}], "priority": "high", "reason": "浅度正确可能使法学生形成肤浅法律思维习惯", "checklist_item": "C5: 我问了自己：AI有没有遗漏关键事实或法律争点？"}, "F6": {"corrections": [{"failure_id": "F6", "failure_name": "引导性赤字", "severity": "🟠 高", "original_issue": "AI提供了法律分析但缺乏完整的实务操作指导", "empirical_evidence": {"test_case": "6个历史案例汇总", "finding": "DS引导性平均2.96/5，千问引导性平均1.70/5。R2角色扮演可提升约40%。引导性是四维中最薄弱维度", "ds_guidance_avg": 2.96, "qw_guidance_avg": 1.7, "improvement": "R2角色扮演提升40%"}, "correction_direction": "补充五项实务操作内容：证据清单+操作步骤+时间节点+风险提示+替代方案", "suggested_rewrite": "[补充到原有分析之后]\n\n## 实务操作指引\n### 1. 证据收集清单\n### 2. 分步操作指南\n### 3. 关键时间节点\n### 4. 风险提示\n### 5. 替代性纠纷解决途径", "regulation_reference": "对应教育引导E2：律师AI技能培训。使用T5模板（实操指引型）可从源头改善引导性", "template_recommendation": "T5"}], "priority": "high", "reason": "缺乏引导性是AI法律工具最普遍的问题——告诉用户「问题在哪」但不告诉「怎么解决」", "checklist_item": "C7: 我没有让AI替代律师出具正式法律意见"}, "F11": {"corrections": [{"failure_id": "F11", "failure_name": "选项混淆偏误", "severity": "🟠 高", "original_issue": "混淆了「应当」与「可以」两个相似但本质不同的法律概念", "empirical_evidence": {"test_case": "法考真题校准", "finding": "2022-2025法考客观题中「应当vs可以」是高频混淆对，民法选择题约40%涉及此类区分", "source": "2022-2025年法考客观题真题分析"}, "correction_direction": "在选择题分析中明确区分「应当」与「可以」：标注两者的成立要件差异、法律效果差异和适用场景", "suggested_rewrite": "「应当」与「可以」的核心区别在于：应当（[要件/效果描述]），而可以（[要件/效果描述]）。本选项属于[正确答案]", "teaching_tip": "推荐使用对比表格展示混淆概念的核心差异"}], "priority": "high", "reason": "概念混淆直接影响客观题得分，且反映学生对核心法律概念的掌握不足", "checklist_item": "C2: 我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）"}, "F19": {"corrections": [{"failure_id": "F19", "failure_name": "试题歧义偏差", "severity": "🟠 高", "original_issue": "试题表述包含5个歧义信号词: 可能, 可以, 应当, 等, 或", "empirical_evidence": {"test_case": "教信赛智慧评价赛道", "finding": "歧义表述导致不同学生对同一题目产生不同且均合理的理解，直接影响评分公平性"}, "correction_direction": "为题目增加限定条件：明确法律生效时间、法域范围、主体/客体/情景边界", "suggested_rewrite": "【修改建议】题目应限定：1）适用的法律及生效时间；2）案件发生法域；3）关键要素的具体范围。示例：「根据2021年1月1日施行的《民法典》合同编，以下情形...」"}], "priority": "high", "reason": "试题歧义直接影响评分公平性，是考试设计质量的核心问题", "checklist_item": null}, "F21": {"corrections": [{"failure_id": "F21", "failure_name": "答案格式违规", "severity": "🟡 中高", "original_issue": "答案以要点/列表为主（检测到5个列表信号），缺乏段落式论证", "empirical_evidence": {"test_case": "教信赛智慧评价赛道", "finding": "论述题要求段落式论证，纯要点式答案虽含考点但论证深度不足"}, "correction_direction": "按题目要求的格式作答：论述题需段落式论证，简答题需分点但保留展开", "suggested_rewrite": "【论述题格式】应包含：1）问题界定（分析本题核心争点）；2）法理分析（引用法条+学理观点）；3）结论论证（逻辑展开）。"}], "priority": "medium", "reason": "格式违规影响答案的论证深度评分", "checklist_item": null}}, "baseline_reference": {"ds_overall": 3.84, "qw_overall": 3.06, "key_findings": ["guidance_weakest: 引导性是四维中最薄弱维度", "sentencing_bias: 量刑预测是AI最大短板", "fictional_law_acceptance: 千问接受虚构法律为真实", "lpr_dispute: LPR基准选择是两模型核心分歧", "role_play_limit: 角色扮演改善引导性但不解决核心缺陷"]}}, "safety": {"meta": {"text_length": 689, "total_checks": 8, "pass_count": 0, "fail_count": 1, "warn_count": 5, "not_applicable_count": 2, "passed_ratio": 0.0, "overall_status": "fail"}, "checklist": [{"status": "fail", "reason": "检测到2条法条引用但未标注核实渠道", "id": "C1", "item": "我确认了AI引用的每条法条都在官方渠道核对过", "category": "准确性验证", "target_failures": ["F1"]}, {"status": "not_applicable", "reason": "文本未涉及罪名定性，此项无需执行", "id": "C2", "item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）", "category": "深度审查", "target_failures": ["F2"]}, {"status": "not_applicable", "reason": "文本未涉及量刑预测，此项无需执行", "id": "C3", "item": "我不用AI做量刑预测作为决策依据", "category": "风险边界", "target_failures": ["F3"]}, {"status": "warn", "reason": "重要法律结论建议进行至少两个AI平台的交叉验证", "id": "C4", "item": "我在重要问题上交叉验证了至少两个AI平台", "category": "交叉验证", "target_failures": ["F1", "F5", "F7"]}, {"status": "warn", "reason": "文本较长但未检测到深度分析信号，可能存在浅度正确风险(F4)", "id": "C5", "item": "我问了自己：AI有没有遗漏关键事实或法律争点？", "category": "完整性审查", "target_failures": ["F4", "F8"]}, {"status": "warn", "reason": "建议在AI回答中标注哪些部分需要人工核实", "id": "C6", "item": "我标注了AI回答中需要人工核实的部分", "category": "追溯管理", "target_failures": ["F5", "F10"]}, {"status": "warn", "reason": "文本未包含\"不构成法律意见/建议咨询律师\"的免责声明", "id": "C7", "item": "我没有让AI替代律师出具正式法律意见", "category": "角色边界", "target_failures": ["F6", "F10"]}, {"status": "warn", "reason": "文本包含数值计算但未显示验证过程（对应F7计算推理不一致）", "id": "C8", "item": "我确认回答中的计算与结论一致，无内部矛盾", "category": "一致性验证", "target_failures": ["F7"]}], "scoring_reference": {"all_passed": "高风险场景通过率100%，可以谨慎参考", "partial_fail": "存在未通过的检查项，建议先完成所有检查再使用AI输出", "critical_fail": "C1/C3/C7任一项未通过，建议暂停使用该AI输出，重新获取或人工补充"}}, "assignment": {"meta": {"evaluator_version": "4.0.0", "text_length": 689, "question_type": "T8_case_analysis", "question_type_name": "案例分析题", "type_confidence": 0.75, "course_type": "general", "scoring_mode": "five_dimension_weighted", "is_objective": false, "is_semi_objective": false, "is_subjective": true, "evaluation_date": "2026-08-19"}, "classification": {"type": "T8_case_analysis", "type_name": "案例分析题", "confidence": 0.75, "score_mode": "five_dimension_weighted", "is_objective": false, "is_semi_objective": false, "is_subjective": true, "max_score_default": 25, "all_scores": {"T8_case_analysis": 3.0, "T6_essay": 1.0, "T1_single_choice": 0.0, "T2_multi_choice": 0.0}}, "scoring": {"qtype": "T8_case_analysis", "scoring_method": "五维加权结构化评分", "max_score": 25, "raw_score": 18.7, "weights_used": {"D1": 30, "D2": 25, "D3": 20, "D4": 15, "D5": 10}, "dimension_scores": {"D1_法律依据准确性": {"score": 4.0, "weighted": 30, "assessment": "作业质量良好，存在少量可改进之处", "issues": []}, "D2_论证逻辑严密性": {"score": 5.0, "weighted": 25, "assessment": "优秀", "issues": ["建议增加替代法律理论或不同角度的分析"]}, "D3_法理深度": {"score": 3.0, "weighted": 20, "assessment": "中等", "issues": ["法理分析较为浅显，建议增加更多维度的深度分析"]}, "D4_实务操作性": {"score": 3.2, "weighted": 15, "assessment": "一般", "issues": ["实务操作性较弱，建议补充证据收集指引、操作步骤和风险提示"]}, "D5_学术规范": {"score": 2.0, "weighted": 10, "assessment": "不足", "issues": ["作业结构不完整，建议包含摘要-引言-正文-结论-参考文献", "缺少参考文献或引用来源标注"]}}}, "total_score": 18.7, "grade": "中等", "red_line_triggered": false, "red_line_reason": "D1 法律依据准确性为 0 分", "failure_detection": {"fired_count": 5, "critical_fired": 1, "high_fired": 3, "overall_risk": "critical", "fired_patterns": {"F4": {"fired": true, "probability": 0.5, "severity": "critical", "detections": [{"type": "shallow_conclusion", "recommendation": "Add depth: alternative theories, exceptions, academic disputes"}]}, "F6": {"fired": true, "probability": 0.6, "severity": "high", "detections": [{"type": "insufficient_guidance", "found_elements": ["procedure steps", "risk warning"], "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."}]}, "F11": {"fired": true, "probability": 0.35, "severity": "high", "detections": [{"type": "concept_confusion", "term1": "应当", "term2": "可以", "recommendation": "注意区分「应当」与「可以」的实质差异。"}]}, "F19": {"fired": true, "probability": 0.8, "severity": "high", "detections": [{"type": "question_ambiguity", "ambiguity_markers": ["可能", "可以", "应当", "等", "或"], "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"}]}, "F21": {"fired": true, "probability": 0.6, "severity": "medium_high", "detections": [{"type": "format_violation", "format_marker_count": 5, "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"}]}}, "dimension_scores": {"法律依据准确性": 4.2, "时效性": 5.0, "逻辑性": 4.4, "引导性": 3.8, "题型适配": 3.3, "教学合规": 5.0, "考试设计": 2.5}}, "feedback": ["🔴 检测到失效模式 [F4] — 概率50%", "🟠 检测到失效模式 [F6] — 概率60%", "🟠 检测到失效模式 [F11] — 概率35%", "🟠 检测到失效模式 [F19] — 概率80%", "🟡 检测到失效模式 [F21] — 概率60%"], "improvement_plan": [{"priority": "highest", "area": "失效模式-F4", "current_issue": "Add depth: alternative theories, exceptions, academic disputes", "action": "对照纠正建议修改相关内容"}, {"priority": "high", "area": "失效模式-F6", "current_issue": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recomm", "action": "对照纠正建议修改相关内容"}, {"priority": "high", "area": "失效模式-F11", "current_issue": "注意区分「应当」与「可以」的实质差异。", "action": "对照纠正建议修改相关内容"}, {"priority": "high", "area": "失效模式-F19", "current_issue": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。", "action": "对照纠正建议修改相关内容"}, {"priority": "high", "area": "失效模式-F21", "current_issue": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。", "action": "对照纠正建议修改相关内容"}, {"priority": "medium", "area": "D5_学术规范", "current_score": "2.0/5", "target_score": "3.0/5", "action_items": ["作业结构不完整，建议包含摘要-引言-正文-结论-参考文献", "缺少参考文献或引用来源标注"]}]}}}</script>
+
+<script>
+/* ============================================================
+   法律守卫 审核案卷 —— 渲染引擎（零依赖）
+   ============================================================ */
+'use strict';
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = (p, d=0) => (p === undefined || p === null) ? '—' : (Math.round(p*100)+'%');
+const sevOf = s => ({critical:'极高',high:'高',medium_high:'中高',medium:'中',low:'低'}[s] || s || '—');
+const sevBadge = s => '<span class="badge ' + esc(s || 'unknown') + '">' + esc(sevOf(s)) + '</span>';
+const num = (v, d=1) => (v === undefined || v === null) ? '—' : Number(v).toFixed(d);
+const firstLine = t => String(t||'').split('\n').find(l=>l.trim()) || '';
+
+/* ---------- 严重度徽章与概率条 ---------- */
+function probBar(p, cls){
+  const w = Math.max(0, Math.min(1, p || 0)) * 100;
+  const lvl = w >= 70 ? '' : w >= 40 ? 'mid' : 'low';
+  return '<div class="prob"><div class="bar"><i class="'+lvl+'" style="width:'+w+'%"></i></div><span class="pct">'+pct(p)+'</span></div>';
+}
+
+/* ---------- SVG 风险印章（签名元素） ---------- */
+function sealSVG(level, n){
+  const LEVEL = {critical:{t:'极高',c:'#B42318',ink:true},high:{t:'高',c:'#B42318',ink:true},
+                 medium:{t:'中',c:'#B42318',ink:true},low:{t:'低',c:'#4A5260',ink:false}};
+  const lv = LEVEL[level] || {t:level||'—',c:'#4A5260',ink:false};
+  const c = lv.c, id = 'seal'+Date.now();
+  const ring = lv.ink ? 'stroke:'+c+';fill:none' : 'stroke:#4A5260;fill:none';
+  return '<svg class="seal" viewBox="0 0 132 132" role="img" aria-label="风险等级：'+lv.t+'">'
+    + '<defs><path id="'+id+'" d="M66,66 m-47,0 a47,47 0 1,1 94,0 a47,47 0 1,1 -94,0"/></defs>'
+    + '<circle cx="66" cy="66" r="63" style="'+ring+';stroke-width:1.6"/>'
+    + '<circle cx="66" cy="66" r="55" style="'+ring+';stroke-width:1"/>'
+    + '<text style="font-size:10.5px;letter-spacing:2.5px;fill:'+c+';font-family:SimSun,serif">'
+    + '<textPath href="#'+id+'">法律守卫 · LEGALGUARDIAN · 审核案卷 ·</textPath></text>'
+    + '<text x="66" y="60" text-anchor="middle" class="lvl" style="fill:'+c+'">'+lv.t+'</text>'
+    + '<text x="66" y="82" text-anchor="middle" class="cnt" style="fill:'+c+'">命中 '+n+' 项模式</text>'
+    + '</svg>';
+}
+function sealFor(det){
+  if(!det || !det.meta) return '<div class="seal-wrap"><div class="seal-steel" style="font-family:serif;font-size:13px;letter-spacing:3px;transform:rotate(-9deg)">未载入数据</div></div>';
+  const fired = det.detections || {};
+  const n = Object.keys(fired).length;
+  const critical = Object.values(fired).some(d=>d.severity==='critical');
+  const high = Object.values(fired).some(d=>d.severity==='high');
+  const level = critical?'critical':high?'high':n?'medium':'low';
+  return '<div class="seal-wrap">'+sealSVG(level,n)+'</div>';
+}
+
+/* ---------- 画布雷达图 ---------- */
+function radar(canvas, labels, series, max){
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.width = 300*dpr, H = canvas.height = 300*dpr;
+  canvas.style.width='300px'; canvas.style.height='300px';
+  const ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  const cx=150, cy=150, R=112, n=labels.length;
+  const pt = (i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  ctx.clearRect(0,0,300,300);
+  // 网格
+  for(let g=1;g<=4;g++){
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){const [x,y]=pt(i%n,R*g/4);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.strokeStyle='#D8CCB0';ctx.lineWidth=1;ctx.stroke();
+  }
+  for(let i=0;i<n;i++){const [x,y]=pt(i,R);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.strokeStyle='#D8CCB0';ctx.stroke();
+    ctx.fillStyle='#5B6673';ctx.font='12px "PingFang SC","Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    const [lx,ly]=pt(i,R+22);ctx.fillText(labels[i],lx,ly);
+  }
+  series.forEach(s=>{
+    ctx.beginPath();
+    s.values.forEach((v,i)=>{const [x,y]=pt(i,Math.max(2,v/max*R));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.closePath();
+    ctx.fillStyle=s.fill||'rgba(23,107,91,.14)';ctx.fill();
+    ctx.strokeStyle=s.color;ctx.lineWidth=2;ctx.stroke();
+    s.values.forEach((v,i)=>{const [x,y]=pt(i,Math.max(2,v/max*R));ctx.beginPath();ctx.arc(x,y,3,0,7);ctx.fillStyle=s.color;ctx.fill();});
+  });
+}
+
+/* ---------- 渲染：失效模式检测 ---------- */
+function renderDetection(det){
+  const meta = det.meta||{}, all = det.all_detections||{}, fired = det.detections||{};
+  const dims = det.dimension_scores||{};
+  let html = '';
+  const order = Object.keys(fired).length?Object.keys(fired):Object.keys(all).slice(0,24);
+  if(!order.length) html += '<p style="color:var(--slate)">未检测到任何失效模式命中。</p>';
+  html += '<table><thead><tr><th style="width:56px">编号</th><th>模式</th><th style="width:70px">严重度</th><th style="width:150px">命中概率</th><th>命中依据</th></tr></thead><tbody>';
+  order.forEach(id=>{
+    const d = fired[id] || all[id] || {};
+    const dets = d.detections||[];
+    const evi = dets.map(x=>x.evidence_text||x.law_name||x.type||'').filter(Boolean).join('；') || '—';
+    html += '<tr><td class="mono">'+esc(id)+'</td><td>'+esc(d.failure_name||d.name||id)
+      +'<br><span style="color:var(--slate);font-size:12px">'+esc(d.type||dets.map(x=>x.type).filter(Boolean).join('/')||'')+'</span></td>'
+      +'<td>'+sevBadge(d.severity)+'</td>'
+      +'<td>'+probBar(d.probability)+'</td>'
+      +'<td style="font-size:12.5px">'+esc(evi.slice(0,220))+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  if(Object.keys(dims).length){
+    html += '<div class="chart-row" style="margin-top:18px"><div class="chart-box"><canvas id="radar-dim"></canvas></div>'
+      +'<div class="legend">失效模式维度评分（5 分制，无命中=满分）<br><i style="background:var(--jade)"></i>本回答</div></div>';
+    html += '<script>setTimeout(function(){var c=document.getElementById("radar-dim");if(c)radar(c,'+JSON.stringify(Object.keys(dims))+',[{name:"本回答",color:"#176B5B",fill:"rgba(23,107,91,.14)",values:'+JSON.stringify(Object.values(dims))+'}],5);},0);<\/script>';
+  }
+  return html;
+}
+
+/* ---------- 渲染：纠正建议 ---------- */
+function renderCorrections(corr){
+  const corrections = corr.corrections||{};
+  const sum = corr.summary||{};
+  const ids = Object.keys(corrections);
+  if(!ids.length) return '<p style="color:var(--slate)">无命中模式，无需纠正建议。</p>';
+  let html = '<div class="cards">';
+  ids.forEach(id=>{
+    const c = corrections[id]||{};
+    const list = c.corrections||[];
+    html += '<div class="card"><h4>['+esc(id)+'] '+esc(c.name||c.failure_name||id)+' '+sevBadge(c.severity||list[0]&&list[0].severity)+'</h4>';
+    (list.length?list:[c]).forEach(it=>{
+      if(it.empirical_evidence){html += '<div class="field"><span class="fl">实证依据</span><div class="evi">'+esc(typeof it.empirical_evidence==='string'?it.empirical_evidence:JSON.stringify(it.empirical_evidence))+'</div></div>';}
+      if(it.correction_direction) html += '<div class="field"><span class="fl">修正方向</span><div>'+esc(it.correction_direction)+'</div></div>';
+      if(it.replacement) html += '<div class="field"><span class="fl">替代表述</span><div class="evi">'+esc(it.replacement)+'</div></div>';
+      if(it.original_text) html += '<div class="field"><span class="fl">原文问题</span><div class="evi">'+esc(it.original_text)+'</div></div>';
+      if(it.recommendation && !it.correction_direction) html += '<div class="field"><span class="fl">建议</span><div>'+esc(it.recommendation)+'</div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  if(sum.total_corrections!==undefined) html += '<p class="mono" style="margin-top:12px;color:var(--slate)">共 '+sum.total_corrections+' 条纠正建议'+(sum.total_evidence!==undefined?' · 附实证依据 '+sum.total_evidence+' 条':'')+'</p>';
+  return html;
+}
+
+/* ---------- 渲染：安全检查 ---------- */
+function renderSafety(safe){
+  const list = safe.checklist||[];
+  const meta = safe.meta||{};
+  let html = '<div class="grid8">';
+  list.forEach(it=>{
+    const st = it.status||'unknown';
+    const label = st==='pass'?'通过':st==='warn'?'警告':st==='fail'?'未通过':st==='not_applicable'?'不适用':'待核';
+    html += '<div class="check '+esc(st==='not_applicable'?'ok':st)+'"><span class="st">'+label+'</span>'
+      +'<h5>'+esc(it.id)+' · '+esc(it.item||'')+'</h5>'
+      +'<div class="why">'+esc(it.reason||it.detail||'')+'</div></div>';
+  });
+  html += '</div>';
+  if(meta.overall_status) html += '<p style="margin-top:12px;font-size:13px">总体状态：<b style="color:'+(meta.overall_status==='pass'?'var(--pass)':'var(--seal)')+'">'+meta.overall_status+'</b>'
+    +'　通过 '+meta.pass_count+' / '+meta.total_checks+' 项</p>';
+  return html;
+}
+
+/* ---------- 渲染：四维评分 ---------- */
+const DIFF_KEY = {准确性:'accuracy_diff',时效性:'timeliness_diff',逻辑性:'logic_diff',引导性:'guidance_diff'};
+function diffOf(cmp, k){ return (cmp && cmp[DIFF_KEY[k]] !== undefined) ? Number(cmp[DIFF_KEY[k]]) : null; }
+function diffCell(cmp, k){
+  const v = diffOf(cmp, k);
+  if(v === null) return '—';
+  return '<span style="color:'+(v>0?'var(--pass)':v<0?'var(--fail)':'var(--slate)')+'">'+(v>0?'+':'')+v+'</span>';
+}
+function renderScoring(sc){
+  const dims = sc.dimensions||{}, meta = sc.meta||{}, cmp = sc.comparison||{};
+  const keys = Object.keys(dims);
+  const mine = keys.map(k=>dims[k].score||0);
+  const ds = keys.map(k=>Math.max(0, mine[keys.indexOf(k)] - (diffOf(cmp.vs_deepseek,k) ?? 0)));
+  const qw = keys.map(k=>Math.max(0, mine[keys.indexOf(k)] - (diffOf(cmp.vs_qwen,k) ?? 0)));
+  let html = '<div class="chart-row"><div class="chart-box"><canvas id="radar-score"></canvas></div>'
+    +'<div class="legend">四维 1-5 分制 · 锚定 14 案例实证基线<br>'
+    +'<i style="background:var(--jade)"></i>本回答 '+meta.overall_score+' 分 · '+esc(meta.overall_grade||'')+' 级<br>'
+    +'<i style="background:var(--slate)"></i>DeepSeek 基线 3.84<br>'
+    +'<i style="background:var(--brown)"></i>千问基线 3.06</div></div>';
+  html += '<table style="margin-top:16px"><thead><tr><th>维度</th><th style="width:170px">得分</th><th>评估</th><th>较 DS 基线</th><th>较千问基线</th></tr></thead><tbody>';
+  keys.forEach(k=>{
+    const d = dims[k];
+    html += '<tr><td>'+esc(k)+'</td><td>'+probBar(d.score/5)+'</td><td>'+esc(d.assessment||'')+'</td>'
+      +'<td>'+diffCell(cmp.vs_deepseek,k)+'</td>'
+      +'<td>'+diffCell(cmp.vs_qwen,k)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<script>setTimeout(function(){var c=document.getElementById("radar-score");if(c)radar(c,'+JSON.stringify(keys)+',[{name:"本回答",color:"#176B5B",fill:"rgba(23,107,91,.14)",values:'+JSON.stringify(mine)+'},{name:"DS基线",color:"#5B6673",fill:"rgba(91,102,115,.10)",values:'+JSON.stringify(ds)+'},{name:"千问基线",color:"#7A5A33",fill:"rgba(122,90,51,.08)",values:'+JSON.stringify(qw)+'}],5);},0);<\/script>';
+  return html;
+}
+
+/* ---------- 渲染：作业评估 ---------- */
+function renderAssignment(ass){
+  const meta = ass.meta||{}, cls = ass.classification||{}, scoring = ass.scoring||{};
+  const dims = scoring.dimension_scores||{};
+  const total = ass.total_score;
+  const maxRaw = scoring.max_score || 0;
+  const pctScore = maxRaw?Math.round(total/maxRaw*100):(typeof total==='number'?total:0);
+  let html = '';
+  if(ass.red_line_triggered) html += '<div class="redline">红线触发：'+esc(ass.red_line_reason||'法律依据根本性错误')+' —— 总分归零，请先修正后重新提交。</div>';
+  html += '<div class="kpis">'
+    +'<div class="kpi '+(ass.red_line_triggered?'danger':'')+'"><div class="v">'+num(pctScore,0)+'<small> /100</small></div><div class="k">百分制得分'+(maxRaw?'（原始 '+num(total,1)+'/'+maxRaw+'）':'')+'</div></div>'
+    +'<div class="kpi"><div class="v" style="font-size:19px">'+esc(cls.type_name||cls.type||'—')+'</div><div class="k">题型识别 · 置信度 '+pct(cls.confidence)+'</div></div>'
+    +'<div class="kpi '+(ass.red_line_triggered?'danger':'ok')+'"><div class="v" style="font-size:19px">'+esc(ass.grade||'—')+'</div><div class="k">等级评定</div></div>'
+    +'<div class="kpi"><div class="v" style="font-size:19px">'+esc(meta.scoring_mode||scoring.scoring_method||'—')+'</div><div class="k">评分方式</div></div></div>';
+  if(Object.keys(dims).length){
+    html += '<table><thead><tr><th>维度</th><th style="width:170px">得分 /5</th><th>评估</th><th>问题</th></tr></thead><tbody>';
+    Object.keys(dims).forEach(k=>{
+      const d = dims[k];
+      html += '<tr><td>'+esc(k)+'</td><td>'+probBar((d.score||0)/5)+'</td><td>'+esc(d.assessment||'')+'</td><td style="font-size:12.5px">'+esc((d.issues||[]).join('；')||'—')+'</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  if(ass.feedback&&ass.feedback.length){html += '<div class="fb">'+(ass.feedback.map(f=>'<span>'+esc(f)+'</span>').join(''))+'</div>';}
+  if(ass.improvement_plan&&ass.improvement_plan.length){
+    html += '<ul class="plan" style="margin-top:12px">'+(ass.improvement_plan.map(p=>
+      '<li><b>'+esc(p.area||p.dimension||'')+'</b><span class="pri">'+esc(p.priority||'')+'</span><br>'
+      +esc(p.current_issue||p.current_score||'')+(p.action||p.action_items?' → '+esc((p.action||(p.action_items||[]).join('；'))):'')+'</li>').join(''))+'</ul>';
+  }
+  return html;
+}
+
+/* ---------- 渲染：提问优化 ---------- */
+const TPL_NAMES = {T1:'法条验证型',T2:'案例对比型',T3:'多假设追问型',T4:'前提挑战型',T5:'实操指引型'};
+function renderTemplates(tp){
+  const analysis = tp.analysis||{};
+  const recs = tp.recommended_template_ids||(tp.recommended_templates||[]).map(t=>typeof t==='string'?t:t.id)||[];
+  const opt = tp.optimized||{};
+  let html = '';
+  const traits = [];
+  if(analysis.has_repealed_law_risk) traits.push('引用疑似已废止法律');
+  if(analysis.has_unverified_premise) traits.push('前提未经验证');
+  if(analysis.has_sentencing_inquiry) traits.push('涉量刑预测');
+  if(analysis.has_crime_question) traits.push('涉罪名定性');
+  if(analysis.has_practical_need) traits.push('有实务操作需求');
+  if(analysis.has_syllabus_audit) traits.push('教学大纲审核场景');
+  if(analysis.has_exam_design) traits.push('智能考试设计场景');
+  if(analysis.has_scoring_consistency) traits.push('评分一致性场景');
+  if(analysis.has_compliance_audit) traits.push('合规审核场景');
+  if(analysis.detected_laws&&analysis.detected_laws.length) traits.push('引用：'+analysis.detected_laws.join('、'));
+  if(traits.length) html += '<div class="fb"><span style="background:rgba(180,35,24,.08);border-color:rgba(180,35,24,.3)">识别陷阱</span>'+(traits.map(t=>'<span>'+esc(t)+'</span>').join(''))+'</div>';
+  html += '<div style="margin-top:12px"><div style="font-size:12.5px;color:var(--slate);margin-bottom:6px">原始提问</div><div class="preview">'+esc(tp.question||'')+'</div></div>';
+  html += '<div style="margin-top:14px"><div style="font-size:12.5px;color:var(--slate);margin-bottom:8px">推荐模板</div><div class="cards">';
+  recs.forEach(id=>{
+    html += '<div class="card"><h4>'+esc(id)+' · '+esc(TPL_NAMES[id]||id)+'</h4><div style="font-size:12.5px;color:var(--slate)">'
+      +esc({T1:'先验证法条存在性与现行效力，再进入分析',T2:'检索近5年相似案例，比较判决差异',T3:'从控方/辩方/法官多角度分别分析',T4:'先挑战前提："我听说XX法可以XXX，对吗？"',T5:'要求输出证据清单、操作步骤、时间节点'}[id]||'')+'</div></div>';
+  });
+  html += '</div></div>';
+  if(opt.optimized_question) html += '<div style="margin-top:14px"><div style="font-size:12.5px;color:var(--slate);margin-bottom:6px">优化后提问</div><div class="evi" style="border-left-color:var(--jade);background:rgba(23,107,91,.06);color:var(--ink)">'+esc(opt.optimized_question)+'</div></div>';
+  if(opt.modifications&&opt.modifications.length){
+    html += '<ul class="plan" style="margin-top:12px">'+(opt.modifications.map(m=>'<li><b>'+esc(m.type)+'</b><br>'+esc(m.description||'')+' '+esc(m.suggested_prefix||m.suggested_addition||m.reason||'')+'</li>').join(''))+'</ul>';
+  }
+  return html;
+}
+
+/* ---------- 渲染：案例检索 ---------- */
+function renderRetrieval(r){
+  const meta = r.meta||{}, results = r.results||[];
+  let html = '<div class="mono" style="color:var(--slate);margin-bottom:10px">检索词：'+esc(meta.query||'')+' · 语料 '+meta.corpus_size+' 例 · 命中 '+meta.matched_chunks+' 块 · '+meta.elapsed_ms+' ms · 确定性排序</div>';
+  if(!results.length) return html+'<p style="color:var(--slate)">无命中结果。</p>';
+  html += '<div class="cards retr">';
+  results.forEach((it,i)=>{
+    const d = it.detail||{};
+    html += '<div class="card"><h4><span style="color:var(--brown);font-family:var(--font-m)">#'+(i+1)+'</span>　'+esc(firstLine(it.snippet||'').replace(/^【[^】]+】/,''))+'</h4>'
+      +'<div class="case-no">'+esc(d.case_id||'')+' · '+esc(d.court||'')+' · '+esc(d.date||'')+'</div>'
+      +'<div style="margin-top:6px"><span class="badge low">'+esc(it.category||'')+'</span> <span class="badge pending">'+esc(it.subcategory||'')+'</span>'
+      +'<span class="mono" style="float:right;color:var(--brown)">score '+it.score+'</span></div>'
+      +'<div class="ruling">'+esc((d.ruling||it.snippet||'').slice(0,180))+'</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ---------- 渲染：三维规制 ---------- */
+function renderRegulation(reg){
+  const dims = reg.dimensions||{}, radarD = reg.radar||{}, overall = reg.overall||{}, roadmap = reg.roadmap||{};
+  const DIM_NAMES = {technology:'技术规范',education:'教育引导',legal:'法律保障'};
+  let html = '<div class="kpis">'
+    +'<div class="kpi '+(overall.grade&&overall.grade[0]==='A'?'ok':overall.grade&&overall.grade[0]==='B'?'':'danger')+'"><div class="v">'+num((overall.score||0)*100,0)+'<small>%</small></div><div class="k">综合合规率 · '+esc(overall.grade||'')+'</div></div>'
+    +'<div class="kpi"><div class="v" style="font-size:19px">'+overall.pass+'<small> /'+overall.total+' 项通过</small></div><div class="k">逐项判定（PASS/FAIL/PENDING）</div></div>'
+    +'<div class="kpi"><div class="v" style="font-size:19px">'+(reg.meta&&reg.meta.fired_patterns?reg.meta.fired_patterns.length:0)+'<small> 项</small></div><div class="k">联动的失效模式（实证优先）</div></div></div>';
+  html += '<div class="chart-row"><div class="chart-box"><canvas id="radar-reg"></canvas></div>'
+    +'<div class="legend">三维合规得分（0-1）<br><i style="background:var(--jade)"></i>技术 / <i style="background:var(--brown)"></i>教育 / <i style="background:var(--seal)"></i>法律</div></div>';
+  html += '<script>setTimeout(function(){var c=document.getElementById("radar-reg");if(c)radar(c,["技术","教育","法律"],[{name:"合规",color:"#176B5B",fill:"rgba(23,107,91,.14)",values:['+[radarD.technology?radarD.technology.score:0,radarD.education?radarD.education.score:0,radarD.legal?radarD.legal.score:0].join(',')+']}],1);},0);<\/script>';
+  Object.keys(dims).forEach(dk=>{
+    const d = dims[dk]||{};
+    html += '<div class="dim-group"><h4>'+esc(DIM_NAMES[dk]||dk)+'<span class="score">'+d.pass+'/'+d.total+' 通过</span></h4><div class="items3">';
+    (d.items||[]).forEach(it=>{
+      const st = it.status||'PENDING';
+      const lbl = st==='PASS'?'通过':st==='FAIL'?'未通过':'待核';
+      html += '<div class="item3"><div class="top"><span class="id">'+esc(it.id)+'</span><span class="nm">'+esc(it.name||'')+'</span><span class="badge '+esc(st==='PASS'?'pass':st==='FAIL'?'fail':'pending')+'">'+lbl+'</span></div>'
+        +'<div class="ev">'+esc(it.evidence||'')+'</div></div>';
+    });
+    html += '</div></div>';
+  });
+  const rk = Object.keys(roadmap||{});
+  if(rk.length){
+    html += '<div style="margin-top:8px"><div style="font-size:12.5px;color:var(--slate);margin-bottom:6px">改进路线图</div>';
+    rk.forEach(k=>{html += '<div style="font-size:12.5px;margin-top:4px"><b style="font-family:var(--font-d);color:var(--brown)">'+esc(k)+'</b>：'+esc((roadmap[k]||[]).join('；'))+'</div>';});
+    html += '</div>';
+  }
+  return html;
+}
+
+/* ---------- 原始数据 ---------- */
+function renderRaw(data){
+  return '<details class="raw"><summary>原始 JSON 数据（'+(typeof data==='string'?data.length:JSON.stringify(data).length)+' 字符）</summary><pre>'+esc(JSON.stringify(data,null,2))+'</pre></details>';
+}
+
+/* ---------- 类型识别 ---------- */
+function detectType(d){
+  if(d && d.meta && d.meta.builder && d.modules) return 'combined';
+  if(d && d.detections && d.all_detections) return 'detection';
+  if(d && d.corrections) return 'corrections';
+  if(d && d.meta && d.meta.total_checks!==undefined) return 'safety';
+  if(d && d.dimensions && d.comparison) return 'scoring';
+  if(d && d.classification && 'total_score' in d) return 'assignment';
+  if(d && (d.recommended_template_ids || (d.recommended_templates&&d.recommended_templates.length))) return 'templates';
+  if(d && d.meta && d.meta.retriever) return 'retrieval';
+  if(d && d.meta && d.meta.assessor_version) return 'regulation';
+  return 'unknown';
+}
+const TITLES = {combined:'全链路审核案卷',detection:'失效模式检测',corrections:'纠正建议',
+  safety:'安全检查',scoring:'四维评分',assignment:'作业评估',templates:'提问优化',
+  retrieval:'案例检索',regulation:'三维规制评估'};
+
+/* ---------- 统一渲染入口 ---------- */
+function buildSections(d){
+  const type = detectType(d);
+  if(type==='unknown') return [];
+  const secs = [];
+  const push=(id,title,hint,html)=>{if(html!==null&&html!==undefined)secs.push({id,title,hint,html});};
+  if(type==='combined'){
+    const m = d.modules||{};
+    push('det','A · 失效模式检测','F1-F24 · 场景门控',m.detection?renderDetection(m.detection):null);
+    push('corr','B · 纠正建议','实证依据',m.corrections?renderCorrections(m.corrections):null);
+    push('safe','C · 安全检查','C1-C8',m.safety?renderSafety(m.safety):null);
+    push('score','D · 四维评分','DS 3.84 / 千问 3.06',m.scoring?renderScoring(m.scoring):null);
+    push('ass','E · 作业评估','T1-T8',m.assignment?renderAssignment(m.assignment):null);
+    push('tpl','F · 提问优化','5 大模板',m.templates?renderTemplates(m.templates):null);
+    push('retr','G · 案例检索','5,515 例',m.retrieval?renderRetrieval(m.retrieval):null);
+    push('reg','H · 三维规制','T/E/L',m.regulation?renderRegulation(m.regulation):null);
+  } else if(type==='detection'){push('det','A · 失效模式检测','F1-F24 · 场景门控',renderDetection(d));}
+  else if(type==='corrections'){push('corr','B · 纠正建议','实证依据',renderCorrections(d));}
+  else if(type==='safety'){push('safe','C · 安全检查','C1-C8',renderSafety(d));}
+  else if(type==='scoring'){push('score','D · 四维评分','DS 3.84 / 千问 3.06',renderScoring(d));}
+  else if(type==='assignment'){push('ass','E · 作业评估','T1-T8',renderAssignment(d));}
+  else if(type==='templates'){push('tpl','F · 提问优化','5 大模板',renderTemplates(d));}
+  else if(type==='retrieval'){push('retr','G · 案例检索','5,515 例',renderRetrieval(d));}
+  else if(type==='regulation'){push('reg','H · 三维规制','T/E/L',renderRegulation(d));}
+  push('raw','原始数据','',renderRaw(d));
+  return secs;
+}
+
+/* ---------- 主渲染 ---------- */
+let current = null;
+function render(d){
+  current = d;
+  const type = detectType(d);
+  const secs = buildSections(d);
+  const isCombined = type==='combined';
+  const det = isCombined?(d.modules.detection||null):(type==='detection'?d:null);
+  const meta = isCombined?(d.meta||{}):(d.meta||{});
+  const input = isCombined?(d.input||{}):{};
+
+  $('seal-slot').innerHTML = sealFor(det);
+  const lines = [];
+  if(isCombined){lines.push('全链路报告 · '+meta.modules_included.length+' 个模块 · 生成于 '+esc(meta.generated_at||''));}
+  lines.push('数据来源：'+(isCombined?'report_builder 全链路':'单模块输出（'+esc(TITLES[type]||type)+'）'));
+  if(isCombined&&meta.text_length) lines.push('输入长度 '+meta.text_length+' 字符');
+  if(det&&det.meta) lines.push('总体风险：'+esc(det.meta.overall_risk||'—')+' · 命中 '+det.meta.fired_patterns+' / '+det.meta.total_patterns+' 项');
+  if(isCombined&&meta.tool_name) lines.push('评估对象：'+esc(meta.tool_name));
+  $('meta-line').innerHTML = lines.join(' · ');
+
+  let html = '';
+  if(isCombined&&input.text){
+    html += '<section class="docket"><div class="eyebrow"><span class="no">0</span><h2>送审材料</h2><span class="hint">input</span></div>'
+      +'<div class="preview">'+esc(input.text)+'</div></section>';
+  }
+  secs.forEach(s=>{
+    html += '<section class="docket" id="sec-'+s.id+'"><div class="eyebrow"><span class="no">'+esc(s.id.toUpperCase())+'</span><h2>'+esc(s.title)+'</h2><span class="hint">'+esc(s.hint||'')+'</span></div>'+s.html+'</section>';
+  });
+  $('content').innerHTML = html;
+  $('foot-meta').textContent = isCombined&&meta.builder?meta.builder+' · '+meta.generated_at:'';
+
+  /* 目录 */
+  const links = secs.map((s,i)=>'<a href="#sec-'+s.id+'" data-i="'+i+'"><span class="no">'+String(i+1).padStart(2,'0')+'</span>'+esc(s.title)+'</a>').join('');
+  $('rail-links').innerHTML = links || '<a href="#"><span class="no">—</span>空案卷</a>';
+  document.querySelectorAll('#rail-links a').forEach(a=>{
+    a.addEventListener('click',()=>{
+      document.querySelectorAll('#rail-links a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+}
+
+/* ---------- 载入数据 ---------- */
+function loadData(d, label){
+  try{
+    const type = detectType(d);
+    if(type==='unknown'){
+      $('meta-line').textContent = '无法识别的 JSON 结构 —— 请载入 report_builder 全链路报告或任一模块输出。';
+      return;
+    }
+    render(d);
+  }catch(e){
+    $('meta-line').textContent = '渲染失败：'+e.message;
+    console.error(e);
+  }
+}
+function loadFile(file){
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    try{loadData(JSON.parse(rd.result), file.name);}catch(e){$('meta-line').textContent='JSON 解析失败：'+e.message;}
+  };
+  rd.readAsText(file, 'utf-8');
+}
+const demoAI = JSON.parse($('demo-ai').textContent);
+const demoSyl = JSON.parse($('demo-syllabus').textContent);
+const demoAss = JSON.parse($('demo-assignment').textContent);
+
+/* ---------- 事件 ---------- */
+function bind(){
+  const d1 = ()=>{loadData(demoAI,'示例：AI 回答审核');};
+  const d2 = ()=>{loadData(demoSyl,'示例：教学大纲审核');};
+  const d3 = ()=>{loadData(demoAss,'示例：作业评估');};
+  $('btn-demo1').addEventListener('click',d1); $('btn-demo1b').addEventListener('click',d1);
+  $('btn-demo2').addEventListener('click',d2); $('btn-demo2b').addEventListener('click',d2);
+  $('btn-demo3').addEventListener('click',d3); $('btn-demo3b').addEventListener('click',d3);
+  $('btn-print').addEventListener('click',()=>window.print());
+  $('btn-printb').addEventListener('click',()=>window.print());
+  $('btn-file').addEventListener('click',()=>$('file-input').click());
+  $('file-input').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);});
+  const dz = $('dropzone');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+  dz.addEventListener('click',()=>$('file-input').click());
+  dz.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file-input').click();}});
+}
+bind();
+loadData(demoAI,'示例：AI 回答审核');
+</script>
+</body>
+</html>

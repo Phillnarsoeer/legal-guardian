@@ -1,0 +1,593 @@
+{
+  "meta": {
+    "builder": "report_builder v4.3.0",
+    "generated_at": "2026-08-19 11:22:46",
+    "tool_name": "教学大纲合规审核示例",
+    "input_source": "text",
+    "text_length": 79,
+    "modules_included": [
+      "corrections",
+      "detection",
+      "regulation",
+      "safety"
+    ]
+  },
+  "input": {
+    "text": "本教学大纲覆盖民法、刑法、宪法基础内容，包括犯罪构成、民事法律行为、合同制度、侵权责任、刑罚制度；缺少法理学、行政法、诉讼法、国际法、经济法领域的必授知识点。",
+    "question": "审核一下这份教学大纲是否符合国家标准",
+    "query": ""
+  },
+  "modules": {
+    "detection": {
+      "meta": {
+        "text_length": 79,
+        "total_patterns": 24,
+        "fired_patterns": 1,
+        "critical_fired": 1,
+        "high_fired": 0,
+        "overall_risk": "critical"
+      },
+      "dimension_scores": {
+        "法律依据准确性": 5.0,
+        "时效性": 5.0,
+        "逻辑性": 5.0,
+        "引导性": 5.0,
+        "题型适配": 5.0,
+        "教学合规": 0.0,
+        "考试设计": 5.0
+      },
+      "detections": {
+        "F24": {
+          "fired": true,
+          "probability": 0.67,
+          "severity": "critical",
+          "detections": [
+            {
+              "type": "syllabus_noncompliance",
+              "coverage_ratio": 0.33,
+              "covered_count": 6,
+              "total_core_points": 18,
+              "covered_knowledge_points": [
+                "法律规范与法律关系",
+                "民事法律行为与代理",
+                "合同制度",
+                "侵权责任",
+                "犯罪构成理论",
+                "刑罚制度"
+              ],
+              "missing_knowledge_points": [
+                "法的本质与特征",
+                "宪法基本原则",
+                "国家机构与公民基本权利",
+                "物权制度",
+                "婚姻家庭与继承",
+                "常见罪名",
+                "行政主体与行政行为",
+                "行政复议与行政诉讼",
+                "民事诉讼程序",
+                "刑事诉讼程序",
+                "国际法基本原则",
+                "市场监管与反垄断"
+              ],
+              "recommendation": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）。缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。建议对照教育部法学类教学质量国家标准补充。"
+            }
+          ]
+        }
+      },
+      "all_detections": {
+        "F1": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "critical",
+          "detections": null
+        },
+        "F2": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F3": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "high",
+          "detections": null
+        },
+        "F4": {
+          "fired": false,
+          "probability": 0.2,
+          "severity": "critical",
+          "detections": null
+        },
+        "F5": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "critical",
+          "detections": null
+        },
+        "F6": {
+          "fired": false,
+          "probability": 0.8,
+          "severity": "high",
+          "detections": null
+        },
+        "F7": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F8": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F9": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium",
+          "detections": null
+        },
+        "F10": {
+          "fired": false,
+          "probability": 0.2,
+          "severity": "critical",
+          "detections": null
+        },
+        "F11": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "high",
+          "detections": null
+        },
+        "F12": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F13": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F14": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F15": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F16": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F17": {
+          "fired": false,
+          "probability": 0.9,
+          "severity": "high",
+          "detections": null,
+          "syllogism_completeness": "0/3"
+        },
+        "F18": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "critical",
+          "detections": null
+        },
+        "F19": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "high",
+          "detections": null
+        },
+        "F20": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F21": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F22": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null,
+          "cross_question_analysis": false
+        },
+        "F23": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F24": {
+          "fired": true,
+          "probability": 0.67,
+          "severity": "critical",
+          "detections": [
+            {
+              "type": "syllabus_noncompliance",
+              "coverage_ratio": 0.33,
+              "covered_count": 6,
+              "total_core_points": 18,
+              "covered_knowledge_points": [
+                "法律规范与法律关系",
+                "民事法律行为与代理",
+                "合同制度",
+                "侵权责任",
+                "犯罪构成理论",
+                "刑罚制度"
+              ],
+              "missing_knowledge_points": [
+                "法的本质与特征",
+                "宪法基本原则",
+                "国家机构与公民基本权利",
+                "物权制度",
+                "婚姻家庭与继承",
+                "常见罪名",
+                "行政主体与行政行为",
+                "行政复议与行政诉讼",
+                "民事诉讼程序",
+                "刑事诉讼程序",
+                "国际法基本原则",
+                "市场监管与反垄断"
+              ],
+              "recommendation": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）。缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。建议对照教育部法学类教学质量国家标准补充。"
+            }
+          ]
+        }
+      }
+    },
+    "corrections": {
+      "summary": {
+        "total_corrections": 1,
+        "critical_corrections": 1,
+        "high_corrections": 0,
+        "checklist_items_required": []
+      },
+      "corrections": {
+        "F24": {
+          "corrections": [
+            {
+              "failure_id": "F24",
+              "failure_name": "教学大纲合规偏离",
+              "severity": "🔴 关键",
+              "original_issue": "教学内容对核心知识点的覆盖率仅33%（要求80%以上）",
+              "empirical_evidence": {
+                "test_case": "教信赛智慧评价赛道-教学大纲合规审核",
+                "finding": "缺失核心知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断。教育部法学类教学质量国家标准要求核心知识点全覆盖",
+                "source": "reference/curriculum_requirements.json"
+              },
+              "correction_direction": "对照教育部课程标准补充缺失知识点: 法的本质与特征, 宪法基本原则, 国家机构与公民基本权利, 物权制度, 婚姻家庭与继承, 常见罪名, 行政主体与行政行为, 行政复议与行政诉讼, 民事诉讼程序, 刑事诉讼程序, 国际法基本原则, 市场监管与反垄断",
+              "suggested_rewrite": "【大纲修订建议】本学期教学大纲需补充以下必授核心知识点：1）法的本质与特征；宪法基本原则；国家机构与公民基本权利；物权制度；婚姻家庭与继承；常见罪名；行政主体与行政行为；行政复议与行政诉讼；民事诉讼程序；刑事诉讼程序；国际法基本原则；市场监管与反垄断。同时更新课程教学目标、学时分配和考核方式。"
+            }
+          ],
+          "priority": "highest",
+          "reason": "教学大纲未覆盖国家标准必授知识点，直接影响人才培养质量和课程评估结果",
+          "checklist_item": null
+        }
+      },
+      "baseline_reference": {
+        "ds_overall": 3.84,
+        "qw_overall": 3.06,
+        "key_findings": [
+          "guidance_weakest: 引导性是四维中最薄弱维度",
+          "sentencing_bias: 量刑预测是AI最大短板",
+          "fictional_law_acceptance: 千问接受虚构法律为真实",
+          "lpr_dispute: LPR基准选择是两模型核心分歧",
+          "role_play_limit: 角色扮演改善引导性但不解决核心缺陷"
+        ]
+      }
+    },
+    "safety": {
+      "meta": {
+        "text_length": 79,
+        "total_checks": 8,
+        "pass_count": 1,
+        "fail_count": 0,
+        "warn_count": 3,
+        "not_applicable_count": 4,
+        "passed_ratio": 0.12,
+        "overall_status": "warn"
+      },
+      "checklist": [
+        {
+          "status": "not_applicable",
+          "reason": "文本中未检测到法条引用，此项无需执行",
+          "id": "C1",
+          "item": "我确认了AI引用的每条法条都在官方渠道核对过",
+          "category": "准确性验证",
+          "target_failures": [
+            "F1"
+          ]
+        },
+        {
+          "status": "not_applicable",
+          "reason": "文本未涉及罪名定性，此项无需执行",
+          "id": "C2",
+          "item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）",
+          "category": "深度审查",
+          "target_failures": [
+            "F2"
+          ]
+        },
+        {
+          "status": "not_applicable",
+          "reason": "文本未涉及量刑预测，此项无需执行",
+          "id": "C3",
+          "item": "我不用AI做量刑预测作为决策依据",
+          "category": "风险边界",
+          "target_failures": [
+            "F3"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "重要法律结论建议进行至少两个AI平台的交叉验证",
+          "id": "C4",
+          "item": "我在重要问题上交叉验证了至少两个AI平台",
+          "category": "交叉验证",
+          "target_failures": [
+            "F1",
+            "F5",
+            "F7"
+          ]
+        },
+        {
+          "status": "pass",
+          "reason": "文本较短，浅度正确风险较低",
+          "id": "C5",
+          "item": "我问了自己：AI有没有遗漏关键事实或法律争点？",
+          "category": "完整性审查",
+          "target_failures": [
+            "F4",
+            "F8"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "建议在AI回答中标注哪些部分需要人工核实",
+          "id": "C6",
+          "item": "我标注了AI回答中需要人工核实的部分",
+          "category": "追溯管理",
+          "target_failures": [
+            "F5",
+            "F10"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "文本未包含\"不构成法律意见/建议咨询律师\"的免责声明",
+          "id": "C7",
+          "item": "我没有让AI替代律师出具正式法律意见",
+          "category": "角色边界",
+          "target_failures": [
+            "F6",
+            "F10"
+          ]
+        },
+        {
+          "status": "not_applicable",
+          "reason": "文本未涉及数值计算，此项无需执行",
+          "id": "C8",
+          "item": "我确认回答中的计算与结论一致，无内部矛盾",
+          "category": "一致性验证",
+          "target_failures": [
+            "F7"
+          ]
+        }
+      ],
+      "scoring_reference": {
+        "all_passed": "高风险场景通过率100%，可以谨慎参考",
+        "partial_fail": "存在未通过的检查项，建议先完成所有检查再使用AI输出",
+        "critical_fail": "C1/C3/C7任一项未通过，建议暂停使用该AI输出，重新获取或人工补充"
+      }
+    },
+    "regulation": {
+      "meta": {
+        "assessor_version": "4.3.0",
+        "tool_name": "教学大纲合规审核示例",
+        "regulation_source": "AI Legal Tool 3D Collaborative Regulation Path",
+        "detections_loaded": true,
+        "fired_patterns": [
+          "F24"
+        ],
+        "deterministic": true
+      },
+      "dimensions": {
+        "technology": {
+          "name": "Technology Standards (Developer-facing)",
+          "total": 5,
+          "pass": 0,
+          "fail": 0,
+          "pending": 5,
+          "score": 0.0,
+          "items": [
+            {
+              "id": "T1",
+              "name": "Built-in Legal Knowledge Verification Layer",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": "Fictional law detection rate must reach 100%; repealed law flagging rate must reach 100%"
+            },
+            {
+              "id": "T2",
+              "name": "Controversy Annotation and Alternative Analysis",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": "At least 1 prosecution perspective and 1 defense perspective alternative must be listed"
+            },
+            {
+              "id": "T3",
+              "name": "Sentencing Confidence Disclosure",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": "Precise predictions must note: 'for reference only, empirical error can reach 71%'"
+            },
+            {
+              "id": "T4",
+              "name": "Calculation Verification and Consistency Check",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": "Conclusion value and example value discrepancy must not exceed 1%"
+            },
+            {
+              "id": "T5",
+              "name": "User Profile Awareness and Differentiated Output",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": "Law student version guidance >= 4.0; non-professional version guidance >= 4.5"
+            }
+          ]
+        },
+        "education": {
+          "name": "Education and Guidance (User Literacy)",
+          "total": 4,
+          "pass": 0,
+          "fail": 0,
+          "pending": 4,
+          "score": 0.0,
+          "items": [
+            {
+              "id": "E1",
+              "name": "Law School AI Literacy Required Course",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "E2",
+              "name": "Legal Practitioner AI Skills Training",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "E3",
+              "name": "Public AI Legal Education",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "E4",
+              "name": "Standardized Question Template Promotion",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            }
+          ]
+        },
+        "legal": {
+          "name": "Legal Safeguards (Regulatory Recommendations)",
+          "total": 4,
+          "pass": 0,
+          "fail": 0,
+          "pending": 4,
+          "score": 0.0,
+          "items": [
+            {
+              "id": "L1",
+              "name": "AI Legal Tool Tiered Certification",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "L2",
+              "name": "Mandatory Transparency and Explainability",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "L3",
+              "name": "AI Ethics Code for Legal Practitioners",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            },
+            {
+              "id": "L4",
+              "name": "AI Legal Product Regulatory Sandbox",
+              "status": "PENDING",
+              "basis": "无证据",
+              "evidence": "描述中未检索到对应证据，需人工核验",
+              "evaluation_criteria": ""
+            }
+          ]
+        }
+      },
+      "radar": {
+        "technology": {
+          "score": 0.0,
+          "pass": 0,
+          "total": 5
+        },
+        "education": {
+          "score": 0.0,
+          "pass": 0,
+          "total": 4
+        },
+        "legal": {
+          "score": 0.0,
+          "pass": 0,
+          "total": 4
+        }
+      },
+      "overall": {
+        "score": 0.0,
+        "pass": 0,
+        "fail": 0,
+        "pending": 13,
+        "total": 13,
+        "grade": "D (低合规)"
+      },
+      "roadmap": {
+        "short_term_2026_2027": [
+          "Complete Pitfall Handbook compilation and distribution",
+          "Law School AI Literacy pilot course",
+          "Submit regulatory recommendations to authorities"
+        ],
+        "mid_term_2027_2028": [
+          "AI Legal Tool Tiered Certification draft standards",
+          "Bar Association AI ethics training system",
+          "Public AI legal education promotion",
+          "Standardized question templates embedded in legal tech products"
+        ],
+        "long_term_2028_plus": [
+          "Promote mandatory standards legislation for AI legal tools",
+          "Establish independent third-party AI legal tool evaluation mechanism",
+          "Establish AI legal safety incident reporting and traceability system"
+        ]
+      }
+    }
+  }
+}

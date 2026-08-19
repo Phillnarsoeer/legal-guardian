@@ -121,6 +121,7 @@
 | **C. 法学作业评估与评分** | 8 题型自动识别、差异化评分、红线统一（F1 命中即 D1 归零）、五维评估报告 |
 | **D. 三维规制符合性评估** (v4.3.0+) | 技术(T1-T5)/教育(E1-E4)/法律(L1-L4) 逐项评估 + 雷达数据 + 路线图 |
 | **E. 教学大纲 AI 合规审核** (v4.1.0+) | 覆盖率核验（18 项知识点）+ F24 检测 + 修订建议 |
+| **F. 可视化报告面板** (v4.3.0+) | `panel/report_panel.html` 零依赖单文件：一键生成全链路"审核案卷"，内嵌 3 份示例（AI 审核/大纲审核/作业评估），支持拖入 JSON 与打印/导出 PDF |
 
 ---
 
@@ -131,7 +132,7 @@ legal-guardian/
 ├── SKILL.md                  # 技能主文档（Claude Code 指令）
 ├── manifest.yaml             # 技能清单（名称/版本/描述）
 ├── README.md                 # 本文件
-├── scripts/                  # 15 个 Python 脚本
+├── scripts/                  # 16 个 Python 脚本
 │   ├── failure_detector.py   # 失效模式检测（F1-F24，场景门控）
 │   ├── correction_engine.py  # 纠正建议生成
 │   ├── safety_checker.py     # 8 项安全检查清单
@@ -144,9 +145,15 @@ legal-guardian/
 │   ├── legal_db_fetcher.py          # 法条库检索（本地优先）
 │   ├── rag_retriever.py             # 案例库检索（5,515 例，v4.3.0+）
 │   ├── regulation_assessor.py       # 三维规制评估（v4.3.0+）
+│   ├── report_builder.py            # 全链路报告构建（v4.3.0+）
 │   ├── calibrate_scoring.py         # 评分校准器（开发工具）
 │   ├── exam_parser.py               # 法考真题 PDF 解析器（开发工具）
 │   └── generate_upgrade_doc.py      # 升级文档生成（开发工具）
+├── panel/                    # 可视化报告面板（v4.3.0+）
+│   ├── report_panel.html     # 零依赖单文件（内嵌 3 份示例数据，双击即用）
+│   ├── demo_report.json      # 示例：AI 回答审核全链路报告
+│   ├── demo_syllabus.json    # 示例：教学大纲合规审核
+│   └── demo_assignment.json  # 示例：法学作业评估
 ├── reference/                 # JSON 知识库（9 个运行时文件，无历史残留）
 │   ├── failure_patterns.json  # 24 种失效模式特征库
 │   ├── correction_templates.json    # 5 大提问模板
@@ -159,13 +166,13 @@ legal-guardian/
 │   └── three_d_regulation.json      # 三维规制标准
 ├── benchmark/                 # 黄金标准基准测试集（16 基准 + 10 回归）
 ├── templates/                 # 报告输出模板
-├── tests/  +  test_data/      # 冒烟测试（39 项）与测试数据
+├── tests/  +  test_data/      # 冒烟测试（41 项）与测试数据
 ├── test_data/                 # 大数据资产：5,515 案例 / RAG 块 / 训练样本（仓库级证据）
 └── 产品技术文档/               # 5 份 PDF（由 gen_docs.py 生成）
 ```
 
-> 注：v4.3.0 精简包 `legal-guardian.skill`（约 2MB）仅含运行时必需文件
-> （SKILL.md/manifest/README/scripts/reference/benchmark/templates/tests）；
+> 注：v4.3.0 精简包 `legal-guardian.skill`（约 0.2MB）仅含运行时必需文件
+> （SKILL.md/manifest/README/scripts/reference/benchmark/templates/tests/panel）；
 > `test_data` 大数据资产（约 44MB）与 `产品技术文档` 保留在仓库作为实证证据。
 
 ---
@@ -173,9 +180,18 @@ legal-guardian/
 ## 🚀 安装与使用
 
 ### 作为 Claude Code Skill 安装
-1. 将 `legal-guardian.skill`（zip 包，约 2MB）解压到 `~/.claude/skills/legal-guardian/`
+1. 将 `legal-guardian.skill`（zip 包，约 0.2MB）解压到 `~/.claude/skills/legal-guardian/`
 2. 重启 Claude Code，在对话中直接使用 `legal-guardian` skill
 3. 注：精简包不含 `test_data/`（5,515 案例库/训练语料为仓库级证据数据）。如需案例库检索（`rag_retriever.py`），从仓库将 `test_data/rags/chunks.json` 与 `test_data/cases/all_cases.json` 复制到技能目录对应路径
+
+### 可视化报告面板（路演/评审演示）
+```bash
+# 1. 生成全链路报告 JSON（任意 AI 回答/作业/大纲文本）
+python scripts/report_builder.py 输入.txt --query "民间借贷 利息" --out panel/demo_report.json
+# 2. 双击打开 panel/report_panel.html —— 无需服务器，离线可用；
+#    内嵌 3 份示例可直接演示，也可拖入上一步生成的 JSON
+# 3. 浏览器"打印"可导出 PDF 版审核案卷
+```
 
 ### 主要脚本调用
 

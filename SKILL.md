@@ -204,6 +204,12 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 | legal_db_fetcher.py | 法条库检索（本地优先，可在线） | `python scripts/legal_db_fetcher.py --search "<关键词>" [--article <法条号>]` |
 | rag_retriever.py (v4.3.0) | 案例库检索（5,515 例，确定性关键词） | `python scripts/rag_retriever.py --query "<关键词>" [-k 5] [--detail] [--stats]` |
 | regulation_assessor.py (v4.3.0) | 模块D 三维规制符合性评估 | `python scripts/regulation_assessor.py --text "<功能描述>" [--detections <JSON>]` |
+| report_builder.py (v4.3.0) | 全链路报告构建（路演/评审用） | `python scripts/report_builder.py <文本文件> [--query ..] [--modules ..] [--out ..]` |
+
+**可视化报告面板（v4.3.0+）**：`panel/report_panel.html` 零依赖单文件，双击即可打开；
+内嵌 3 份示例（AI 回答审核 / 教学大纲审核 / 作业评估），也可拖入任意模块 JSON 或
+`report_builder.py` 生成的全链路报告；支持打印/导出 PDF。生成全链路报告：
+`python scripts/report_builder.py 输入.txt --out panel/demo_report.json`。
 
 **开发/维护工具（不进精简安装包）**：
 

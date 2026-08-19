@@ -1,0 +1,757 @@
+{
+  "meta": {
+    "builder": "report_builder v4.3.0",
+    "generated_at": "2026-08-19 11:26:24",
+    "tool_name": "法学案例分析作业",
+    "input_source": "text",
+    "text_length": 689,
+    "modules_included": [
+      "assignment",
+      "corrections",
+      "detection",
+      "safety"
+    ]
+  },
+  "input": {
+    "text": "# 法学案例分析作业\n\n## 案件名称：张某与李某相邻关系纠纷案\n\n### 一、案件事实\n\n张某与李某系邻居关系。2025年3月，李某在自家门口通道处堆放建筑石子，堆高近2米。张某多次通过微信要求李某移除石子堆，李某以\"正在施工、过几天就搬\"为由拖延。\n\n2025年5月某日暴雨后，石子堆部分塌落。次日清晨，张某出门上班时踩到散落的石子滑倒，致右腿骨折，花医疗费3.2万元，误工45天。张某遂起诉李某要求赔偿全部损失。\n\n### 二、法律分析\n\n本案的核心问题在于李某的行为是否构成侵权，以及张某能否获得全额赔偿。\n\n根据《中华人民共和国民法典》第一千一百六十五条的规定，行为人因过错侵害他人民事权益造成损害的，应当承担侵权责任。本案中，李某在公共通道堆放石子，未尽到合理的安全保障义务，存在明显过错。其堆放行为与张某的损害之间存在因果关系，因此李某应当承担侵权责任。\n\n根据《民法典》第一千一百七十三条的规定，被侵权人对同一损害的发生或者扩大有过错的，可以减轻侵权人的责任。本案中，张某作为成年人，在暴雨后出门应当预见到地面可能存在碎石，行走时应当保持谨慎。张某未尽到必要的注意义务，对损害的发生也有一定过错。\n\n综合来看，李某应承担主要责任（约70%-80%），张某应承担次要责任（约20%-30%）。\n\n### 三、结论\n\n李某的行为构成侵权，应当赔偿张某的医疗费、误工费等损失。但由于张某自身也有一定过错，李某的赔偿责任可以相应减轻。张某应获得约70%-80%的赔偿，即约2.24万-2.56万元的医疗费，加上相应的误工费。\n\n---\n\n*本作业完成于2026年7月*\n",
+    "question": "张某与李某相邻关系侵权案：请分析李某的侵权责任",
+    "query": ""
+  },
+  "modules": {
+    "detection": {
+      "meta": {
+        "text_length": 689,
+        "total_patterns": 24,
+        "fired_patterns": 5,
+        "critical_fired": 1,
+        "high_fired": 3,
+        "overall_risk": "critical"
+      },
+      "dimension_scores": {
+        "法律依据准确性": 4.2,
+        "时效性": 5.0,
+        "逻辑性": 4.4,
+        "引导性": 3.8,
+        "题型适配": 3.3,
+        "教学合规": 5.0,
+        "考试设计": 2.5
+      },
+      "detections": {
+        "F4": {
+          "fired": true,
+          "probability": 0.5,
+          "severity": "critical",
+          "detections": [
+            {
+              "type": "shallow_conclusion",
+              "recommendation": "Add depth: alternative theories, exceptions, academic disputes"
+            }
+          ]
+        },
+        "F6": {
+          "fired": true,
+          "probability": 0.6,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "insufficient_guidance",
+              "found_elements": [
+                "procedure steps",
+                "risk warning"
+              ],
+              "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."
+            }
+          ]
+        },
+        "F11": {
+          "fired": true,
+          "probability": 0.35,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "concept_confusion",
+              "term1": "应当",
+              "term2": "可以",
+              "recommendation": "注意区分「应当」与「可以」的实质差异。"
+            }
+          ]
+        },
+        "F19": {
+          "fired": true,
+          "probability": 0.8,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "question_ambiguity",
+              "ambiguity_markers": [
+                "可能",
+                "可以",
+                "应当",
+                "等",
+                "或"
+              ],
+              "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"
+            }
+          ]
+        },
+        "F21": {
+          "fired": true,
+          "probability": 0.6,
+          "severity": "medium_high",
+          "detections": [
+            {
+              "type": "format_violation",
+              "format_marker_count": 5,
+              "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"
+            }
+          ]
+        }
+      },
+      "all_detections": {
+        "F1": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "critical",
+          "detections": null
+        },
+        "F2": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F3": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "high",
+          "detections": null
+        },
+        "F4": {
+          "fired": true,
+          "probability": 0.5,
+          "severity": "critical",
+          "detections": [
+            {
+              "type": "shallow_conclusion",
+              "recommendation": "Add depth: alternative theories, exceptions, academic disputes"
+            }
+          ]
+        },
+        "F5": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "critical",
+          "detections": null
+        },
+        "F6": {
+          "fired": true,
+          "probability": 0.6,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "insufficient_guidance",
+              "found_elements": [
+                "procedure steps",
+                "risk warning"
+              ],
+              "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."
+            }
+          ]
+        },
+        "F7": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F8": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F9": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium",
+          "detections": null
+        },
+        "F10": {
+          "fired": false,
+          "probability": 0.2,
+          "severity": "critical",
+          "detections": null
+        },
+        "F11": {
+          "fired": true,
+          "probability": 0.35,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "concept_confusion",
+              "term1": "应当",
+              "term2": "可以",
+              "recommendation": "注意区分「应当」与「可以」的实质差异。"
+            }
+          ]
+        },
+        "F12": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F13": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F14": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F15": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F16": {
+          "fired": false,
+          "probability": 0.0,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F17": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null,
+          "syllogism_completeness": "3/3"
+        },
+        "F18": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "critical",
+          "detections": null
+        },
+        "F19": {
+          "fired": true,
+          "probability": 0.8,
+          "severity": "high",
+          "detections": [
+            {
+              "type": "question_ambiguity",
+              "ambiguity_markers": [
+                "可能",
+                "可以",
+                "应当",
+                "等",
+                "或"
+              ],
+              "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"
+            }
+          ]
+        },
+        "F20": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null
+        },
+        "F21": {
+          "fired": true,
+          "probability": 0.6,
+          "severity": "medium_high",
+          "detections": [
+            {
+              "type": "format_violation",
+              "format_marker_count": 5,
+              "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"
+            }
+          ]
+        },
+        "F22": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "high",
+          "detections": null,
+          "cross_question_analysis": false
+        },
+        "F23": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "medium_high",
+          "detections": null
+        },
+        "F24": {
+          "fired": false,
+          "probability": 0.1,
+          "severity": "critical",
+          "detections": null
+        }
+      }
+    },
+    "corrections": {
+      "summary": {
+        "total_corrections": 5,
+        "critical_corrections": 0,
+        "high_corrections": 4,
+        "checklist_items_required": [
+          "C5: 我问了自己：AI有没有遗漏关键事实或法律争点？",
+          "C7: 我没有让AI替代律师出具正式法律意见",
+          "C2: 我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）"
+        ]
+      },
+      "corrections": {
+        "F4": {
+          "corrections": [
+            {
+              "failure_id": "F4",
+              "failure_name": "浅度正确",
+              "severity": "🟠 高",
+              "original_issue": "AI结论正确但缺乏深度法理分析和替代法律理论探讨",
+              "empirical_evidence": {
+                "test_case": "测试#2 堆放物致害+案例6任某强奸案",
+                "finding": "DS结论正确但分析深度不足——堆放物案未深入1255条特别规范，任某案「判因太浅」",
+                "ds_accuracy_score": 4.5,
+                "note": "\"判因太浅\"是AI法律分析的普遍问题"
+              },
+              "correction_direction": "在正确结论的基础上增加：1）特别法与一般法关系分析；2）替代法律理论探讨；3）法理争议和学术观点引用",
+              "suggested_rewrite": "[原有正确结论的基础上] 此外，本案还涉及以下需要深入分析的维度：1）特别规范vs一般原则的适用关系... 2）学理上对此存在不同观点...",
+              "regulation_reference": "对应教育引导E1：法学院AI素养课程。Incorporate AI 10 failure patterns into law school curriculum for critical AI usage skills"
+            }
+          ],
+          "priority": "high",
+          "reason": "浅度正确可能使法学生形成肤浅法律思维习惯",
+          "checklist_item": "C5: 我问了自己：AI有没有遗漏关键事实或法律争点？"
+        },
+        "F6": {
+          "corrections": [
+            {
+              "failure_id": "F6",
+              "failure_name": "引导性赤字",
+              "severity": "🟠 高",
+              "original_issue": "AI提供了法律分析但缺乏完整的实务操作指导",
+              "empirical_evidence": {
+                "test_case": "6个历史案例汇总",
+                "finding": "DS引导性平均2.96/5，千问引导性平均1.70/5。R2角色扮演可提升约40%。引导性是四维中最薄弱维度",
+                "ds_guidance_avg": 2.96,
+                "qw_guidance_avg": 1.7,
+                "improvement": "R2角色扮演提升40%"
+              },
+              "correction_direction": "补充五项实务操作内容：证据清单+操作步骤+时间节点+风险提示+替代方案",
+              "suggested_rewrite": "[补充到原有分析之后]\n\n## 实务操作指引\n### 1. 证据收集清单\n### 2. 分步操作指南\n### 3. 关键时间节点\n### 4. 风险提示\n### 5. 替代性纠纷解决途径",
+              "regulation_reference": "对应教育引导E2：律师AI技能培训。使用T5模板（实操指引型）可从源头改善引导性",
+              "template_recommendation": "T5"
+            }
+          ],
+          "priority": "high",
+          "reason": "缺乏引导性是AI法律工具最普遍的问题——告诉用户「问题在哪」但不告诉「怎么解决」",
+          "checklist_item": "C7: 我没有让AI替代律师出具正式法律意见"
+        },
+        "F11": {
+          "corrections": [
+            {
+              "failure_id": "F11",
+              "failure_name": "选项混淆偏误",
+              "severity": "🟠 高",
+              "original_issue": "混淆了「应当」与「可以」两个相似但本质不同的法律概念",
+              "empirical_evidence": {
+                "test_case": "法考真题校准",
+                "finding": "2022-2025法考客观题中「应当vs可以」是高频混淆对，民法选择题约40%涉及此类区分",
+                "source": "2022-2025年法考客观题真题分析"
+              },
+              "correction_direction": "在选择题分析中明确区分「应当」与「可以」：标注两者的成立要件差异、法律效果差异和适用场景",
+              "suggested_rewrite": "「应当」与「可以」的核心区别在于：应当（[要件/效果描述]），而可以（[要件/效果描述]）。本选项属于[正确答案]",
+              "teaching_tip": "推荐使用对比表格展示混淆概念的核心差异"
+            }
+          ],
+          "priority": "high",
+          "reason": "概念混淆直接影响客观题得分，且反映学生对核心法律概念的掌握不足",
+          "checklist_item": "C2: 我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）"
+        },
+        "F19": {
+          "corrections": [
+            {
+              "failure_id": "F19",
+              "failure_name": "试题歧义偏差",
+              "severity": "🟠 高",
+              "original_issue": "试题表述包含5个歧义信号词: 可能, 可以, 应当, 等, 或",
+              "empirical_evidence": {
+                "test_case": "教信赛智慧评价赛道",
+                "finding": "歧义表述导致不同学生对同一题目产生不同且均合理的理解，直接影响评分公平性"
+              },
+              "correction_direction": "为题目增加限定条件：明确法律生效时间、法域范围、主体/客体/情景边界",
+              "suggested_rewrite": "【修改建议】题目应限定：1）适用的法律及生效时间；2）案件发生法域；3）关键要素的具体范围。示例：「根据2021年1月1日施行的《民法典》合同编，以下情形...」"
+            }
+          ],
+          "priority": "high",
+          "reason": "试题歧义直接影响评分公平性，是考试设计质量的核心问题",
+          "checklist_item": null
+        },
+        "F21": {
+          "corrections": [
+            {
+              "failure_id": "F21",
+              "failure_name": "答案格式违规",
+              "severity": "🟡 中高",
+              "original_issue": "答案以要点/列表为主（检测到5个列表信号），缺乏段落式论证",
+              "empirical_evidence": {
+                "test_case": "教信赛智慧评价赛道",
+                "finding": "论述题要求段落式论证，纯要点式答案虽含考点但论证深度不足"
+              },
+              "correction_direction": "按题目要求的格式作答：论述题需段落式论证，简答题需分点但保留展开",
+              "suggested_rewrite": "【论述题格式】应包含：1）问题界定（分析本题核心争点）；2）法理分析（引用法条+学理观点）；3）结论论证（逻辑展开）。"
+            }
+          ],
+          "priority": "medium",
+          "reason": "格式违规影响答案的论证深度评分",
+          "checklist_item": null
+        }
+      },
+      "baseline_reference": {
+        "ds_overall": 3.84,
+        "qw_overall": 3.06,
+        "key_findings": [
+          "guidance_weakest: 引导性是四维中最薄弱维度",
+          "sentencing_bias: 量刑预测是AI最大短板",
+          "fictional_law_acceptance: 千问接受虚构法律为真实",
+          "lpr_dispute: LPR基准选择是两模型核心分歧",
+          "role_play_limit: 角色扮演改善引导性但不解决核心缺陷"
+        ]
+      }
+    },
+    "safety": {
+      "meta": {
+        "text_length": 689,
+        "total_checks": 8,
+        "pass_count": 0,
+        "fail_count": 1,
+        "warn_count": 5,
+        "not_applicable_count": 2,
+        "passed_ratio": 0.0,
+        "overall_status": "fail"
+      },
+      "checklist": [
+        {
+          "status": "fail",
+          "reason": "检测到2条法条引用但未标注核实渠道",
+          "id": "C1",
+          "item": "我确认了AI引用的每条法条都在官方渠道核对过",
+          "category": "准确性验证",
+          "target_failures": [
+            "F1"
+          ]
+        },
+        {
+          "status": "not_applicable",
+          "reason": "文本未涉及罪名定性，此项无需执行",
+          "id": "C2",
+          "item": "我对AI的罪名定性进行了反向思考（有没有可能构成其他罪？）",
+          "category": "深度审查",
+          "target_failures": [
+            "F2"
+          ]
+        },
+        {
+          "status": "not_applicable",
+          "reason": "文本未涉及量刑预测，此项无需执行",
+          "id": "C3",
+          "item": "我不用AI做量刑预测作为决策依据",
+          "category": "风险边界",
+          "target_failures": [
+            "F3"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "重要法律结论建议进行至少两个AI平台的交叉验证",
+          "id": "C4",
+          "item": "我在重要问题上交叉验证了至少两个AI平台",
+          "category": "交叉验证",
+          "target_failures": [
+            "F1",
+            "F5",
+            "F7"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "文本较长但未检测到深度分析信号，可能存在浅度正确风险(F4)",
+          "id": "C5",
+          "item": "我问了自己：AI有没有遗漏关键事实或法律争点？",
+          "category": "完整性审查",
+          "target_failures": [
+            "F4",
+            "F8"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "建议在AI回答中标注哪些部分需要人工核实",
+          "id": "C6",
+          "item": "我标注了AI回答中需要人工核实的部分",
+          "category": "追溯管理",
+          "target_failures": [
+            "F5",
+            "F10"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "文本未包含\"不构成法律意见/建议咨询律师\"的免责声明",
+          "id": "C7",
+          "item": "我没有让AI替代律师出具正式法律意见",
+          "category": "角色边界",
+          "target_failures": [
+            "F6",
+            "F10"
+          ]
+        },
+        {
+          "status": "warn",
+          "reason": "文本包含数值计算但未显示验证过程（对应F7计算推理不一致）",
+          "id": "C8",
+          "item": "我确认回答中的计算与结论一致，无内部矛盾",
+          "category": "一致性验证",
+          "target_failures": [
+            "F7"
+          ]
+        }
+      ],
+      "scoring_reference": {
+        "all_passed": "高风险场景通过率100%，可以谨慎参考",
+        "partial_fail": "存在未通过的检查项，建议先完成所有检查再使用AI输出",
+        "critical_fail": "C1/C3/C7任一项未通过，建议暂停使用该AI输出，重新获取或人工补充"
+      }
+    },
+    "assignment": {
+      "meta": {
+        "evaluator_version": "4.0.0",
+        "text_length": 689,
+        "question_type": "T8_case_analysis",
+        "question_type_name": "案例分析题",
+        "type_confidence": 0.75,
+        "course_type": "general",
+        "scoring_mode": "five_dimension_weighted",
+        "is_objective": false,
+        "is_semi_objective": false,
+        "is_subjective": true,
+        "evaluation_date": "2026-08-19"
+      },
+      "classification": {
+        "type": "T8_case_analysis",
+        "type_name": "案例分析题",
+        "confidence": 0.75,
+        "score_mode": "five_dimension_weighted",
+        "is_objective": false,
+        "is_semi_objective": false,
+        "is_subjective": true,
+        "max_score_default": 25,
+        "all_scores": {
+          "T8_case_analysis": 3.0,
+          "T6_essay": 1.0,
+          "T1_single_choice": 0.0,
+          "T2_multi_choice": 0.0
+        }
+      },
+      "scoring": {
+        "qtype": "T8_case_analysis",
+        "scoring_method": "五维加权结构化评分",
+        "max_score": 25,
+        "raw_score": 18.7,
+        "weights_used": {
+          "D1": 30,
+          "D2": 25,
+          "D3": 20,
+          "D4": 15,
+          "D5": 10
+        },
+        "dimension_scores": {
+          "D1_法律依据准确性": {
+            "score": 4.0,
+            "weighted": 30,
+            "assessment": "作业质量良好，存在少量可改进之处",
+            "issues": []
+          },
+          "D2_论证逻辑严密性": {
+            "score": 5.0,
+            "weighted": 25,
+            "assessment": "优秀",
+            "issues": [
+              "建议增加替代法律理论或不同角度的分析"
+            ]
+          },
+          "D3_法理深度": {
+            "score": 3.0,
+            "weighted": 20,
+            "assessment": "中等",
+            "issues": [
+              "法理分析较为浅显，建议增加更多维度的深度分析"
+            ]
+          },
+          "D4_实务操作性": {
+            "score": 3.2,
+            "weighted": 15,
+            "assessment": "一般",
+            "issues": [
+              "实务操作性较弱，建议补充证据收集指引、操作步骤和风险提示"
+            ]
+          },
+          "D5_学术规范": {
+            "score": 2.0,
+            "weighted": 10,
+            "assessment": "不足",
+            "issues": [
+              "作业结构不完整，建议包含摘要-引言-正文-结论-参考文献",
+              "缺少参考文献或引用来源标注"
+            ]
+          }
+        }
+      },
+      "total_score": 18.7,
+      "grade": "中等",
+      "red_line_triggered": false,
+      "red_line_reason": "D1 法律依据准确性为 0 分",
+      "failure_detection": {
+        "fired_count": 5,
+        "critical_fired": 1,
+        "high_fired": 3,
+        "overall_risk": "critical",
+        "fired_patterns": {
+          "F4": {
+            "fired": true,
+            "probability": 0.5,
+            "severity": "critical",
+            "detections": [
+              {
+                "type": "shallow_conclusion",
+                "recommendation": "Add depth: alternative theories, exceptions, academic disputes"
+              }
+            ]
+          },
+          "F6": {
+            "fired": true,
+            "probability": 0.6,
+            "severity": "high",
+            "detections": [
+              {
+                "type": "insufficient_guidance",
+                "found_elements": [
+                  "procedure steps",
+                  "risk warning"
+                ],
+                "recommendation": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recommended."
+              }
+            ]
+          },
+          "F11": {
+            "fired": true,
+            "probability": 0.35,
+            "severity": "high",
+            "detections": [
+              {
+                "type": "concept_confusion",
+                "term1": "应当",
+                "term2": "可以",
+                "recommendation": "注意区分「应当」与「可以」的实质差异。"
+              }
+            ]
+          },
+          "F19": {
+            "fired": true,
+            "probability": 0.8,
+            "severity": "high",
+            "detections": [
+              {
+                "type": "question_ambiguity",
+                "ambiguity_markers": [
+                  "可能",
+                  "可以",
+                  "应当",
+                  "等",
+                  "或"
+                ],
+                "recommendation": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。"
+              }
+            ]
+          },
+          "F21": {
+            "fired": true,
+            "probability": 0.6,
+            "severity": "medium_high",
+            "detections": [
+              {
+                "type": "format_violation",
+                "format_marker_count": 5,
+                "recommendation": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。"
+              }
+            ]
+          }
+        },
+        "dimension_scores": {
+          "法律依据准确性": 4.2,
+          "时效性": 5.0,
+          "逻辑性": 4.4,
+          "引导性": 3.8,
+          "题型适配": 3.3,
+          "教学合规": 5.0,
+          "考试设计": 2.5
+        }
+      },
+      "feedback": [
+        "🔴 检测到失效模式 [F4] — 概率50%",
+        "🟠 检测到失效模式 [F6] — 概率60%",
+        "🟠 检测到失效模式 [F11] — 概率35%",
+        "🟠 检测到失效模式 [F19] — 概率80%",
+        "🟡 检测到失效模式 [F21] — 概率60%"
+      ],
+      "improvement_plan": [
+        {
+          "priority": "highest",
+          "area": "失效模式-F4",
+          "current_issue": "Add depth: alternative theories, exceptions, academic disputes",
+          "action": "对照纠正建议修改相关内容"
+        },
+        {
+          "priority": "high",
+          "area": "失效模式-F6",
+          "current_issue": "Add: evidence checklist + procedure steps + timeline + risk warnings + alternatives. Baseline: DS guidance avg 2.96/5, Qwen 1.70/5. T5 template recomm",
+          "action": "对照纠正建议修改相关内容"
+        },
+        {
+          "priority": "high",
+          "area": "失效模式-F11",
+          "current_issue": "注意区分「应当」与「可以」的实质差异。",
+          "action": "对照纠正建议修改相关内容"
+        },
+        {
+          "priority": "high",
+          "area": "失效模式-F19",
+          "current_issue": "题目包含5个歧义信号词。建议增加限定条件（时间/法域/范围），确保所有考生对题意的理解一致。",
+          "action": "对照纠正建议修改相关内容"
+        },
+        {
+          "priority": "high",
+          "area": "失效模式-F21",
+          "current_issue": "答案以要点/列表为主，缺乏段落式论证展开。论述题应包含：问题界定→法理分析→结论论证的完整段落结构。",
+          "action": "对照纠正建议修改相关内容"
+        },
+        {
+          "priority": "medium",
+          "area": "D5_学术规范",
+          "current_score": "2.0/5",
+          "target_score": "3.0/5",
+          "action_items": [
+            "作业结构不完整，建议包含摘要-引言-正文-结论-参考文献",
+            "缺少参考文献或引用来源标注"
+          ]
+        }
+      ]
+    }
+  }
+}

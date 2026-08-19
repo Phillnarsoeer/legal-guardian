@@ -476,6 +476,11 @@ def build_manual():
     b.add_para('场景：上传法学教学大纲，核验是否符合教育部课程标准和必授知识点要求。'
                '对话方式：粘贴教学大纲内容，附言"请审核这份教学大纲的合规性"。'
                '系统自动检测F24教学大纲合规偏离，输出覆盖率+缺失知识点清单+修订建议。')
+    b.add_heading('3.6 可视化报告面板（v4.3.0新增）', 2)
+    b.add_para('路演/评审演示利器：python scripts/report_builder.py 输入.txt --out panel/demo_report.json '
+               '一键生成全链路报告，双击打开 panel/report_panel.html（零依赖、离线可用）即可看到'
+               '"数字案卷"式可视化：风险印章、失效模式、纠正建议、安全检查、四维评分、作业评估、'
+               '提问优化、案例检索、三维规制全景视图；内嵌3份示例数据，支持打印/导出PDF。')
 
     b.add_heading('4. 安全检查使用（v4.1.0新增）', 1)
     b.add_para('对所有审核结果执行8项安全检查清单(C1-C8)，覆盖：法条来源核对、罪名定性反向思考、'
@@ -496,6 +501,8 @@ def build_manual():
     b.add_para('python scripts/rag_retriever.py --query "民间借贷 利息上限" -k 5')
     b.add_para('# 模块D - 三维规制评估 (v4.3.0)')
     b.add_para('python scripts/regulation_assessor.py --text "工具功能描述"')
+    b.add_para('# 报告面板 - 全链路可视化 (v4.3.0)')
+    b.add_para('python scripts/report_builder.py 输入.txt --out panel/demo_report.json && start panel/report_panel.html')
 
     b.add_heading('6. 常见问题', 1)
     b.add_bullet('Q: Skill未自动激活？A: 检查manifest.yaml的description关键词，确认Skill已启用')

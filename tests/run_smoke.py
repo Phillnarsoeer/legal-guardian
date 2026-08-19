@@ -156,9 +156,12 @@ CHECKS = [
           lambda: _check_benchmark_meta()),
     check('D9', 'reference/ 已精简：无 v2.0.0 残留数据文件', 'DATA 数据资产完整性',
           lambda: _check_no_stale_reference()),
-    check('D10', '新增脚本齐全：rag_retriever / regulation_assessor', 'DATA 数据资产完整性',
+    check('D10', '新增脚本齐全：rag_retriever / regulation_assessor / report_builder', 'DATA 数据资产完整性',
           lambda: os.path.exists(os.path.join(SCRIPTS, 'rag_retriever.py'))
-          and os.path.exists(os.path.join(SCRIPTS, 'regulation_assessor.py'))),
+          and os.path.exists(os.path.join(SCRIPTS, 'regulation_assessor.py'))
+          and os.path.exists(os.path.join(SCRIPTS, 'report_builder.py'))),
+    check('D11', '报告面板齐全：report_panel.html + 3 份示例数据', 'DATA 数据资产完整性',
+          lambda: _check_panel()),
 
     # ============ SMOKE 脚本冒烟 ============
     check('S1', '失效检测: F1 样本命中 repealed_law', 'SMOKE 脚本冒烟',
@@ -205,6 +208,8 @@ CHECKS = [
           lambda: _s23()),
     check('S24', '确定性: RAG 两次检索逐字节一致', 'SMOKE 脚本冒烟',
           lambda: _s24()),
+    check('S25', '报告构建器: 全链路输出 8 模块且 JSON 合法', 'SMOKE 脚本冒烟',
+          lambda: _s25()),
 
     # ============ INTEG 集成链路 ============
     check('I1', '三阶段链路: 检测→纠正→安全 全通', 'INTEG 集成链路',
@@ -438,6 +443,43 @@ def _s24():
         return d
     return json.dumps(run(), ensure_ascii=False, sort_keys=True) \
         == json.dumps(run(), ensure_ascii=False, sort_keys=True)
+
+
+def _check_panel():
+    """报告面板资产：HTML 存在且内嵌 3 份示例数据块，示例 JSON 可解析"""
+    panel_dir = os.path.join(SKILL_ROOT, 'panel')
+    html_path = os.path.join(panel_dir, 'report_panel.html')
+    if not os.path.exists(html_path):
+        return False
+    html = _read(html_path)
+    for bid in ('demo-ai', 'demo-syllabus', 'demo-assignment'):
+        m = re.search(r'id="' + bid + r'">(.*?)</script>', html, re.S)
+        if not m:
+            return False
+        try:
+            json.loads(m.group(1))
+        except Exception:
+            return False
+    for f in ('demo_report.json', 'demo_syllabus.json', 'demo_assignment.json'):
+        if not os.path.exists(os.path.join(panel_dir, f)):
+            return False
+    return True
+
+
+def _s25():
+    """报告构建器全链路：对 F1 样本生成报告，8 模块齐备且含检测命中"""
+    rc, out, err = run_script('report_builder.py', _data('sample_ai_response_f1.json'),
+                              '--query', '民间借贷 利息', timeout=180)
+    if rc != 0:
+        raise RuntimeError('report_builder rc=%s: %s' % (rc, (err or out)[-200:]))
+    r = extract_json(out)
+    mods = r.get('meta', {}).get('modules_included', [])
+    expected = {'detection', 'corrections', 'safety', 'scoring',
+                'assignment', 'templates', 'retrieval', 'regulation'}
+    if not expected <= set(mods):
+        return False
+    det = r.get('modules', {}).get('detection', {}).get('detections', {})
+    return bool(det.get('F1', {}).get('fired'))
 
 
 def _i1():

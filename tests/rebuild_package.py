@@ -5,7 +5,7 @@ LegalGuardian 精简包构建器 (v4.3.0)
 ====================================
 构建 legal-guardian.skill 安装包：仅含运行时必需文件
 （SKILL.md / manifest.yaml / README.md / scripts / reference /
- benchmark / templates / tests），不含 test_data 与 产品技术文档。
+ benchmark / templates / tests / panel），不含 test_data 与 产品技术文档。
 
 用法:
     python tests/rebuild_package.py            # 重建 legal-guardian.skill
@@ -25,13 +25,14 @@ OUT = os.path.join(ROOT, 'legal-guardian.skill')
 
 # 打包的顶层条目
 TOP_LEVEL = ['SKILL.md', 'manifest.yaml', 'README.md', 'scripts', 'reference',
-             'benchmark', 'templates', 'tests']
+             'benchmark', 'templates', 'tests', 'panel']
 
 # 排除项（按相对路径子串）
 EXCLUDE = [
     '__pycache__',                # Python 缓存
     '.git',                       # VCS 元数据
     'tests/smoke_report.md',      # 运行时生成物
+    'panel/_shot.png',            # 本地验证截图
 ]
 
 
