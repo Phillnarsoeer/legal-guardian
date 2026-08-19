@@ -71,8 +71,19 @@ def evaluate_assignment_v2(text: str, answer_key: Dict = None, course_type: str 
         if isinstance(d1_result, dict) and d1_result.get("score", 3) == 0:
             red_line_triggered = True
 
-    # 步骤3：失效模式检测（18种）
+    # 步骤3：失效模式检测（24种）
     failure_detection = run_failure_detection(text)
+
+    # 步骤3.1：红线统一（v4.3.0 修复，评审缺陷#5）
+    # F1（法条幻视：已废止/虚构法律）检测命中 ⇒ 红线触发，D1 归零。
+    # 仅作用于走五维评分路径的作业（主观题及未识别题型兜底）：
+    # 客观/半客观题以答案键评分为准，且题干本身可能以旧法设题，不宜误判红线。
+    f1_fired = bool(failure_detection.get('detections', {}).get('F1', {}).get('fired'))
+    if f1_fired and isinstance(scoring_result.get('dimension_scores'), dict):
+        red_line_triggered = True
+        d1 = scoring_result.get('dimension_scores', {}).get('D1_法律依据准确性')
+        if isinstance(d1, dict):
+            d1['score'] = 0
 
     # 步骤4：生成统合报告
     total_score = extract_total_score(scoring_result, qtype, answer_key, red_line_triggered)
@@ -102,6 +113,8 @@ def evaluate_assignment_v2(text: str, answer_key: Dict = None, course_type: str 
         "total_score": total_score,
         "grade": compute_grade(grade_score, red_line_triggered),
         "red_line_triggered": red_line_triggered,
+        "red_line_reason": ("F1 法条幻视命中（引用已废止/虚构法律）" if f1_fired
+                            else "D1 法律依据准确性为 0 分"),
         "failure_detection": {
             "fired_count": failure_detection.get("meta", {}).get("fired_patterns", 0),
             "critical_fired": failure_detection.get("meta", {}).get("critical_fired", 0),

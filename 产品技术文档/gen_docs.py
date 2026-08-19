@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-v4.2.1 技术文档 PDF 生成器
-使用 PyMuPDF 生成5份技术文档，版本对齐 v4.2.1
+v4.3.0 技术文档 PDF 生成器
+使用 PyMuPDF 生成5份技术文档，版本对齐 v4.3.0
 """
 import fitz
 import os
@@ -161,7 +161,7 @@ class PDFBuilder:
 
 
 def build_req_analysis():
-    b = PDFBuilder('需求分析报告', 'LegalGuardian v4.2.1', '2026-08-17',
+    b = PDFBuilder('需求分析报告', 'LegalGuardian v4.3.0', '2026-08-19',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Requirements Analysis Report')
 
@@ -178,6 +178,10 @@ def build_req_analysis():
                '全脚本解释器统一与健壮性重构。')
     b.add_para('v4.2.1完成文档结构优化与版本发布：SKILL.md 547→258行、manifest与模板对齐、校准口径修正（区分快速/全量），'
                '全量冒烟测试 PASS=28 / FAIL=0。')
+    b.add_para('v4.3.0完成"简洁精进"迭代：F1纠正文语境豁免、F2死代码复活、题型特化模式场景门控（干净样本误报7→0）、'
+               '红线统一（F1命中即D1归零）、题型识别5处规则修复；新增案例库检索器（5,515例确定性关键词检索）'
+               '与三维规制评估器（模块D落地）；删除reference/历史残留数据；安装包瘦身（14MB→约0.16MB）；'
+               '全量校准评级 C→A（题型100%/MAE 0.0/召回69.2%），冒烟测试39项 0 FAIL 0 KNOWN。')
 
     b.add_heading('2. 问题定义', 1)
     b.add_bullet('准确性危机：AI可能引用虚构或已废止的法律（千问接受"人格权侵害惩治条例"为真实法律）')
@@ -247,7 +251,7 @@ def build_req_analysis():
 
 
 def build_framework():
-    b = PDFBuilder('框架设计说明书', 'LegalGuardian v4.2.1', '2026-08-17',
+    b = PDFBuilder('框架设计说明书', 'LegalGuardian v4.3.0', '2026-08-19',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Framework Design Specification')
 
@@ -310,7 +314,7 @@ def build_framework():
 
 
 def build_test_cases():
-    b = PDFBuilder('测试用例报告', 'LegalGuardian v4.2.1', '2026-08-17',
+    b = PDFBuilder('测试用例报告', 'LegalGuardian v4.3.0', '2026-08-19',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Test Cases Report')
 
@@ -372,7 +376,7 @@ def build_test_cases():
 
 
 def build_performance():
-    b = PDFBuilder('功能及性能指标', 'LegalGuardian v4.2.1', '2026-08-17',
+    b = PDFBuilder('功能及性能指标', 'LegalGuardian v4.3.0', '2026-08-19',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='Functional & Performance Metrics')
 
@@ -440,15 +444,15 @@ def build_performance():
 
 
 def build_manual():
-    b = PDFBuilder('使用说明手册', 'LegalGuardian v4.2.1', '2026-08-17',
+    b = PDFBuilder('使用说明手册', 'LegalGuardian v4.3.0', '2026-08-19',
                    '西南民族大学法学院徐子涵团队')
     b.add_cover(subtitle='User Manual')
 
     b.add_heading('1. 概述', 1)
     b.add_para('LegalGuardian(法律守卫)是基于实证数据的AI法律对话审查纠正与法学作业评估Skill。'
-               'v4.2.1覆盖24种失效模式(F1-F24)、8大题型(T1-T8)、教学大纲AI合规审核，'
-               '并完成性能优化（知识库模块级缓存、进程内检测调用）与正确性修复'
-               '（主观题评分归一化、红线规则、检测→纠正链路对齐）。'
+               'v4.3.0覆盖24种失效模式(F1-F24)、8大题型(T1-T8)、教学大纲AI合规审核，'
+               '新增5,515案例库确定性检索与三维规制评估；完成精准度修复（F1纠正文豁免、F2死代码、'
+               '题型特化模式场景门控、红线统一）与全量校准评级A。'
                '面向法学学生/教师、教务管理者、非专业社会人士、AI工具开发者。')
 
     b.add_heading('2. 安装部署', 1)
@@ -465,8 +469,9 @@ def build_manual():
     b.add_para('场景：准备向AI提问法律问题。对话方式：写出原始问题，附言"请优化这个问题的提问方式"。')
     b.add_heading('3.3 模块C：法学作业评估与评分', 2)
     b.add_para('场景：提交法学作业，进行8大题型差异化评分。命令行：python scripts/law_assignment_evaluator_v2.py 作业.docx')
-    b.add_heading('3.4 模块D：三维规制符合性评估', 2)
-    b.add_para('场景：评估AI法律工具合规性。输出技术T1-T5+教育E1-E4+法律L1-L4逐项报告。')
+    b.add_heading('3.4 模块D：三维规制符合性评估（v4.3.0落地）', 2)
+    b.add_para('场景：评估AI法律工具合规性。命令行：python scripts/regulation_assessor.py --text "<工具功能描述>"'
+               ' [--detections 检测.json]，输出技术T1-T5+教育E1-E4+法律L1-L4逐项状态、雷达数据与路线图。')
     b.add_heading('3.5 模块E：教学大纲AI合规审核（v4.1.0新增）', 2)
     b.add_para('场景：上传法学教学大纲，核验是否符合教育部课程标准和必授知识点要求。'
                '对话方式：粘贴教学大纲内容，附言"请审核这份教学大纲的合规性"。'
@@ -487,6 +492,10 @@ def build_manual():
     b.add_para('python scripts/law_assignment_evaluator_v2.py 作业.docx')
     b.add_para('# 模块E - 教学大纲合规审核')
     b.add_para('python scripts/failure_detector.py 大纲.txt  (检测F24)')
+    b.add_para('# 案例检索 - 5,515案例库 (v4.3.0)')
+    b.add_para('python scripts/rag_retriever.py --query "民间借贷 利息上限" -k 5')
+    b.add_para('# 模块D - 三维规制评估 (v4.3.0)')
+    b.add_para('python scripts/regulation_assessor.py --text "工具功能描述"')
 
     b.add_heading('6. 常见问题', 1)
     b.add_bullet('Q: Skill未自动激活？A: 检查manifest.yaml的description关键词，确认Skill已启用')
@@ -498,7 +507,7 @@ def build_manual():
 
 
 if __name__ == '__main__':
-    print('=== 生成 LegalGuardian v4.2.1 技术文档 ===')
+    print('=== 生成 LegalGuardian v4.3.0 技术文档 ===')
     build_req_analysis()
     build_framework()
     build_test_cases()

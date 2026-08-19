@@ -5,7 +5,7 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 
 # LegalGuardian — AI法律对话实证纠正框架
 
-> 实证数据驱动的 AI 法律输出审核与法学教学评估引擎（v4.2.1）。
+> 实证数据驱动的 AI 法律输出审核与法学教学评估引擎（v4.3.0）。
 > 定位：在 AI 与法律使用者之间加一层有数据背书的审核护栏，不替代律师或教师。
 
 ## 1. 适用范围
@@ -94,6 +94,7 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 **绝对规则**：纠正建议必须附实证案例引用，禁止用「可能/也许」等模糊词语代替数据。
 
 3. **安全检查** — `python scripts/safety_checker.py <文本> [--detections <检测JSON>]`：执行 `reference/safety_checklist.json` 的 8 项检查。
+4. **案例佐证**（v4.3.0+）— `python scripts/rag_retriever.py --query "<案由/关键词>" -k 5`：从人民法院案例库 5,515 例中检索相似案例，供纠正建议引用（确定性关键词评分，可复现）。
 
 输出报告骨架：
 
@@ -162,20 +163,17 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 
 触发条件：评估某个 AI 法律工具或 Skill 的合规性。
 
-- 技术规范（T1-T5）：知识验证层、争议标注、置信度披露、计算验证、用户感知
-- 教育引导（E1-E4）：AI 素养课程、律师培训、公众科普、标准化模板
-- 法律保障（L1-L4）：分级认证、透明度要求、伦理守则、监管沙盒
-
-输出：三维评分雷达数据 + 逐项符合性报告 + 改进优先级路线图。
+1. 调用 `python scripts/regulation_assessor.py --text "<工具功能描述>" [--name <工具名>] [--detections <检测结果JSON>]`。
+2. 判定规则（确定性）：检测结果中条目 `target_failures` 命中 ⇒ FAIL（实证优先）；描述命中条目关键词 ⇒ PASS；否则 PENDING 待人工核验。
+3. 输出：三维（技术 T1-T5 / 教育 E1-E4 / 法律 L1-L4）逐项评估 + 雷达数据 + 综合评级 + 改进路线图。
 
 ### 模块E：教学大纲AI合规审核
 
 触发条件：用户提交法学教学大纲/教案/教学内容，需核验是否符合教育部课程标准。
 
 1. 提取课程知识点与覆盖范围。
-2. 对照 `reference/curriculum_requirements.json`（教育部法学类教学质量国家标准）核验覆盖率。
-3. 调用 `python scripts/failure_detector.py` 检测 F24。
-4. 输出：覆盖率报告 + 缺失知识点清单 + 大纲修订建议。
+2. 调用 `python scripts/failure_detector.py`：F24 对照 `reference/curriculum_requirements.json`（教育部法学类教学质量国家标准，**18 项核心知识点**，按知识点名+关键词匹配）核验覆盖率。
+3. 输出：覆盖率报告 + 缺失知识点清单 + 大纲修订建议。
 
 审核标准：核心知识点覆盖率 ≥80%（F24 触发阈值）；覆盖民法/刑法/宪法/行政法/诉讼法/法理学/国际法/经济法八大领域。
 
@@ -190,6 +188,8 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 
 ## 6. 脚本索引
 
+**核心链路（运行时）**：
+
 | 脚本 | 功能 | 调用方式 |
 |------|------|---------|
 | failure_detector.py | F1-F24 失效模式检测 | `python scripts/failure_detector.py <文本文件>` |
@@ -198,13 +198,20 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 | template_matcher.py | 提问模板推荐 | `python scripts/template_matcher.py "<原始问题>"` |
 | scoring_engine.py | 四维评分+基线对比 | `python scripts/scoring_engine.py <文本文件>` |
 | law_assignment_evaluator_v2.py | 作业评估主入口（T1-T8+F1-F24） | `python scripts/law_assignment_evaluator_v2.py <作业文件> [--answer-key <JSON>]` |
-| law_assignment_evaluator.py | 旧版五维作业评估 | `python scripts/law_assignment_evaluator.py <作业文件>` |
+| law_assignment_evaluator.py | 五维评估库 + v1 入口 | `python scripts/law_assignment_evaluator.py <作业文件>` |
 | question_type_classifier.py | T1-T8 识别+客观/半客观题评分 | `python scripts/question_type_classifier.py <文本> [--answer-key <JSON>]` |
 | answer_key_evaluator.py | 答案键验证/批量评分/模板生成 | `python scripts/answer_key_evaluator.py --validate|--batch|--generate-template ...` |
-| calibrate_scoring.py | 黄金标准校准 | `python scripts/calibrate_scoring.py [--benchmark <文件>] [--quick]` |
+| legal_db_fetcher.py | 法条库检索（本地优先，可在线） | `python scripts/legal_db_fetcher.py --search "<关键词>" [--article <法条号>]` |
+| rag_retriever.py (v4.3.0) | 案例库检索（5,515 例，确定性关键词） | `python scripts/rag_retriever.py --query "<关键词>" [-k 5] [--detail] [--stats]` |
+| regulation_assessor.py (v4.3.0) | 模块D 三维规制符合性评估 | `python scripts/regulation_assessor.py --text "<功能描述>" [--detections <JSON>]` |
+
+**开发/维护工具（不进精简安装包）**：
+
+| 脚本 | 功能 | 调用方式 |
+|------|------|---------|
+| calibrate_scoring.py | 黄金标准校准（快速/全量） | `python scripts/calibrate_scoring.py [--benchmark <文件>] [--quick]` |
 | exam_parser.py | 法考 PDF 答案键解析 | `python scripts/exam_parser.py <PDF> --type objective|subjective` |
-| legal_db_fetcher.py | 国家法律法规数据库检索 | `python scripts/legal_db_fetcher.py --search "<关键词>" [--article <法条号>]` |
-| generate_upgrade_doc.py | 升级文档生成（维护工具） | `python scripts/generate_upgrade_doc.py` |
+| generate_upgrade_doc.py | 升级文档生成 | `python scripts/generate_upgrade_doc.py` |
 
 详细输入/输出 JSON 结构以各脚本源码 docstring 为准；模块A-E已给出主链路调用方式。
 
@@ -237,17 +244,20 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 3. 作业评分是教师判断的参考，不能替代人工最终成绩
 4. 法律数据库检索依赖网络连接与数据库可用性
 5. F20/F22 需多份输入（多批次评分/多题答案），单文本仅为基础信号
+6. 题型特化模式（F12-F23）采用场景门控：仅在其对应题型语境下触发，跨语境输入可能漏报
 
 ## 9. 维护
 
 - 每季度检查 DS/千问版本更新，必要时更新基线
 - 发现新型失效模式 → 记入 `reference/failure_patterns.json` 的 `candidate_patterns`
 - `reference/assignment_rubric.json` 按课程要求调整；`reference/curriculum_requirements.json` 按培养方案调整
+- 发布流程：改码 → `python tests/run_smoke.py`（0 FAIL 0 KNOWN）→ 重建 `legal-guardian.skill`
 
 ## 10. 更新日志
 
 | 版本 | 日期 | 主要变更 |
 |------|------|---------|
+| **v4.3.0** | 2026-08-19 | **简洁精进版**：①精准度修复——F1 纠正文语境豁免、F2 中文键（死代码复活）、F6 中文要素、F10 逻辑翻转、F11 正则对合并、F12/F13/F15/F17/F21/F22/F23 场景门控、F17 显式三段论豁免、F24 改读 curriculum_requirements.json（18 项）+大纲门控；干净样本误报 7→0；②红线统一——F1 命中（含虚构法条）⇒ D1 归零；③题型识别 5 处规则修复（T1/T2 多选优先级、T3 单字符误命中、T4/T5、T7 解析）；④新增 rag_retriever.py（5,515 案例库确定性检索）、regulation_assessor.py（模块D 落地）；⑤精简——删除 reference/ 5 个 v2.0.0 残留数据（-1.9MB）、清理 __pycache__、安装包瘦身（test_data 转仓库级证据，14MB→约2MB、修复中文文件名乱码）；⑥全量校准 C→A（题型 100%/MAE 0.0/召回 69.2%）；冒烟 39 项 0 FAIL 0 KNOWN |
 | v4.2.1 | 2026-08-17 | 文档结构优化：SKILL.md 547→258 行、manifest/template 精简对齐、校准口径修正；全量冒烟测试 PASS=28/FAIL=0 |
 | v4.2.0 | 2026-08-05 | 性能优化（JSON缓存/进程内检测/评分标准缓存）+正确性修复（主观题归一化/红线修复/检测→纠正链路对齐/F22插值）+代码质量重构（sys.executable统一/健壮性/死代码清理） |
 | v4.1.0 | 2026-08-03 | F19-F24、教学大纲合规审核（模块E）、安全检查执行器、竞赛场景模板匹配、基准测试扩展至16项 |
@@ -256,4 +266,4 @@ description: 中文法律AI输出审核与法学教学评估框架。自动检�
 | v2.0.0 | 2026-07-30 | 900 案例知识库、1,800 训练样本、900 RAG 块、71 案由 |
 | v1.0.0 | 2026-07-29 | 初始版本（大创项目 14 案例 × 2 轮 × 4 维实证数据） |
 
-最新校准（2026-08-05）：快速模式（4项）题型识别 100%、客观题评分 MAE 0.0、失效模式检测召回 100%、评级 A；全量模式（26项）评级 C（68.8%），以 `tests/LegalGuardian_v4.2.1功能测试方案.md` 为准。
+最新校准（2026-08-19，v4.3.0）：快速模式（4项）题型识别 100%、客观题评分 MAE 0.0、失效模式召回 100%、评级 A；全量模式（26项）题型识别 100%、MAE 0.0、失效模式召回 69.2%（5 项基准以题干作输入、非完整作答，属基准设计限制）、评级 A。以 `tests/LegalGuardian_v4.3.0功能测试方案.md` 为准。

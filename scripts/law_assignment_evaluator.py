@@ -4,7 +4,7 @@
 
 对法学作业（案例分析/论文/法律意见书等）进行五维结构化评估与百分制评分。
 评估标准基于 reference/assignment_rubric.json，同时调用失效模式检测器
-来识别作业中可能存在的10大失效模式。
+来识别作业中可能存在的24种失效模式（F1-F24）。
 
 用法:
     python law_assignment_evaluator.py <作业文件路径> [--course <课程类型>]
@@ -301,6 +301,17 @@ def evaluate_assignment(text: str, course_type: str = 'general') -> dict:
         'D4_实务操作性': evaluate_dimension_4_practicality(text, rubric),
         'D5_学术规范': evaluate_dimension_5_academic_norms(text, rubric)
     }
+
+    # 2.1 红线统一（v4.3.0 修复，评审缺陷#5）：
+    #     F1（法条幻视，含虚构法条/已废止法条）检测命中 ⇒ D1 直接归零，
+    #     与 question_type_rubrics.json 的 red_lines 声明保持一致，
+    #     不再仅依赖 D1 自身的硬编码废止法清单。
+    f1_fired = bool(failure_detection and failure_detection.get('detections', {}).get('F1', {}).get('fired'))
+    if f1_fired:
+        dimensions['D1_法律依据准确性']['score'] = 0
+        if '🔴 红线触发' not in dimensions['D1_法律依据准确性']['issues']:
+            dimensions['D1_法律依据准确性']['issues'].insert(
+                0, '🔴 红线触发：检测到 F1 法条幻视（引用已废止/虚构法律）。直接0分')
 
     # 3. 计算总分
     total_weighted = sum(

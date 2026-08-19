@@ -1,6 +1,6 @@
 # 法学作业评估报告
 
-> 评估工具：LegalGuardian v4.2.1 — 模块C：法学作业评估
+> 评估工具：LegalGuardian v4.3.0 — 模块C：法学作业评估
 > 评估时间：{evaluation_date}
 > 作业类型：{course_type}
 
@@ -124,4 +124,4 @@
 
 ---
 
-*报告生成于 {report_generated_at} | LegalGuardian v4.2.1*
+*报告生成于 {report_generated_at} | LegalGuardian v4.3.0*

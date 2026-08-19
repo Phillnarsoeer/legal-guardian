@@ -77,10 +77,17 @@ def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
 
         # 模拟学生答案：用正确答案构造"学生回答"
         correct = item["answer_key"]["correct"]
+        # v4.3.0 修复（评审缺陷#11）：多选答案键可能存为 LIST（如 ["B","C"]），
+        # 评分器期望字符串格式；此处统一归一化（构造学生回答 + 评分用的答案键），
+        # 避免该题项被排除在评分统计外或误判为 0 分。
+        if isinstance(correct, list):
+            correct = ''.join(str(c) for c in correct)
         # 构造学生回答文本 = 题干 + "答案: " + 正确答案
         student_text = item.get("stem", "") + f"\n答案：{correct}"
 
-        scoring = score_objective_question(student_text, item["answer_key"], item["type"])
+        scoring_key = dict(item["answer_key"])
+        scoring_key["correct"] = correct
+        scoring = score_objective_question(student_text, scoring_key, item["type"])
 
         expected = item.get("expected_scoring", {})
         if "score" in expected and "score" in scoring:
@@ -134,7 +141,7 @@ def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
     # === 汇总报告 ===
     return {
         "meta": {
-            "calibrator_version": "4.0.0",
+            "calibrator_version": "4.3.0",
             "benchmark": os.path.basename(benchmark_path),
             "total_items": len(items),
             "quick_mode": quick

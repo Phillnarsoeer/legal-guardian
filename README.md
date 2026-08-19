@@ -1,6 +1,6 @@
 # 法律守卫 (LegalGuardian) — AI法律对话实证纠正框架
 
-**当前版本：v4.2.1**（2026-08-17 · 文档结构优化 + v4.2.1 发布）
+**当前版本：v4.3.0**（2026-08-19 · 简洁精进版：精准度修复 + 红线统一 + 全量校准 C→A + 安装包瘦身）
 
 基于西南民族大学法学院**14案例×2轮×4维实证测评** + **人民法院案例库5,515真实案例** +
 **2022-2025年法考真题校准**的法学全题型 AI 审查纠正与作业评估引擎。
@@ -13,16 +13,16 @@
 
 | 能力 | 说明 |
 |------|------|
-| **24 种失效模式检测 (F1-F24)** | F1-F10 通用实证模式、F11-F18 题型特化模式、F19-F24 教信赛智慧评价模式 |
-| **8 大法学题型差异化评分 (T1-T8)** | 选择题/判断题/名词解释/简答题/论述题/法条分析/案例分析 自动识别与评分 |
+| **24 种失效模式检测 (F1-F24)** | F1-F10 通用实证模式、F11-F18 题型特化模式、F19-F24 教信赛智慧评价模式；题型特化模式带场景门控，干净样本零误报 |
+| **8 大法学题型差异化评分 (T1-T8)** | 选择题/判断题/名词解释/简答题/论述题/法条分析/案例分析 自动识别与评分，全量校准评级 A |
 | **5 大标准化提问模板** | 法条验证/案例对比/多假设追问/前提挑战/实操指引 |
 | **8 项安全检查清单** | 与失效模式联动，输出逐项通过/失败状态与总体风险等级 |
-| **教学大纲 AI 合规审核** (v4.1.0+) | 对照教育部课程标准核验核心知识点覆盖率（≥80% 硬性阈值，触发 F24） |
-| **案例库 RAG 检索** (v3.0.0+) | 人民法院案例库 5,515 个真实案例本地检索增强 |
-| **三维规制符合性评估** | 技术 + 教育 + 法律三方面对 AI 法律工具的整体评估 |
+| **教学大纲 AI 合规审核** (v4.1.0+) | 对照教育部课程标准 18 项核心知识点核验覆盖率（≥80% 硬性阈值，触发 F24） |
+| **案例库本地检索** (v4.3.0+) | 人民法院案例库 5,515 个真实案例确定性关键词检索（`rag_retriever.py`），支持相似案例佐证 |
+| **三维规制符合性评估** (v4.3.0+) | 技术 T1-T5 / 教育 E1-E4 / 法律 L1-L4 逐项评估 + 雷达数据（`regulation_assessor.py`） |
 
 适用场景：法学作业批改、AI 法律回答审查纠正、智能考试全流程管理、教学质量多维评价、
-教学大纲 AI 合规审核、法律 AI 输出合规验证、公众 AI 法律咨询风险提示、RAG 本地案例检索。
+教学大纲 AI 合规审核、法律 AI 输出合规验证、公众 AI 法律咨询风险提示、案例库本地检索。
 
 ---
 
@@ -116,11 +116,11 @@
 
 | 模块 | 功能 |
 |------|------|
-| **A. AI 法律回答审核纠正**（核心） | 失效模式检测 → 纠正建议生成 → 安全检查清单，输出审核报告 |
+| **A. AI 法律回答审核纠正**（核心） | 失效模式检测 → 纠正建议生成 → 安全检查清单 + 案例库相似案例佐证，输出审核报告 |
 | **B. 提问优化与模板推荐** | 分析原始问题陷阱，匹配 5 大标准化模板并给出优化后提问 |
-| **C. 法学作业评估与评分** | 8 题型自动识别、差异化评分、五维评估报告 |
-| **D. 三维规制符合性评估** | 技术(T1-T5)/教育(E1-E4)/法律(L1-L4) 三维评估 AI 法律工具 |
-| **E. 教学大纲 AI 合规审核** (v4.1.0+) | 覆盖率核验 + F24 检测 + 修订建议 |
+| **C. 法学作业评估与评分** | 8 题型自动识别、差异化评分、红线统一（F1 命中即 D1 归零）、五维评估报告 |
+| **D. 三维规制符合性评估** (v4.3.0+) | 技术(T1-T5)/教育(E1-E4)/法律(L1-L4) 逐项评估 + 雷达数据 + 路线图 |
+| **E. 教学大纲 AI 合规审核** (v4.1.0+) | 覆盖率核验（18 项知识点）+ F24 检测 + 修订建议 |
 
 ---
 
@@ -131,41 +131,51 @@ legal-guardian/
 ├── SKILL.md                  # 技能主文档（Claude Code 指令）
 ├── manifest.yaml             # 技能清单（名称/版本/描述）
 ├── README.md                 # 本文件
-├── scripts/                  # 13 个 Python 脚本
-│   ├── failure_detector.py   # 失效模式检测（F1-F24）
+├── scripts/                  # 15 个 Python 脚本
+│   ├── failure_detector.py   # 失效模式检测（F1-F24，场景门控）
 │   ├── correction_engine.py  # 纠正建议生成
 │   ├── safety_checker.py     # 8 项安全检查清单
 │   ├── template_matcher.py   # 标准化提问模板推荐
 │   ├── scoring_engine.py     # 四维评分与基线对比
 │   ├── question_type_classifier.py  # 题型识别与路由（T1-T8）
 │   ├── answer_key_evaluator.py      # 答案键验证/批量评分
-│   ├── law_assignment_evaluator.py  # 作业五维评估（v1）
-│   ├── law_assignment_evaluator_v2.py # 8题型统一评估器（v2）
-│   ├── calibrate_scoring.py         # 评分校准器
-│   ├── exam_parser.py               # 法考真题 PDF 解析器
-│   ├── legal_db_fetcher.py          # 法律数据库检索
-│   └── generate_upgrade_doc.py      # 升级文档生成
-├── reference/                 # JSON 知识库
+│   ├── law_assignment_evaluator.py  # 五维评估库 + v1 入口
+│   ├── law_assignment_evaluator_v2.py # 8题型统一评估器（主入口）
+│   ├── legal_db_fetcher.py          # 法条库检索（本地优先）
+│   ├── rag_retriever.py             # 案例库检索（5,515 例，v4.3.0+）
+│   ├── regulation_assessor.py       # 三维规制评估（v4.3.0+）
+│   ├── calibrate_scoring.py         # 评分校准器（开发工具）
+│   ├── exam_parser.py               # 法考真题 PDF 解析器（开发工具）
+│   └── generate_upgrade_doc.py      # 升级文档生成（开发工具）
+├── reference/                 # JSON 知识库（9 个运行时文件，无历史残留）
 │   ├── failure_patterns.json  # 24 种失效模式特征库
 │   ├── correction_templates.json    # 5 大提问模板
 │   ├── safety_checklist.json        # 8 项安全检查清单
 │   ├── question_type_rubrics.json   # 8 题型评分标准
 │   ├── assignment_rubric.json       # 作业评分标准
-│   ├── curriculum_requirements.json # 教学大纲合规标准（v4.1.0+）
-│   └── legal_data/            # 5,515 案例库 + RAG 检索块（v3.0.0+）
-├── benchmark/                 # 黄金标准基准测试集 + 答案键
+│   ├── curriculum_requirements.json # 教学大纲合规标准（18 项知识点）
+│   ├── legal_knowledge_base.json    # 法条知识库
+│   ├── test_baseline.json           # 实证基线
+│   └── three_d_regulation.json      # 三维规制标准
+├── benchmark/                 # 黄金标准基准测试集（16 基准 + 10 回归）
 ├── templates/                 # 报告输出模板
-├── tests/  +  test_data/      # 测试与训练数据
+├── tests/  +  test_data/      # 冒烟测试（39 项）与测试数据
+├── test_data/                 # 大数据资产：5,515 案例 / RAG 块 / 训练样本（仓库级证据）
 └── 产品技术文档/               # 5 份 PDF（由 gen_docs.py 生成）
 ```
+
+> 注：v4.3.0 精简包 `legal-guardian.skill`（约 2MB）仅含运行时必需文件
+> （SKILL.md/manifest/README/scripts/reference/benchmark/templates/tests）；
+> `test_data` 大数据资产（约 44MB）与 `产品技术文档` 保留在仓库作为实证证据。
 
 ---
 
 ## 🚀 安装与使用
 
 ### 作为 Claude Code Skill 安装
-1. 将 `legal-guardian.skill`（zip 包）解压到 `~/.claude/skills/legal-guardian/`
+1. 将 `legal-guardian.skill`（zip 包，约 2MB）解压到 `~/.claude/skills/legal-guardian/`
 2. 重启 Claude Code，在对话中直接使用 `legal-guardian` skill
+3. 注：精简包不含 `test_data/`（5,515 案例库/训练语料为仓库级证据数据）。如需案例库检索（`rag_retriever.py`），从仓库将 `test_data/rags/chunks.json` 与 `test_data/cases/all_cases.json` 复制到技能目录对应路径
 
 ### 主要脚本调用
 
@@ -188,10 +198,16 @@ python scripts/safety_checker.py <输入文本> [--detections <检测结果JSON>
 # 提问模板推荐
 python scripts/template_matcher.py "<用户原始问题文本>"
 
-# 评分校准
-python scripts/calibrate_scoring.py [--benchmark <基准文件>] [--quick]
+# 案例库检索（5,515 例，v4.3.0+）
+python scripts/rag_retriever.py --query "民间借贷 利息上限" -k 5 [--detail]
 
-# 法考真题解析
+# 三维规制评估（v4.3.0+）
+python scripts/regulation_assessor.py --text "<AI法律工具功能描述>" [--detections <检测JSON>]
+
+# 评分校准（开发工具）
+python scripts/calibrate_scoring.py [--quick]
+
+# 法考真题解析（开发工具）
 python scripts/exam_parser.py <PDF路径> --type objective|subjective
 ```
 
@@ -201,6 +217,7 @@ python scripts/exam_parser.py <PDF路径> --type objective|subjective
 
 | 版本 | 日期 | 主要变更 |
 |------|------|---------|
+| **v4.3.0** | 2026-08-19 | **简洁精进版**：F1 纠正文豁免/F2 死代码复活/F11 正则对合并/题型特化模式场景门控/F24 读 18 项知识点；红线统一（F1 命中⇒D1 归零）；题型识别 5 处修复；新增 rag_retriever + regulation_assessor（模块D 落地）；删除 reference/ 5 个 v2.0.0 残留（-1.9MB）；安装包瘦身 14MB→约2MB；全量校准 C→A（100%/0.0/69.2%）；冒烟 39 项 0 FAIL 0 KNOWN |
 | **v4.2.1** | 2026-08-17 | **文档结构优化**：SKILL.md 547→258 行、manifest 与模板版本对齐、校准口径修正（区分快速/全量）；全量冒烟测试 PASS=28 / FAIL=0 |
 | **v4.2.0** | 2026-08-05 | **性能优化 + 正确性修复 + 代码质量重构**（全 13 脚本）：JSON 知识库缓存、进程内检测调用消除子进程/32767 字符限制、主观题评分归一化、红线规则修复、检测→纠正链路对齐、`sys.executable` 统一 |
 | v4.1.0 | 2026-08 | 教信赛智慧评价强化：新增 F19-F24 失效模式、教学大纲 AI 合规审核（模块E）、竞赛铁律 |
@@ -209,15 +226,14 @@ python scripts/exam_parser.py <PDF路径> --type objective|subjective
 | v2.0.0 | — | 数据扩充：900 案例、1,800 QA、900 RAG、71 种原因类型 |
 | v1.0.0 | — | 初始版本 |
 
-### v4.2.0 校准结果（2026-08-05）
+### v4.3.0 校准结果（2026-08-19）
 
-| 指标 | 结果 |
-|------|------|
-| 题型识别准确率 | 100% (4/4 快速模式) |
-| 客观题评分 MAE | 0.0 |
-| 失效模式检测召回率 | 100% (3/3) |
-| 综合评级 | A（优秀校准，快速模式） |
-| 全量模式（26项） | C（68.8%，详见测试方案） |
+| 指标 | 快速模式（4 项） | 全量模式（26 项） |
+|------|-----------------|------------------|
+| 题型识别准确率 | 100% | 100% |
+| 客观题评分 MAE | 0.0 | 0.0 |
+| 失效模式检测召回率 | 100% | 69.2%（5 项基准以题干作输入，属基准设计限制） |
+| 综合评级 | A（优秀校准） | A（优秀校准） |
 
 ---
 

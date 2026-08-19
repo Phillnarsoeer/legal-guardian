@@ -1,550 +1,547 @@
 {
- "meta": {
-  "version": "4.1.0",
-  "description": "LegalGuardian v4.0 全题型黄金标准基准测试集",
-  "total_items": 50,
-  "calibration_source": "2022-2025法考真题 + 法学本科期末标准",
-  "purpose": "校准8大题型的识别准确率、评分精度和失效模式检测召回率",
-  "benchmark_item_count": 16,
-  "regression_test_count": 10
- },
- "benchmark_items": [
-  {
-   "id": "BM-T1-001",
-   "type": "T1_single_choice",
-   "stem": "甲食品公司生产的一种饮料所使用的'红牛'商标是国内知名品牌，其特有的金黄色包装和商标图案以及罐型大小已为众多消费者所知悉。乙食品公司注册以'红午'商标用于其生产的饮料上，其包装罐的形状、大小、颜色、字体与'红牛'相同。对乙食品公司的行为应认定为？",
-   "options": {
-    "A": "因所用的商标、经营者主体不同，所以不构成侵权",
-    "B": "甲、乙生产的是同类商品，而且外观设计、颜色、字体相同，足以引起消费者误认，因此，乙的行为构成不正当竞争",
-    "C": "甲的商标是合法注册的，乙的商标也是合法注册的，因此乙的行为不构成侵权",
-    "D": "乙的行为只是违反同业竞争道德，但是不违法"
-   },
-   "answer_key": {
-    "correct": "B",
-    "max_score": 1,
-    "explanation": "乙使用近似商标、包装足以引起消费者误认，构成不正当竞争",
-    "legal_basis": "《反不正当竞争法》第6条"
-   },
-   "expected_classification": "T1_single_choice",
-   "expected_scoring": {
-    "score": 1,
-    "is_correct": true
-   },
-   "failure_patterns_expected": []
+  "meta": {
+    "version": "4.3.0",
+    "description": "LegalGuardian v4.3.0 全题型黄金标准校准集（16 基准 + 10 回归）",
+    "total_items": 26,
+    "calibration_source": "2022-2025法考真题 + 法学本科期末标准",
+    "purpose": "校准8大题型的识别准确率、评分精度和失效模式检测召回率",
+    "benchmark_item_count": 16,
+    "regression_test_count": 10
   },
-  {
-   "id": "BM-T1-002",
-   "type": "T1_single_choice",
-   "stem": "某地有陨石坠落，当地村民寻后卖给闻讯而来的收藏者，获利颇丰。潘某路过村民肖某家菜地时拾得一小块陨石，肖某知道后向潘某索要遭拒绝。关于该陨石所有权的归属，下列说法正确的是？",
-   "options": {
-    "A": "陨石所有权归国家所有",
-    "B": "潘某拾得陨石行为不应由民法调整",
-    "C": "潘某可取得陨石所有权",
-    "D": "肖某可取得陨石所有权"
-   },
-   "answer_key": {
-    "correct": "C",
-    "max_score": 1,
-    "explanation": "陨石为无主物，潘某先占取得所有权",
-    "legal_basis": "《民法典》关于先占的原则"
-   },
-   "expected_classification": "T1_single_choice",
-   "expected_scoring": {
-    "score": 1,
-    "is_correct": true
-   },
-   "failure_patterns_expected": []
-  },
-  {
-   "id": "BM-T2-001",
-   "type": "T2_multi_choice",
-   "stem": "作家韩某创作了一本小说《网络风云》，在网上发表后迅速走红，成为畅销作品。根据《著作权法》，下列哪些行为侵犯了著作权？①青山书店销售盗版书；②西河图书馆明知是盗版书仍购买供读者借阅；③佳佳超市出租盗版书；④个人李某购买盗版书用于个人阅读",
-   "answer_key": {
-    "correct": "ABC",
-    "max_score": 2,
-    "partial_credit": true,
-    "explanation": "A销售/B购买供借阅/C出租均侵权；D个人阅读不侵权",
-    "legal_basis": "《著作权法》第53条"
-   },
-   "expected_classification": "T2_multi_choice",
-   "expected_scoring": {
-    "score": 2,
-    "is_correct": true
-   },
-   "failure_patterns_expected": []
-  },
-  {
-   "id": "BM-T3-001",
-   "type": "T3_true_false",
-   "stem": "判断下列说法是否正确：根据《民法典》，可撤销的民事法律行为等同于无效民事法律行为。请说明理由。",
-   "answer_key": {
-    "correct": "错误",
-    "max_score": 1,
-    "required_reasoning": true,
-    "explanation": "重大误解属于可撤销民事法律行为（第147条），非无效",
-    "legal_basis": "《民法典》第147条"
-   },
-   "expected_classification": "T3_true_false",
-   "expected_scoring": {
-    "score": 1,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F11"
-   ]
-  },
-  {
-   "id": "BM-T4-001",
-   "type": "T4_term_definition",
-   "stem": "请解释什么是'正当防卫'。",
-   "answer_key": {
-    "core_keywords": [
-     "不法侵害",
-     "正在进行",
-     "国家利益",
-     "公共利益",
-     "本人",
-     "他人",
-     "人身",
-     "财产",
-     "制止",
-     "损害"
-    ],
-    "element_keywords": [
-     "防卫意图",
-     "防卫起因",
-     "防卫对象",
-     "防卫时间",
-     "防卫限度"
-    ],
-    "source_keywords": [
-     "刑法",
-     "第20条",
-     "不负刑事责任"
-    ],
-    "max_score": 5,
-    "model_answer": "正当防卫是指为了使国家、公共利益、本人或者他人的人身、财产和其他权利免受正在进行的不法侵害，而采取的制止不法侵害的行为，对不法侵害人造成损害的，不负刑事责任。（《刑法》第20条）"
-   },
-   "expected_classification": "T4_term_definition",
-   "expected_scoring": {
-    "min_score": 3,
-    "max_score": 5
-   },
-   "failure_patterns_expected": []
-  },
-  {
-   "id": "BM-T5-001",
-   "type": "T5_short_answer",
-   "stem": "简述合同无效的法定情形。",
-   "answer_key": {
-    "scoring_points": [
-     {
-      "point": "无民事行为能力人实施的民事法律行为无效",
-      "keywords": [
-       "无民事行为能力",
-       "实施",
-       "无效"
+  "benchmark_items": [
+    {
+      "id": "BM-T1-001",
+      "type": "T1_single_choice",
+      "stem": "甲食品公司生产的一种饮料所使用的'红牛'商标是国内知名品牌，其特有的金黄色包装和商标图案以及罐型大小已为众多消费者所知悉。乙食品公司注册以'红午'商标用于其生产的饮料上，其包装罐的形状、大小、颜色、字体与'红牛'相同。对乙食品公司的行为应认定为？",
+      "options": {
+        "A": "因所用的商标、经营者主体不同，所以不构成侵权",
+        "B": "甲、乙生产的是同类商品，而且外观设计、颜色、字体相同，足以引起消费者误认，因此，乙的行为构成不正当竞争",
+        "C": "甲的商标是合法注册的，乙的商标也是合法注册的，因此乙的行为不构成侵权",
+        "D": "乙的行为只是违反同业竞争道德，但是不违法"
+      },
+      "answer_key": {
+        "correct": "B",
+        "max_score": 1,
+        "explanation": "乙使用近似商标、包装足以引起消费者误认，构成不正当竞争",
+        "legal_basis": "《反不正当竞争法》第6条"
+      },
+      "expected_classification": "T1_single_choice",
+      "expected_scoring": {
+        "score": 1,
+        "is_correct": true
+      },
+      "failure_patterns_expected": []
+    },
+    {
+      "id": "BM-T1-002",
+      "type": "T1_single_choice",
+      "stem": "某地有陨石坠落，当地村民寻后卖给闻讯而来的收藏者，获利颇丰。潘某路过村民肖某家菜地时拾得一小块陨石，肖某知道后向潘某索要遭拒绝。关于该陨石所有权的归属，下列说法正确的是？",
+      "options": {
+        "A": "陨石所有权归国家所有",
+        "B": "潘某拾得陨石行为不应由民法调整",
+        "C": "潘某可取得陨石所有权",
+        "D": "肖某可取得陨石所有权"
+      },
+      "answer_key": {
+        "correct": "C",
+        "max_score": 1,
+        "explanation": "陨石为无主物，潘某先占取得所有权",
+        "legal_basis": "《民法典》关于先占的原则"
+      },
+      "expected_classification": "T1_single_choice",
+      "expected_scoring": {
+        "score": 1,
+        "is_correct": true
+      },
+      "failure_patterns_expected": []
+    },
+    {
+      "id": "BM-T2-001",
+      "type": "T2_multi_choice",
+      "stem": "作家韩某创作了一本小说《网络风云》，在网上发表后迅速走红，成为畅销作品。根据《著作权法》，下列哪些行为侵犯了著作权？①青山书店销售盗版书；②西河图书馆明知是盗版书仍购买供读者借阅；③佳佳超市出租盗版书；④个人李某购买盗版书用于个人阅读",
+      "answer_key": {
+        "correct": "ABC",
+        "max_score": 2,
+        "partial_credit": true,
+        "explanation": "A销售/B购买供借阅/C出租均侵权；D个人阅读不侵权",
+        "legal_basis": "《著作权法》第53条"
+      },
+      "expected_classification": "T2_multi_choice",
+      "expected_scoring": {
+        "score": 2,
+        "is_correct": true
+      },
+      "failure_patterns_expected": []
+    },
+    {
+      "id": "BM-T3-001",
+      "type": "T3_true_false",
+      "stem": "判断下列说法是否正确：根据《民法典》，可撤销的民事法律行为等同于无效民事法律行为。请说明理由。",
+      "answer_key": {
+        "correct": "错误",
+        "max_score": 1,
+        "required_reasoning": true,
+        "explanation": "重大误解属于可撤销民事法律行为（第147条），非无效",
+        "legal_basis": "《民法典》第147条"
+      },
+      "expected_classification": "T3_true_false",
+      "expected_scoring": {
+        "score": 1,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F11"
+      ]
+    },
+    {
+      "id": "BM-T4-001",
+      "type": "T4_term_definition",
+      "stem": "请解释什么是'正当防卫'。",
+      "answer_key": {
+        "core_keywords": [
+          "不法侵害",
+          "正在进行",
+          "国家利益",
+          "公共利益",
+          "本人",
+          "他人",
+          "人身",
+          "财产",
+          "制止",
+          "损害"
+        ],
+        "element_keywords": [
+          "防卫意图",
+          "防卫起因",
+          "防卫对象",
+          "防卫时间",
+          "防卫限度"
+        ],
+        "source_keywords": [
+          "刑法",
+          "第20条",
+          "不负刑事责任"
+        ],
+        "max_score": 5,
+        "model_answer": "正当防卫是指为了使国家、公共利益、本人或者他人的人身、财产和其他权利免受正在进行的不法侵害，而采取的制止不法侵害的行为，对不法侵害人造成损害的，不负刑事责任。（《刑法》第20条）"
+      },
+      "expected_classification": "T4_term_definition",
+      "expected_scoring": {
+        "min_score": 3,
+        "max_score": 5
+      },
+      "failure_patterns_expected": []
+    },
+    {
+      "id": "BM-T5-001",
+      "type": "T5_short_answer",
+      "stem": "简述合同无效的法定情形。",
+      "answer_key": {
+        "scoring_points": [
+          {
+            "point": "无民事行为能力人实施的民事法律行为无效",
+            "keywords": [
+              "无民事行为能力",
+              "实施",
+              "无效"
+            ],
+            "score_value": 2
+          },
+          {
+            "point": "以虚假意思表示实施的民事法律行为无效",
+            "keywords": [
+              "虚假意思表示",
+              "无效"
+            ],
+            "score_value": 2
+          },
+          {
+            "point": "违反法律、行政法规的强制性规定的民事法律行为无效",
+            "keywords": [
+              "违反",
+              "强制性规定",
+              "无效"
+            ],
+            "score_value": 2.5
+          },
+          {
+            "point": "违背公序良俗的民事法律行为无效",
+            "keywords": [
+              "违背",
+              "公序良俗",
+              "无效"
+            ],
+            "score_value": 2
+          },
+          {
+            "point": "恶意串通损害他人合法权益的民事法律行为无效",
+            "keywords": [
+              "恶意串通",
+              "损害",
+              "他人",
+              "无效"
+            ],
+            "score_value": 1.5
+          }
+        ],
+        "max_score": 10,
+        "legal_basis": "《民法典》第144条、第146条、第153条、第154条"
+      },
+      "expected_classification": "T5_short_answer",
+      "expected_scoring": {
+        "min_score": 6,
+        "max_score": 10
+      },
+      "failure_patterns_expected": [
+        "F12"
+      ]
+    },
+    {
+      "id": "BM-T8-001",
+      "type": "T8_case_analysis",
+      "stem": "张某与李某系邻居关系。2025年3月，李某在自家门口通道处堆放建筑石子，堆高近2米。张某多次要求李某移除石子堆，李某以'正在施工'为由拖延。2025年5月某日暴雨后，石子堆部分塌落。次日清晨，张某出门上班时踩到散落的石子滑倒，致右腿骨折，花医疗费3.2万元，误工45天。请分析李某的侵权责任。",
+      "expected_classification": "T8_case_analysis",
+      "expected_scoring": {
+        "min_score": 15,
+        "max_score": 25
+      },
+      "failure_patterns_expected": [
+        "F17"
       ],
-      "score_value": 2
-     },
-     {
-      "point": "以虚假意思表示实施的民事法律行为无效",
-      "keywords": [
-       "虚假意思表示",
-       "无效"
+      "key_legal_issues": [
+        "堆放物致害过错推定(1255条)",
+        "过失相抵(1173条)",
+        "一般过错责任(1165条)"
+      ]
+    },
+    {
+      "id": "BM-T2-002",
+      "type": "T2_multi_choice",
+      "stem": "甲与乙签订借款合同，约定利息为同期LPR的四倍。关于该约定，下列说法正确的有？",
+      "options": {
+        "A": "该约定有效，双方意思自治",
+        "B": "该约定无效，超过法定上限部分不受保护",
+        "C": "LPR基准的选择应以合同成立时的一年期LPR为准",
+        "D": "LPR基准的选择应以起诉时的一年期LPR为准"
+      },
+      "answer_key": {
+        "correct": [
+          "B",
+          "C"
+        ],
+        "max_score": 2,
+        "explanation": "借款利率不得超过LPR四倍，超过部分无效；LPR基准有争议，但DS实证使用起诉时LPR",
+        "legal_basis": "《民法典》第680条+民间借贷司法解释"
+      },
+      "expected_classification": "T2_multi_choice",
+      "expected_scoring": {
+        "score": 2,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F7",
+        "F11"
+      ]
+    },
+    {
+      "id": "BM-T6-001",
+      "type": "T6_essay",
+      "stem": "试论正当防卫与防卫过当的界限，并分析其对刑事司法实践的意义。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "正当防卫的成立要件",
+          "防卫过当的认定标准",
+          "特殊防卫的适用",
+          "司法实践意义"
+        ],
+        "max_score": 30,
+        "explanation": "论述题按五维加权评分（D2逻辑30%+D3深度25%+D1准确20%）"
+      },
+      "expected_classification": "T6_essay",
+      "expected_scoring": {
+        "score": 24,
+        "is_correct": true
+      }
+    },
+    {
+      "id": "BM-T6-002",
+      "type": "T6_essay",
+      "stem": "请论述我国民法典物权编中'物权法定原则'的内涵及其在现代社会面临的挑战。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "物权法定原则含义",
+          "类型强制",
+          "内容强制",
+          "现代挑战",
+          "缓和趋势"
+        ],
+        "max_score": 30,
+        "explanation": "论述题评分，要求包含物权法定原则的完整内涵与挑战分析"
+      },
+      "expected_classification": "T6_essay",
+      "expected_scoring": {
+        "score": 25,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F16"
+      ]
+    },
+    {
+      "id": "BM-T7-001",
+      "type": "T7_statutory_analysis",
+      "stem": "请分析《民法典》第1165条'行为人因过错侵害他人民事权益造成损害的，应当承担侵权责任'的规范结构。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "条文定位",
+          "构成要件",
+          "法律后果",
+          "适用范围",
+          "举证责任"
+        ],
+        "max_score": 20,
+        "explanation": "法条分析题按四维结构化评分"
+      },
+      "expected_classification": "T7_statutory_analysis",
+      "expected_scoring": {
+        "score": 16,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F15"
+      ]
+    },
+    {
+      "id": "BM-T7-002",
+      "type": "T7_statutory_analysis",
+      "stem": "请解析《刑法》第232条故意杀人罪的构成要件与法定刑配置，并结合'情节较轻'的司法认定展开。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "构成要件",
+          "法定刑配置",
+          "情节较轻认定",
+          "与故意伤害区分"
+        ],
+        "max_score": 20,
+        "explanation": "刑法条文分析，涉及F2罪名降维风险"
+      },
+      "expected_classification": "T7_statutory_analysis",
+      "expected_scoring": {
+        "score": 15,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F2",
+        "F15"
+      ]
+    },
+    {
+      "id": "BM-T4-002",
+      "type": "T4_term_definition",
+      "stem": "名词解释：不当得利",
+      "options": {},
+      "answer_key": {
+        "core_keywords": [
+          "没有合法根据",
+          "获得利益",
+          "致他人受损失"
+        ],
+        "element_keywords": [
+          "一方获益",
+          "他方受损",
+          "因果关系"
+        ],
+        "source_keywords": [
+          "《民法典》第985条"
+        ],
+        "max_score": 5,
+        "explanation": "名词解释三维关键词覆盖评分"
+      },
+      "expected_classification": "T4_term_definition",
+      "expected_scoring": {
+        "score": 4,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F13"
+      ]
+    },
+    {
+      "id": "BM-T5-002",
+      "type": "T5_short_answer",
+      "stem": "简述民事诉讼中'谁主张谁举证'原则的含义及其例外情形。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "举证责任分配原则",
+          "例外：举证责任倒置",
+          "共同举证责任",
+          "法官调查取证"
+        ],
+        "max_score": 10,
+        "explanation": "简答题采分点覆盖评分"
+      },
+      "expected_classification": "T5_short_answer",
+      "expected_scoring": {
+        "score": 8,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F12"
+      ]
+    },
+    {
+      "id": "BM-T3-002",
+      "type": "T3_true_false",
+      "stem": "判断题：无效民事法律行为自始无效，但其可以经追认而有效。",
+      "options": {},
+      "answer_key": {
+        "correct": "错误",
+        "max_score": 1,
+        "reason_required": true,
+        "explanation": "无效行为不可追认；可追认的是效力待定行为"
+      },
+      "expected_classification": "T3_true_false",
+      "expected_scoring": {
+        "score": 1,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F14"
+      ]
+    },
+    {
+      "id": "BM-T8-002",
+      "type": "T8_case_analysis",
+      "stem": "甲在夜间驾车时发现前方有人，但为赶时间未减速，将行人乙撞成重伤。事后查明乙当时横穿马路。请分析甲的刑事责任。",
+      "options": {},
+      "answer_key": {
+        "scoring_points": [
+          "交通肇事认定",
+          "过失犯罪分析",
+          "责任分担",
+          "量刑情节"
+        ],
+        "max_score": 25,
+        "explanation": "案例分析需三段论推理"
+      },
+      "expected_classification": "T8_case_analysis",
+      "expected_scoring": {
+        "score": 20,
+        "is_correct": true
+      },
+      "failure_patterns_expected": [
+        "F17",
+        "F18"
+      ]
+    }
+  ],
+  "regression_tests": [
+    {
+      "id": "REG-001",
+      "name": "T1+F1组合：选择题引用废止法律",
+      "input": "根据《民法通则》第X条，下列哪一选项正确？A. ... B. ... C. ... D. ...",
+      "expected_failures": [
+        "F1"
       ],
-      "score_value": 2
-     },
-     {
-      "point": "违反法律、行政法规的强制性规定的民事法律行为无效",
-      "keywords": [
-       "违反",
-       "强制性规定",
-       "无效"
+      "expected_type": "T1_single_choice",
+      "note": "验证题型识别不被F1陷阱干扰"
+    },
+    {
+      "id": "REG-002",
+      "name": "T8+F17组合：案例分析缺三段论",
+      "input": "【案情】甲在公共通道堆放石子，乙踩到滑倒骨折，花医疗费3.2万元，误工45天。【问题】分析侵权责任。【答案】甲应当赔偿。因为甲有过错。乙可以起诉甲要求赔偿全部损失。乙骨折与甲堆放石子有因果关系。所以综上所述甲应承担赔偿责任。总之乙的受伤与甲的行为有关联。因此法院应判甲赔偿。以上是关于此案的法律分析结论。故此甲需要赔偿乙的全部损失合计约4万元。最后总结：甲有责任。",
+      "expected_failures": [
+        "F17"
       ],
-      "score_value": 2.5
-     },
-     {
-      "point": "违背公序良俗的民事法律行为无效",
-      "keywords": [
-       "违背",
-       "公序良俗",
-       "无效"
+      "expected_type": "T8_case_analysis",
+      "note": "验证三段论缺失检测"
+    },
+    {
+      "id": "REG-003",
+      "name": "T3+F14组合：判断题只写对错不给理由",
+      "input": "判断：可撤销民事法律行为即无效民事法律行为。答案：错误",
+      "expected_failures": [
+        "F14",
+        "F11"
       ],
-      "score_value": 2
-     },
-     {
-      "point": "恶意串通损害他人合法权益的民事法律行为无效",
-      "keywords": [
-       "恶意串通",
-       "损害",
-       "他人",
-       "无效"
+      "expected_type": "T3_true_false",
+      "note": "验证裸判断检测和概念混淆检测"
+    },
+    {
+      "id": "REG-004",
+      "name": "全题型+全失效综合压力测试",
+      "input": "根据《民法通则》第X条，分析下列案例中张某的侵权责任，判断李某是否'应当'还是'可以'赔偿，并简述正当防卫的概念。A. 正确 B. 错误 C. 不确定 D. 以上都不对",
+      "expected_failures": [
+        "F1",
+        "F11"
       ],
-      "score_value": 1.5
-     }
-    ],
-    "max_score": 10,
-    "legal_basis": "《民法典》第144条、第146条、第153条、第154条"
-   },
-   "expected_classification": "T5_short_answer",
-   "expected_scoring": {
-    "min_score": 6,
-    "max_score": 10
-   },
-   "failure_patterns_expected": [
-    "F12"
-   ]
-  },
-  {
-   "id": "BM-T8-001",
-   "type": "T8_case_analysis",
-   "stem": "张某与李某系邻居关系。2025年3月，李某在自家门口通道处堆放建筑石子，堆高近2米。张某多次要求李某移除石子堆，李某以'正在施工'为由拖延。2025年5月某日暴雨后，石子堆部分塌落。次日清晨，张某出门上班时踩到散落的石子滑倒，致右腿骨折，花医疗费3.2万元，误工45天。请分析李某的侵权责任。",
-   "expected_classification": "T8_case_analysis",
-   "expected_scoring": {
-    "min_score": 15,
-    "max_score": 25
-   },
-   "failure_patterns_expected": [
-    "F17"
-   ],
-   "key_legal_issues": [
-    "堆放物致害过错推定(1255条)",
-    "过失相抵(1173条)",
-    "一般过错责任(1165条)"
-   ]
-  },
-  {
-   "id": "BM-T2-002",
-   "type": "T2_multi_choice",
-   "stem": "甲与乙签订借款合同，约定利息为同期LPR的四倍。关于该约定，下列说法正确的有？",
-   "options": {
-    "A": "该约定有效，双方意思自治",
-    "B": "该约定无效，超过法定上限部分不受保护",
-    "C": "LPR基准的选择应以合同成立时的一年期LPR为准",
-    "D": "LPR基准的选择应以起诉时的一年期LPR为准"
-   },
-   "answer_key": {
-    "correct": [
-     "B",
-     "C"
-    ],
-    "max_score": 2,
-    "explanation": "借款利率不得超过LPR四倍，超过部分无效；LPR基准有争议，但DS实证使用起诉时LPR",
-    "legal_basis": "《民法典》第680条+民间借贷司法解释"
-   },
-   "expected_classification": "T2_multi_choice",
-   "expected_scoring": {
-    "score": 2,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F7",
-    "F11"
-   ]
-  },
-  {
-   "id": "BM-T6-001",
-   "type": "T6_essay",
-   "stem": "试论正当防卫与防卫过当的界限，并分析其对刑事司法实践的意义。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "正当防卫的成立要件",
-     "防卫过当的认定标准",
-     "特殊防卫的适用",
-     "司法实践意义"
-    ],
-    "max_score": 30,
-    "explanation": "论述题按五维加权评分（D2逻辑30%+D3深度25%+D1准确20%）"
-   },
-   "expected_classification": "T6_essay",
-   "expected_scoring": {
-    "score": 24,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F17"
-   ]
-  },
-  {
-   "id": "BM-T6-002",
-   "type": "T6_essay",
-   "stem": "请论述我国民法典物权编中'物权法定原则'的内涵及其在现代社会面临的挑战。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "物权法定原则含义",
-     "类型强制",
-     "内容强制",
-     "现代挑战",
-     "缓和趋势"
-    ],
-    "max_score": 30,
-    "explanation": "论述题评分，要求包含物权法定原则的完整内涵与挑战分析"
-   },
-   "expected_classification": "T6_essay",
-   "expected_scoring": {
-    "score": 25,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F16"
-   ]
-  },
-  {
-   "id": "BM-T7-001",
-   "type": "T7_statutory_analysis",
-   "stem": "请分析《民法典》第1165条'行为人因过错侵害他人民事权益造成损害的，应当承担侵权责任'的规范结构。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "条文定位",
-     "构成要件",
-     "法律后果",
-     "适用范围",
-     "举证责任"
-    ],
-    "max_score": 20,
-    "explanation": "法条分析题按四维结构化评分"
-   },
-   "expected_classification": "T7_statutory_analysis",
-   "expected_scoring": {
-    "score": 16,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F15"
-   ]
-  },
-  {
-   "id": "BM-T7-002",
-   "type": "T7_statutory_analysis",
-   "stem": "请解析《刑法》第232条故意杀人罪的构成要件与法定刑配置，并结合'情节较轻'的司法认定展开。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "构成要件",
-     "法定刑配置",
-     "情节较轻认定",
-     "与故意伤害区分"
-    ],
-    "max_score": 20,
-    "explanation": "刑法条文分析，涉及F2罪名降维风险"
-   },
-   "expected_classification": "T7_statutory_analysis",
-   "expected_scoring": {
-    "score": 15,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F2",
-    "F15"
-   ]
-  },
-  {
-   "id": "BM-T4-002",
-   "type": "T4_term_definition",
-   "stem": "名词解释：不当得利",
-   "options": {},
-   "answer_key": {
-    "core_keywords": [
-     "没有合法根据",
-     "获得利益",
-     "致他人受损失"
-    ],
-    "element_keywords": [
-     "一方获益",
-     "他方受损",
-     "因果关系"
-    ],
-    "source_keywords": [
-     "《民法典》第985条"
-    ],
-    "max_score": 5,
-    "explanation": "名词解释三维关键词覆盖评分"
-   },
-   "expected_classification": "T4_term_definition",
-   "expected_scoring": {
-    "score": 4,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F13"
-   ]
-  },
-  {
-   "id": "BM-T5-002",
-   "type": "T5_short_answer",
-   "stem": "简述民事诉讼中'谁主张谁举证'原则的含义及其例外情形。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "举证责任分配原则",
-     "例外：举证责任倒置",
-     "共同举证责任",
-     "法官调查取证"
-    ],
-    "max_score": 10,
-    "explanation": "简答题采分点覆盖评分"
-   },
-   "expected_classification": "T5_short_answer",
-   "expected_scoring": {
-    "score": 8,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F12"
-   ]
-  },
-  {
-   "id": "BM-T3-002",
-   "type": "T3_true_false",
-   "stem": "判断题：无效民事法律行为自始无效，但其可以经追认而有效。",
-   "options": {},
-   "answer_key": {
-    "correct": "错误",
-    "max_score": 1,
-    "reason_required": true,
-    "explanation": "无效行为不可追认；可追认的是效力待定行为"
-   },
-   "expected_classification": "T3_true_false",
-   "expected_scoring": {
-    "score": 1,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F14"
-   ]
-  },
-  {
-   "id": "BM-T8-002",
-   "type": "T8_case_analysis",
-   "stem": "甲在夜间驾车时发现前方有人，但为赶时间未减速，将行人乙撞成重伤。事后查明乙当时横穿马路。请分析甲的刑事责任。",
-   "options": {},
-   "answer_key": {
-    "scoring_points": [
-     "交通肇事认定",
-     "过失犯罪分析",
-     "责任分担",
-     "量刑情节"
-    ],
-    "max_score": 25,
-    "explanation": "案例分析需三段论推理"
-   },
-   "expected_classification": "T8_case_analysis",
-   "expected_scoring": {
-    "score": 20,
-    "is_correct": true
-   },
-   "failure_patterns_expected": [
-    "F17",
-    "F18"
-   ]
-  }
- ],
- "regression_tests": [
-  {
-   "id": "REG-001",
-   "name": "T1+F1组合：选择题引用废止法律",
-   "input": "根据《民法通则》第X条，下列哪一选项正确？A. ... B. ... C. ... D. ...",
-   "expected_failures": [
-    "F1"
-   ],
-   "expected_type": "T1_single_choice",
-   "note": "验证题型识别不被F1陷阱干扰"
-  },
-  {
-   "id": "REG-002",
-   "name": "T8+F17组合：案例分析缺三段论",
-   "input": "【案情】甲在公共通道堆放石子，乙踩到滑倒骨折，花医疗费3.2万元，误工45天。【问题】分析侵权责任。【答案】甲应当赔偿。因为甲有过错。乙可以起诉甲要求赔偿全部损失。乙骨折与甲堆放石子有因果关系。所以综上所述甲应承担赔偿责任。总之乙的受伤与甲的行为有关联。因此法院应判甲赔偿。以上是关于此案的法律分析结论。故此甲需要赔偿乙的全部损失合计约4万元。最后总结：甲有责任。",
-   "expected_failures": [
-    "F17"
-   ],
-   "expected_type": "T8_case_analysis",
-   "note": "验证三段论缺失检测"
-  },
-  {
-   "id": "REG-003",
-   "name": "T3+F14组合：判断题只写对错不给理由",
-   "input": "判断：可撤销民事法律行为即无效民事法律行为。答案：错误",
-   "expected_failures": [
-    "F14",
-    "F11"
-   ],
-   "expected_type": "T3_true_false",
-   "note": "验证裸判断检测和概念混淆检测"
-  },
-  {
-   "id": "REG-004",
-   "name": "全题型+全失效综合压力测试",
-   "input": "根据《民法通则》第X条，分析下列案例中张某的侵权责任，判断李某是否'应当'还是'可以'赔偿，并简述正当防卫的概念。A. 正确 B. 错误 C. 不确定 D. 以上都不对",
-   "expected_failures": [
-    "F1",
-    "F11"
-   ],
-   "expected_type": "T1_single_choice",
-   "note": "混合题型文本应仍能识别主导题型"
-  },
-  {
-   "id": "REG-005",
-   "name": "F24教学大纲合规偏离检测",
-   "input": "本教学大纲覆盖民法、刑法、宪法基础内容，包括犯罪构成、民事法律行为、合同制度、侵权责任、刑罚制度。",
-   "expected_failures": [
-    "F24"
-   ],
-   "expected_type": "ALL",
-   "note": "验证教学大纲未覆盖核心知识点时触发F24"
-  },
-  {
-   "id": "REG-006",
-   "name": "F22跨题一致性检测",
-   "input": "单选题判断该合同有效，简答题却写道'该合同因重大误解自始无效'。",
-   "expected_failures": [
-    "F22"
-   ],
-   "expected_type": "ALL",
-   "note": "验证同一概念在不同题型中的矛盾表述检测"
-  },
-  {
-   "id": "REG-007",
-   "name": "F19试题歧义检测",
-   "input": "下列关于民事法律行为可以撤销的情形，下列哪些说法正确？请酌情选择，或根据实际情况判断。",
-   "expected_failures": [
-    "F19"
-   ],
-   "expected_type": "T2_multi_choice",
-   "note": "验证题目歧义信号检测"
-  },
-  {
-   "id": "REG-008",
-   "name": "F21答案格式违规检测",
-   "input": "论述正当防卫制度的价值：1.维护个人权利 2.制止不法侵害 3.体现公正。",
-   "expected_failures": [
-    "F21"
-   ],
-   "expected_type": "T6_essay",
-   "note": "验证论述题纯要点式作答的格式违规检测"
-  },
-  {
-   "id": "REG-009",
-   "name": "F20评分尺度偏移检测",
-   "input": "本次阅卷中，部分教师评分明显偏高，可能存在手松现象。评分标准包括优秀、良好、中等、及格。",
-   "expected_failures": [
-    "F20"
-   ],
-   "expected_type": "ALL",
-   "note": "验证评分尺度偏移信号检测"
-  },
-  {
-   "id": "REG-010",
-   "name": "F23采分点粒度检测",
-   "input": "本简答题答案键设置采分点2个，请评估其评分区分度。",
-   "expected_failures": [
-    "F23"
-   ],
-   "expected_type": "T5_short_answer",
-   "note": "验证采分点过少触发F23"
-  }
- ]
+      "expected_type": "T1_single_choice",
+      "note": "混合题型文本应仍能识别主导题型"
+    },
+    {
+      "id": "REG-005",
+      "name": "F24教学大纲合规偏离检测",
+      "input": "本教学大纲覆盖民法、刑法、宪法基础内容，包括犯罪构成、民事法律行为、合同制度、侵权责任、刑罚制度。",
+      "expected_failures": [
+        "F24"
+      ],
+      "expected_type": "ALL",
+      "note": "验证教学大纲未覆盖核心知识点时触发F24"
+    },
+    {
+      "id": "REG-006",
+      "name": "F22跨题一致性检测",
+      "input": "单选题判断该合同有效，简答题却写道'该合同因重大误解自始无效'。",
+      "expected_failures": [
+        "F22"
+      ],
+      "expected_type": "ALL",
+      "note": "验证同一概念在不同题型中的矛盾表述检测"
+    },
+    {
+      "id": "REG-007",
+      "name": "F19试题歧义检测",
+      "input": "下列关于民事法律行为可以撤销的情形，下列哪些说法正确？请酌情选择，或根据实际情况判断。",
+      "expected_failures": [
+        "F19"
+      ],
+      "expected_type": "T2_multi_choice",
+      "note": "验证题目歧义信号检测"
+    },
+    {
+      "id": "REG-008",
+      "name": "F21答案格式违规检测",
+      "input": "论述正当防卫制度的价值：1.维护个人权利 2.制止不法侵害 3.体现公正。",
+      "expected_failures": [
+        "F21"
+      ],
+      "expected_type": "T6_essay",
+      "note": "验证论述题纯要点式作答的格式违规检测"
+    },
+    {
+      "id": "REG-009",
+      "name": "F20评分尺度偏移检测",
+      "input": "本次阅卷中，部分教师评分明显偏高，可能存在手松现象。评分标准包括优秀、良好、中等、及格。",
+      "expected_failures": [
+        "F20"
+      ],
+      "expected_type": "ALL",
+      "note": "验证评分尺度偏移信号检测"
+    },
+    {
+      "id": "REG-010",
+      "name": "F23采分点粒度检测",
+      "input": "本简答题答案键设置采分点2个，请评估其评分区分度。",
+      "expected_failures": [
+        "F23"
+      ],
+      "expected_type": "T5_short_answer",
+      "note": "验证采分点过少触发F23"
+    }
+  ]
 }

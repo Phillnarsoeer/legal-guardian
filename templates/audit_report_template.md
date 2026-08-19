@@ -1,6 +1,6 @@
 # AI法律回答审核报告
 
-> 审核工具：LegalGuardian v4.2.1
+> 审核工具：LegalGuardian v4.3.0
 > 审核时间：{audit_date}
 > 实证基线：西南民族大学法学院14案例×2轮×4维测评（2026年5月）
 
@@ -90,4 +90,4 @@
 
 ---
 
-*报告生成于 {report_generated_at} | LegalGuardian v4.2.1 | 基于西南民族大学法学院大创项目实证数据*
+*报告生成于 {report_generated_at} | LegalGuardian v4.3.0 | 基于西南民族大学法学院大创项目实证数据*

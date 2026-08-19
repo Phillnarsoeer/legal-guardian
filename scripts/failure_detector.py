@@ -40,17 +40,39 @@ def extract_context(text, keyword, ctx=80):
 
 
 def detect_f1(text, pat):
+    """F1 法条幻视：接受虚构/废止法律为真实。
+
+    v4.3.0 修复（评审缺陷#1）：嫌疑法条命中时先做"纠正文语境豁免"——
+    若命中点邻近出现 已废止/已被取代/正式取代/不再具有法律效力 等纠正信号，
+    说明 AI 已主动纠正，不视为违规（避免干净回答被误判 critical）。
+    """
     kw = pat['detection_keywords']
     suspects = kw['suspect_laws']
     indicators = kw['suspect_indicators']
+    validity_signals = kw.get('validity_signals', [])
+    # 额外的中文纠正信号（validity_signals 之外的常见表达）
+    extra_correction = ['正式取代', '不再具有法律效力', '已失去法律效力', '已被废除', '已不适用']
+    correction_signals = tuple(validity_signals) + tuple(extra_correction)
+    # 虚构法条的"证伪信号"：AI 指出该法不存在
+    refute_signals = ['不存在', '并非真实', '无此法律', '未检索到', '没有这部法律', '虚构']
     dets = []
+
+    def _is_corrected(name, refute=False):
+        idx = text.find(name)
+        if idx == -1:
+            return False
+        s = max(0, idx - 40)
+        e = min(len(text), idx + len(name) + 80)
+        window = text[s:e]
+        return any(sig in window for sig in (refute_signals if refute else correction_signals))
+
     for law in suspects:
-        if law in text:
+        if law in text and not _is_corrected(law):
             dets.append({'type': 'repealed_law', 'law_name': law,
                          'evidence_text': extract_context(text, law),
                          'recommendation': law + ' was replaced by Civil Code on 2021-01-01'})
     for ind in indicators:
-        if ind in text:
+        if ind in text and not _is_corrected(ind, refute=True):
             dets.append({'type': 'possible_fictional', 'law_name': ind,
                          'evidence_text': extract_context(text, ind),
                          'recommendation': 'Verify if ' + ind + ' actually exists'})
@@ -58,7 +80,7 @@ def detect_f1(text, pat):
     cites = cp.findall(text)
     for c in cites:
         if c not in suspects and c not in indicators:
-            has_v = any(v in text for v in kw['validity_signals'])
+            has_v = any(v in text for v in validity_signals)
             if not has_v and c not in [d.get('law_name', '') for d in dets]:
                 dets.append({'type': 'missing_validity', 'law_name': c,
                              'recommendation': 'Mark effective date when citing ' + c})
@@ -67,14 +89,20 @@ def detect_f1(text, pat):
 
 
 def detect_f2(text, pat):
+    """F2 罪名定性降维：AI 倾向轻罪定性，回避争议性定性。
+
+    v4.3.0 修复（评审缺陷#3）：rel 比对键由英文改为中文罪名，
+    此前因中英键名不匹配该模式永不触发（死代码）。
+    """
     kw = pat['detection_keywords']
     charges = kw['charge_indicators']
     found = [c for c in charges if c in text]
-    has_alt = any(p in text for p in ['alternative', 'also', 'might constitute', 'prosecution perspective', 'defense perspective'])
+    has_alt = any(p in text for p in ['alternative', 'also', 'might constitute', 'prosecution perspective', 'defense perspective',
+                                      '另一种', '也可能', '控方', '辩方', '替代罪名', '争议'])
     dets = []
     if len(found) == 1 and not has_alt:
-        rel = {'intentional injury': 'attempted murder', 'affray': 'intentional injury',
-               'snatch': 'robbery', 'theft': 'robbery'}
+        rel = {'故意伤害': '故意杀人', '聚众斗殴': '故意伤害',
+               '抢夺': '抢劫', '盗窃': '抢劫'}
         sc = found[0]
         if sc in rel:
             dets.append({'type': 'single_charge', 'found_charge': sc,
@@ -131,14 +159,24 @@ def detect_f5(text, pat):
 
 
 def detect_f6(text, pat):
+    """F6 引导性赤字：缺实务操作指导。
+
+    v4.3.0 修复：要素关键词由纯英文扩展为 中英双语，
+    此前中文回答几乎无法命中任何要素，长文本一律误报。
+    """
     kw = pat['detection_keywords']
     missing = kw['missing_guidance_elements']
     elem_pats = {
-        'evidence list': ['evidence', 'collect', 'proof', 'evidence list', 'prepare', 'notarize'],
-        'procedure steps': ['step', 'procedure', 'process', 'first', 'then', 'action'],
-        'timeline': ['limitation', 'deadline', 'timeline', 'days', 'within', 'from the date'],
-        'risk warning': ['risk', 'caution', 'warning', 'disclaimer', 'does not constitute', 'for reference only'],
-        'alternatives': ['negotiate', 'mediation', 'arbitration', 'alternative', 'settlement']
+        'evidence list': ['evidence', 'collect', 'proof', 'evidence list', 'prepare', 'notarize',
+                          '证据', '举证', '收集', '公证', '借条', '合同', '转账记录', '证人'],
+        'procedure steps': ['step', 'procedure', 'process', 'first', 'then', 'action',
+                            '步骤', '程序', '流程', '起诉', '立案', '开庭', '申请', '时效'],
+        'timeline': ['limitation', 'deadline', 'timeline', 'days', 'within', 'from the date',
+                     '期限', '时间', '日期', '天数', '三年'],
+        'risk warning': ['risk', 'caution', 'warning', 'disclaimer', 'does not constitute', 'for reference only',
+                         '风险', '警示', '仅供参考', '不构成法律意见', '注意', '谨慎'],
+        'alternatives': ['negotiate', 'mediation', 'arbitration', 'alternative', 'settlement',
+                         '协商', '调解', '仲裁', '和解', '替代方案', '向法院起诉']
     }
     found = [e for e, pats in elem_pats.items() if any(p in text for p in pats)]
     dets = []
@@ -197,13 +235,20 @@ def detect_f9(text, pat):
 
 
 def detect_f10(text, pat):
+    """F10 用户差异化风险盲区：不区分法学生/非专业人士输出。
+
+    v4.3.0 修复（评审缺陷#S3-误报）：逻辑由"无用户上下文即报"翻转为
+    "已声明用户类型却未差异化输出才报"，避免对普通问答一律误伤。
+    """
     kw = pat['detection_keywords']
     user_inds = kw['user_type_indicators']
     has_user_ctx = any(ind in text for ind in user_inds)
-    has_diff = any(p in text for p in ['as a law student', 'as a lawyer', 'for non-professionals', 'if you are', 'for general readers'])
+    has_diff = any(p in text for p in ['as a law student', 'as a lawyer', 'for non-professionals', 'if you are', 'for general readers',
+                                       '针对法学生', '面向非专业人士', '通俗解释', '风险提示', '建议咨询律师', '不同用户'])
     dets = []
-    if not has_user_ctx and not has_diff and len(text) > 300:
-        dets.append({'type': 'no_user_differentiation', 'recommendation': 'Differentiate output by user background: law students get deep analysis; non-professionals get plain language + prominent risk warnings + lawyer referral'})
+    if has_user_ctx and not has_diff:
+        dets.append({'type': 'no_user_differentiation', 'user_type_declared': [u for u in user_inds if u in text],
+                     'recommendation': 'Differentiate output by user background: law students get deep analysis; non-professionals get plain language + prominent risk warnings + lawyer referral'})
     return {'fired': len(dets) > 0, 'probability': 0.7 if dets else 0.2,
             'severity': 'critical', 'detections': dets if dets else None}
 
@@ -213,36 +258,58 @@ def detect_f10(text, pat):
 # =============================================================================
 
 def detect_f11(text, pat):
-    """F11: 选项混淆偏误 — 选择题中将相似法律概念混淆"""
+    """F11: 选项混淆偏误 — 选择题中将相似法律概念混淆。
+
+    v4.3.0 修复：v2 正则对（"可撤销.*无效"）与 v1 默认对合并解析；
+    "应当/可以"等可合法共存的词对需附带混淆标记（等同/还是/或者等）才触发，
+    避免对正常法律表述误报。
+    """
     default_pairs = [
-        (['可撤销', '无效'], '可撤销≠无效。可撤销行为在被撤销前有效；无效行为自始无效。'),
-        (['效力待定', '无效'], '效力待定≠无效。效力待定经追认可有效；无效不可追认。'),
-        (['解除', '撤销'], '解除≠撤销。解除面向将来；撤销溯及既往。'),
-        (['终止', '中止'], '终止=永久结束；中止=暂时停止。'),
-        (['应当', '可以'], '应当=强制性义务；可以=授权性权利。'),
-        (['从轻', '减轻'], '从轻=在法定刑幅度内偏轻；减轻=突破法定刑下限。'),
+        ('可撤销', '无效', False, False),
+        ('效力待定', '无效', False, False),
+        ('解除', '撤销', False, False),
+        ('终止', '中止', False, False),
+        ('应当', '可以', True, True),
+        ('从轻', '减轻', True, True),
     ]
+    # 混淆标记词：出现时说明作者在概念间做取舍/等价判断，混淆风险高
+    confusion_markers = ['等同', '等于', '等同于', '就是', '意味着', '还是', '或者', '应理解为']
     kw = pat.get('detection_keywords', {})
     raw_pairs = kw.get('confusion_pairs', default_pairs)
-    # patterns_v2 中 confusion_pairs 为 "可撤销.*无效" 正则字符串格式，统一转成 [(term1, term2), explanation]
+    # 解析：v2 正则串 "可撤销.*无效" → (term1, term2, ordered=True, need_marker=False)
     confusion_pairs = []
     if isinstance(raw_pairs, list):
         for item in raw_pairs:
             if isinstance(item, str):
-                terms = re.split(r'\s*[.．]\*\s*|\s*[、,，]\s*', item)
-                if len(terms) >= 2:
-                    confusion_pairs.append(([terms[0].strip(), terms[1].strip()], ''))
+                if '.*' in item:
+                    parts = [x.strip() for x in item.split('.*') if x.strip()]
+                    if len(parts) >= 2:
+                        confusion_pairs.append((parts[0], parts[-1], True, False))
+                else:
+                    terms = re.split(r'\s*[、,，]\s*', item)
+                    if len(terms) >= 2:
+                        confusion_pairs.append((terms[0].strip(), terms[1].strip(), False, False))
             elif isinstance(item, (list, tuple)) and len(item) >= 2:
                 if isinstance(item[0], (list, tuple)):
-                    confusion_pairs.append((list(item[0]), item[1] if len(item) > 1 else ''))
+                    confusion_pairs.append((item[0][0], item[0][1] if len(item[0]) > 1 else '', False, False))
                 elif all(isinstance(x, str) for x in item):
-                    confusion_pairs.append(([item[0], item[1]], ''))
-    if not confusion_pairs:
-        confusion_pairs = default_pairs
+                    confusion_pairs.append((item[0], item[1], False, False))
+    # 合并 v1 默认对（去重：词对已存在则跳过）
+    existing = {(p[0], p[1]) for p in confusion_pairs}
+    for t1, t2, ordered, marker in default_pairs:
+        if (t1, t2) not in existing:
+            confusion_pairs.append((t1, t2, ordered, marker))
     dets = []
-    for (term1, term2), explanation in confusion_pairs:
-        # 检测两个混淆词同时出现且未明确区分
+    for term1, term2, ordered, need_marker in confusion_pairs:
+        # 检测两个混淆词出现且未明确区分（正则对要求按先后顺序出现）
         if term1 in text and term2 in text:
+            if ordered:
+                i1 = text.find(term1)
+                i2 = text.find(term2)
+                if i1 > i2:
+                    continue
+            if need_marker and not any(m in text for m in confusion_markers):
+                continue
             # 检查是否有区分性表述
             has_clarification = any(w in text for w in ['不同于', '区别于', '不等于', '不是', '≠', '区分'])
             if not has_clarification:
@@ -250,16 +317,22 @@ def detect_f11(text, pat):
                     'type': 'concept_confusion',
                     'term1': term1,
                     'term2': term2,
-                    'recommendation': explanation or f'注意区分「{term1}」与「{term2}」的实质差异。'
+                    'recommendation': f'注意区分「{term1}」与「{term2}」的实质差异。'
                 })
     return {'fired': len(dets) > 0, 'probability': min(len(dets) * 0.35, 1.0),
             'severity': 'high', 'detections': dets if dets else None}
 
 
 def detect_f12(text, pat):
-    """F12: 采分点遗漏 — 简答题遗漏关键采分点"""
-    # 此检测需要答案键配合，独立检测只能标记潜在遗漏
+    """F12: 采分点遗漏 — 简答题遗漏关键采分点。
+
+    v4.3.0 修复：增加简答题语境门控，避免对非简答文本一律误报。
+    """
     kw = pat.get('detection_keywords', {})
+    # 简答题语境门控（本模式目标题型 T5）
+    short_answer_context = ['简答', '简述', '采分点', '要点', '答案']
+    if not any(s in text for s in short_answer_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'high', 'detections': None}
     omission_signals = kw.get('omission_signals', ['此外', '另外', '还有', '不仅如此', '值得注意的是'])
     has_omission_marker = any(s in text for s in omission_signals)
     dets = []
@@ -279,8 +352,16 @@ def detect_f12(text, pat):
 
 
 def detect_f13(text, pat):
-    """F13: 定义要素缺失 — 名词解释缺少核心要素"""
+    """F13: 定义要素缺失 — 名词解释缺少核心要素。
+
+    v4.3.0 修复：增加名词解释语境门控（目标题型 T4），
+    避免对任何未含定义要素词的文本一律误报。
+    """
     kw = pat.get('detection_keywords', {})
+    # 名词解释语境门控
+    definition_context = ['名词解释', '是指', '指的是', '定义', '概念', '释义', '含义']
+    if not any(s in text for s in definition_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'medium_high', 'detections': None}
     required_elements = kw.get('required_elements',
                                ['主体', '客体', '内容', '目的', '构成要件', '法律特征', '适用范围',
                                 '是指', '指的是', '即', '又称'])
@@ -338,8 +419,17 @@ def detect_f14(text, pat):
 
 
 def detect_f15(text, pat):
-    """F15: 法条解构不完整 — 缺少构成要件→法律后果映射"""
+    """F15: 法条解构不完整 — 缺少构成要件→法律后果映射。
+
+    v4.3.0 修复：增加法条分析语境门控（目标题型 T7），
+    避免对普通法律问答（仅引用法条）一律误报。
+    """
     kw = pat.get('detection_keywords', {})
+    # 法条分析语境门控
+    analysis_context = ['法条分析', '条文', '规范结构', '构成要件', '法律后果',
+                        '本法条', '该条', '请分析《', '请解析《', '解析《', '分析《', '规范解构']
+    if not any(s in text for s in analysis_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'high', 'detections': None}
     structure_signals = kw.get('required_structure', ['构成要件', '法律后果', '适用范围', '规范结构', '立法目的'])
     law_refs = re.findall(r'《([^》]+)》', text)
     has_structure = any(w in text for w in structure_signals)
@@ -372,15 +462,28 @@ def detect_f16(text, pat):
 
 
 def detect_f17(text, pat):
-    """F17: 三段论结构缺失 — 案例分析缺少三段论推理"""
+    """F17: 三段论结构缺失 — 案例分析缺少三段论推理。
+
+    v4.3.0 修复（评审缺陷#2）：
+    1) 显式标记豁免：出现"大前提/小前提/结论"字面标记视为结构完整；
+    2) 语境门控：本模式目标题型为 T8 案例分析，非案例分析文本不触发。
+    """
     kw = pat.get('detection_keywords', {})
     syll_elem = kw.get('syllogism_elements', {})
     major_words = syll_elem.get('major_premise', ['根据《', '依据《', '法律规定', '按照《', '法条规定'])
     minor_words = syll_elem.get('minor_premise', ['本案中', '本案', '案情', '事实', '证据显示', '本案的'])
-    conclusion_words = syll_elem.get('conclusion', ['因此', '综上所述', '综上', '故', '应认定', '所以'])
-    major = any(w in text for w in major_words)
-    minor = any(w in text for w in minor_words)
-    conclusion = any(w in text for w in conclusion_words)
+    conclusion_words = syll_elem.get('conclusion', ['因此', '综上所述', '综上', '故', '应认定', '所以', '结论'])
+    # 案例分析语境门控（目标题型 T8）
+    case_analysis_context = ['案例分析', '案情', '本案中', '案件事实', '案例分析题', '法院认为',
+                             '判决', '请分析', '分析侵权责任', '刑事责任', '侵权责任']
+    if not any(s in text for s in case_analysis_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'high', 'detections': None,
+                'syllogism_completeness': 'N/A'}
+    # 显式三段论标记豁免
+    explicit_markers = all(w in text for w in ['大前提', '小前提', '结论'])
+    major = any(w in text for w in major_words) or explicit_markers
+    minor = any(w in text for w in minor_words) or explicit_markers
+    conclusion = any(w in text for w in conclusion_words) or explicit_markers
     syllogism = sum([major, minor, conclusion])
     dets = []
     if syllogism < 3 and len(text) > 100:
@@ -454,14 +557,19 @@ def detect_f20(text, pat):
 
 
 def detect_f21(text, pat):
-    """F21: 答案格式违规 — 答案格式不符合题目要求"""
+    """F21: 答案格式违规 — 答案格式不符合题目要求。
+
+    v4.3.0 修复：论述语境门控（论述/论文类文本 + 要点列表 ≥3 项才触发），
+    替代原先的固定长度阈值，短文本要点式作答也能命中。
+    """
     kw = pat['detection_keywords']
     format_signals = kw.get('format_violation_signals', [])
     # 论述题要求段落式论证，若通篇使用要点列表则触发
     has_format_signals = sum(1 for s in format_signals if s in text)
-    has_essay_prose = any(p in text for p in ['综上所述', '首先', '其次', '最后', '论证', '分析如下'])
+    has_essay_prose = any(p in text for p in ['综上所述', '首先', '其次', '最后', '论证', '分析如下', '段落', '一方面', '另一方面'])
+    essay_context = any(w in text for w in ['论述', '作文', '小论文', '论文', '评述', '阐述'])
     dets = []
-    if has_format_signals >= 3 and not has_essay_prose and len(text) > 150:
+    if has_format_signals >= 3 and not has_essay_prose and (essay_context or len(text) > 150):
         dets.append({
             'type': 'format_violation',
             'format_marker_count': has_format_signals,
@@ -472,11 +580,22 @@ def detect_f21(text, pat):
 
 
 def detect_f22(text, pat):
-    """F22: 跨题一致性破裂 — 同一概念在不同题目中矛盾"""
+    """F22: 跨题一致性破裂 — 同一概念在不同题目中矛盾。
+
+    v4.3.0 修复：本模式需多题联合输入。单文本仅作基础信号，
+    增加矛盾转折词门控（"却/但/矛盾/不一致"等），并移除
+    "应当+可以"伪矛盾对（两者在法言法语中可合法共存）。
+    """
     kw = pat['detection_keywords']
     contradiction_signals = kw.get('contradiction_signals', [])
+    # 矛盾转折词门控：无转折/否定词时，对立概念共存属正常表述
+    conflict_words = ['矛盾', '冲突', '不一致', '前后不一', '却又', '却写道', '但写道',
+                      '但后面', '又说', '相反', '却称', '却答']
+    if not any(w in text for w in conflict_words):
+        return {'fired': False, 'probability': 0.1, 'severity': 'high', 'detections': None,
+                'cross_question_analysis': False}
     # 检测同一文本中对立概念共存（需要多题联合输入，此处做基础检测）
-    opposing_pairs = [('有效', '无效'), ('可撤销', '自始无效'), ('应当', '可以'),
+    opposing_pairs = [('有效', '无效'), ('可撤销', '自始无效'),
                       ('有罪', '无罪'), ('合法', '违法')]
     dets = []
     for (a, b) in opposing_pairs:
@@ -493,8 +612,16 @@ def detect_f22(text, pat):
 
 
 def detect_f23(text, pat):
-    """F23: 采分点粒度失当 — 答案键采分点过粗或过细"""
+    """F23: 采分点粒度失当 — 答案键采分点过粗或过细。
+
+    v4.3.0 修复：增加答案键/采分点语境门控，
+    避免普通文本中的编号列表（如小数 "3.2"）被误计为采分点。
+    """
     kw = pat['detection_keywords']
+    # 答案键语境门控（本模式评估对象为答案键/评分标准）
+    answer_key_context = ['答案键', '采分点', '评分点', '评分标准', '参考答案']
+    if not any(s in text for s in answer_key_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'medium_high', 'detections': None}
     # 检测采分点数量（以"采分点""评分点"后的数字或列表项数量判断）
     point_refs = re.findall(r'[分点采分点评分点].{0,5}?(\d{1,2})', text)
     bullet_count = len(re.findall(r'(?:1[\.、）]|2[\.、）]|3[\.、）]|4[\.、）]|5[\.、）]|6[\.、）]|7[\.、）]|8[\.、）]|9[\.、）]|10[\.、）])', text))
@@ -516,21 +643,65 @@ def detect_f23(text, pat):
             'severity': 'medium_high', 'detections': dets if dets else None}
 
 
+def _load_curriculum_knowledge_points():
+    """加载教育部课程标准知识点（reference/curriculum_requirements.json，18项）。
+
+    v4.3.0 修复（评审缺陷#7）：F24 数据源由硬编码 8 项改为
+    curriculum_requirements.json 的 18 项核心知识点（含各知识点关键词）。
+    """
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(script_dir, '..', 'reference', 'curriculum_requirements.json')
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        kps = data.get('knowledge_points', [])
+        if kps:
+            return [
+                {'name': kp.get('name', ''), 'keywords': kp.get('keywords', [])}
+                for kp in kps if kp.get('name')
+            ]
+    except Exception:
+        pass
+    return []
+
+
 def detect_f24(text, pat):
-    """F24: 教学大纲合规偏离 — 教学内容未覆盖必授核心知识点"""
+    """F24: 教学大纲合规偏离 — 教学内容未覆盖必授核心知识点。
+
+    v4.3.0 修复：
+    1) 大纲语境门控：仅对教学大纲/教案/课程内容类文本触发；
+    2) 数据源改为 curriculum_requirements.json 的 18 项知识点
+       （知识点名+关键词匹配），不再使用硬编码 8 项。
+    """
     kw = pat['detection_keywords']
-    core_kps = kw.get('core_knowledge_points', [])
     threshold = kw.get('coverage_threshold', 0.8)
-    covered = [kp for kp in core_kps if kp in text]
-    ratio = len(covered) / len(core_kps) if core_kps else 1.0
+    # 大纲语境门控（本模式评估对象为教学大纲/教案/教学内容）
+    syllabus_context = ['教学大纲', '课程大纲', '大纲', '教案', '课程标准',
+                        '人才培养方案', '授课计划', '教学内容', '知识点覆盖']
+    if not any(s in text for s in syllabus_context):
+        return {'fired': False, 'probability': 0.1, 'severity': 'critical', 'detections': None}
+    # 优先使用 curriculum_requirements.json 的 18 项知识点
+    kps = _load_curriculum_knowledge_points()
+    if not kps:
+        # 兜底：文件缺失时退回 patterns 中的硬编码清单
+        kps = [{'name': kp, 'keywords': []} for kp in kw.get('core_knowledge_points', [])]
+    covered = []
+    missing = []
+    for kp in kps:
+        terms = [kp['name']] + list(kp.get('keywords', []))
+        if any(t and t in text for t in terms):
+            covered.append(kp['name'])
+        else:
+            missing.append(kp['name'])
+    ratio = len(covered) / len(kps) if kps else 1.0
     dets = []
     if ratio < threshold:
-        missing = [kp for kp in core_kps if kp not in text]
         dets.append({
             'type': 'syllabus_noncompliance',
             'coverage_ratio': round(ratio, 2),
             'covered_count': len(covered),
-            'total_core_points': len(core_kps),
+            'total_core_points': len(kps),
+            'covered_knowledge_points': covered,
             'missing_knowledge_points': missing,
             'recommendation': f'教学内容对核心知识点的覆盖率仅{round(ratio*100)}%（要求{int(threshold*100)}%以上）。缺失知识点: {", ".join(missing)}。建议对照教育部法学类教学质量国家标准补充。'
         })
