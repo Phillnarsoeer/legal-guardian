@@ -250,7 +250,7 @@ def score_all(text: str, failure_detection: dict = None) -> dict:
     return {
         'meta': {
             'text_length': len(text),
-            'scoring_system': '四维1-5分制，锚定于14案例实证基线',
+            'scoring_system': '四维1-5分制，锚定于多案例实证基线',
             'overall_score': overall,
             'overall_grade': overall_grade
         },

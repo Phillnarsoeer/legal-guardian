@@ -146,7 +146,7 @@ def generate_correction_for_f1(detection_detail: dict, regulation: dict) -> dict
             'severity': '🟡 预警',
             'original_issue': 'AI回答包含法律引用，建议逐条验证准确性',
             'empirical_evidence': {
-                'test_case': '14案例实证测试',
+                'test_case': '多案例实证测试',
                 'finding': '千问对虚构法条识别率0%，DS为100%'
             },
             'correction_direction': '逐条验证所有法律引用在官方渠道的真实性和有效性',

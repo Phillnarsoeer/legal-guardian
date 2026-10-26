@@ -363,7 +363,7 @@
     "scoring": {
       "meta": {
         "text_length": 204,
-        "scoring_system": "四维1-5分制，锚定于14案例实证基线",
+        "scoring_system": "四维1-5分制，锚定于多案例实证基线",
         "overall_score": 2.62,
         "overall_grade": "C"
       },

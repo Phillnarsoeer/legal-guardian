@@ -368,7 +368,7 @@ def evaluate_assignment(text: str, course_type: str = 'general') -> dict:
             'text_length': len(text),
             'course_type': course_type,
             'evaluation_date': datetime.date.today().isoformat(),
-            'scoring_system': '五维百分制，锚定于14案例实证基线'
+            'scoring_system': '五维百分制，锚定于多案例实证基线'
         },
         'total_score': round(total_weighted, 1),
         'grade': final_grade,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Failure Detector - 10 failure pattern detection engine.
-Based on empirical research: 14 cases x 2 rounds x 4 dimensions.
+Based on empirical research: multi-case x 2 rounds x 4 dimensions.
 Usage: python failure_detector.py <file> | --text "text" | --stdin
 """
 
