@@ -264,7 +264,7 @@ python scripts/exam_parser.py <PDF路径> --type objective|subjective
 ```bash
 python tests/test_logic_linter.py      # 20 项单元测试（矩阵/CLI/评分/语义/批量/队列）
 python tests/logic_eval.py             # 20 条合成 fixture 的误差校准
-python tests/test_vericot_check.py     # VeriCoT 14 项单元测试（lite + full）
+python tests/test_vericot_check.py     # VeriCoT 单元测试（lite + full）
 python tests/test_fol_engine.py        # FOL 引擎 8 项单元测试
 python tests/test_statute_verifier.py  # 法条核验助手 12 项单元测试
 ```
