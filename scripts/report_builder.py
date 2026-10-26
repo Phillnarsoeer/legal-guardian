@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-报告构建器 (Report Builder) — LegalGuardian v4.3.0
+报告构建器 (Report Builder) — LegalGuardian v5.0.0
 
-一键串联全链路引擎（检测→纠正→安全→评分→作业评估→提问优化→案例检索→三维规制），
+一键串联全链路引擎（检测→纠正→安全→评分→作业评估→提问优化→案例检索→三维规制→逻辑体检），
 输出统一结构的 JSON 报告，供 panel/report_panel.html 可视化展示（路演/评审用）。
 
 用法:
@@ -11,7 +11,7 @@
                                      [--question "<原始提问>"] [--modules a,b,c] [--out <路径>]
     python scripts/report_builder.py --text "<AI回答内容>" --query "民间借贷 利息" --out panel/demo_report.json
 
-模块过滤: --modules detection,corrections,safety,scoring,assignment,templates,retrieval,regulation
+模块过滤: --modules detection,corrections,safety,scoring,assignment,templates,retrieval,regulation,logic
 
 输出: JSON — {meta, input, modules:{...}}，各模块字段与对应脚本 CLI 输出一致。
 """
@@ -31,7 +31,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
 ALL_MODULES = ['detection', 'corrections', 'safety', 'scoring',
-               'assignment', 'templates', 'retrieval', 'regulation']
+               'assignment', 'templates', 'retrieval', 'regulation', 'logic']
 
 
 def build_report(text: str, name: str = '', query: str = '', question: str = '',
@@ -96,9 +96,14 @@ def build_report(text: str, name: str = '', query: str = '', question: str = '',
         from regulation_assessor import assess
         m['regulation'] = assess(text, name, detection)
 
+    # 9. 逻辑体检（5×4 矩阵 + 8 项确定性筛查）
+    if 'logic' in modules:
+        from logic_linter import lint_text
+        m['logic'] = lint_text(text)
+
     return {
         'meta': {
-            'builder': 'report_builder v4.3.0',
+            'builder': 'report_builder v5.0.0',
             'generated_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'tool_name': name,
             'input_source': 'text',

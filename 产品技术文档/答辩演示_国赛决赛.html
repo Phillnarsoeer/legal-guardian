@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalGuardian 法律守卫 · 国赛决赛答辩</title>
+<style>
+:root{
+  --navy:#16355C; --navy2:#1F4C7E; --navy3:#2C6394; --gold:#C9A227; --gold2:#E3C558;
+  --bg:#F5F7FA; --ink:#1B2530; --gray:#5A6672; --line:#D9E0EA; --white:#fff;
+  --ok:#2F7D5A; --warn:#B4593C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#0D1B2C;
+  font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;color:var(--ink)}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));z-index:60;transition:width .35s ease}
+#topbar{position:fixed;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;z-index:55;color:#9FB0C6;font-size:12.5px;letter-spacing:.4px;pointer-events:none}
+#topbar .brand{display:flex;align-items:center;gap:9px;font-weight:700;color:#D7E0EC}
+#topbar .brand i{display:inline-block;width:9px;height:9px;background:var(--gold);border-radius:2px}
+#pager{font-variant-numeric:tabular-nums}
+#pager b{color:var(--gold2);font-size:14px}
+#fs{position:fixed;right:20px;bottom:14px;z-index:56;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  color:#C3CFDF;font-size:11.5px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.4px;
+  opacity:.35;transition:opacity .2s}
+#fs:hover{opacity:1;background:rgba(255,255,255,.16)}
+body.on-light #topbar .brand{color:#16355C}
+body.on-light #pager b{color:#A8811E}
+body.on-light #fs{background:rgba(22,53,92,.05);border-color:rgba(22,53,92,.18);color:#3E5170}
+body.on-light #fs:hover{background:rgba(22,53,92,.12)}
+.slide{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .38s ease,transform .38s ease,visibility .38s;
+  background:var(--bg)}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.dark{background:radial-gradient(120% 120% at 18% 12%,#1A4370 0%,#12304F 46%,#0C2137 100%)}
+.inner{width:1240px;padding:0 8px;flex:none;transform:scale(var(--s,1));transform-origin:center center}
+.tag{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;color:var(--navy2);margin-bottom:12px}
+.tag::before{content:"";width:16px;height:3px;background:var(--gold);border-radius:2px}
+.dark .tag{color:var(--gold2)}
+h1.title{font-size:clamp(24px,3.05vw,36px);color:var(--navy);letter-spacing:.5px;line-height:1.24}
+.dark h1.title{color:#fff}
+h1.title small{display:block;font-size:clamp(12px,1.1vw,14px);font-weight:400;color:var(--gray);letter-spacing:1.4px;margin-top:8px}
+.dark h1.title small{color:#9FB4CC}
+.sub{margin-top:10px;font-size:clamp(12.8px,1.15vw,14.5px);color:var(--gray);line-height:1.75;max-width:1100px}
+.dark .sub{color:#B9C9DC}
+hr.rule{border:0;height:1px;background:linear-gradient(90deg,var(--gold),rgba(201,162,39,.12));margin:16px 0 20px}
+.dark hr.rule{background:linear-gradient(90deg,var(--gold),rgba(201,162,39,.1))}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:15px 18px;
+  box-shadow:0 2px 10px rgba(22,53,92,.05);position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:.85}
+.card h3{font-size:13.5px;color:var(--navy);letter-spacing:.3px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.card h3 .dot{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:5px;
+  background:linear-gradient(135deg,var(--navy2),var(--navy3));color:#fff;font-size:10.5px;letter-spacing:.2px;
+  display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none;white-space:nowrap}
+.card p{font-size:13px;color:var(--gray);line-height:1.68}
+.card b{color:var(--navy2)} .card .hl{color:var(--warn);font-weight:700}
+.card ul{margin:3px 0 0 2px;list-style:none}
+.card li{font-size:12.8px;color:var(--gray);line-height:1.66;padding-left:12px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:17px 20px;
+  box-shadow:0 2px 10px rgba(22,53,92,.05)}
+.panel h3{font-size:13px;color:var(--navy);letter-spacing:.3px;margin-bottom:12px;display:flex;justify-content:space-between}
+.panel h3 em{font-style:normal;color:var(--gold);font-weight:700}
+.stat{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px 16px 12px;text-align:left;
+  box-shadow:0 2px 10px rgba(22,53,92,.05)}
+.stat .num{font-size:clamp(21px,2.25vw,29px);font-weight:800;color:var(--navy);line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .num em{font-style:normal;font-size:.55em;color:var(--gold);margin-left:2px}
+.stat .lab{font-size:12.2px;color:var(--gray);margin-top:6px;line-height:1.5}
+.stat.gold .num{color:var(--gold)}
+.bar{display:grid;grid-template-columns:88px 1fr 96px;align-items:center;gap:10px;margin-bottom:11px}
+.bar:last-child{margin-bottom:0}
+.bar .lbl{font-size:12.5px;color:var(--navy);font-weight:700}
+.bar .track{height:16px;background:#E7ECF3;border-radius:8px;overflow:hidden;position:relative}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--navy2),var(--navy3))}
+.bar .fill.q{top:4px;bottom:4px;border-radius:5px;background:linear-gradient(90deg,#93A3B8,#BEC9D8)}
+.bar .val{font-size:12px;color:var(--gray);font-variant-numeric:tabular-nums;text-align:right}
+.bar .val b{color:var(--navy);font-size:13px}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--gray);margin:0 0 13px 98px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tl .node{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:11px 13px;position:relative}
+.tl .v{font-size:14px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.tl .d{font-size:10.8px;color:var(--gold);font-weight:700;letter-spacing:.4px;margin:2px 0 5px}
+.tl .t{font-size:12.3px;color:var(--gray);line-height:1.55}
+.tl .node.hot{border-color:rgba(201,162,39,.55);box-shadow:0 3px 14px rgba(201,162,39,.16)}
+.tl .node.hot .v{color:var(--gold)}
+.chain{display:flex;align-items:stretch;gap:0;margin-top:4px}
+.chain .step{flex:1;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center;position:relative}
+.chain .step+.step{margin-left:26px}
+.chain .step+.step::before{content:"";position:absolute;left:-26px;top:50%;width:26px;height:2px;background:var(--line)}
+.chain .step+.step::after{content:"";position:absolute;left:-9px;top:calc(50% - 4px);border:4px solid transparent;border-left-color:var(--gold)}
+.chain .s-no{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:1px}
+.chain .s-t{font-size:12.8px;font-weight:700;color:var(--navy);margin:3px 0 4px}
+.chain .s-d{font-size:11.6px;color:var(--gray);line-height:1.5}
+.cover .inner{text-align:left}
+.cover .kicker{font-size:clamp(11px,1.05vw,13px);letter-spacing:3px;color:var(--gold2);font-weight:700}
+.cover h1{font-size:clamp(38px,5.6vw,68px);color:#fff;letter-spacing:1px;line-height:1.12;margin:18px 0 6px}
+.cover h1 span{color:var(--gold2)}
+.cover h2{font-size:clamp(15px,1.8vw,22px);color:#DCE6F2;font-weight:400;letter-spacing:1.2px}
+.cover .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.cover .chip{font-size:12.5px;color:#C9D7E8;border:1px solid rgba(201,162,39,.45);border-radius:999px;padding:6px 14px;letter-spacing:.6px}
+.cover .foot{margin-top:34px;font-size:13px;color:#8FA5BE;letter-spacing:.8px;display:flex;gap:18px;flex-wrap:wrap}
+.cover .foot b{color:#E6EDF6;font-weight:700}
+@media print{
+  html,body{overflow:visible;background:#fff}
+  #progress,#topbar,#fs{display:none!important}
+  .inner{width:100%!important;transform:none!important}
+  .slide{position:static;opacity:1!important;visibility:visible!important;transform:none!important;
+    page-break-after:always;width:100%;height:100vh;background:#fff}
+  .slide.dark{background:#12304F!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .card,.stat,.tl .node,.panel{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:900px){
+  .g4{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(2,1fr)}
+  .tl{grid-template-columns:repeat(2,1fr)}
+  .chain{flex-wrap:wrap} .chain .step{flex:1 1 45%;margin:6px 0!important}
+  .chain .step+.step::before,.chain .step+.step::after{display:none}
+  .bar{grid-template-columns:70px 1fr 78px}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="topbar">
+  <div class="brand"><i></i><span>LegalGuardian 法律守卫</span><span style="opacity:.55;font-weight:400">· 决赛答辩</span></div>
+  <div id="pager"><b>1</b> / 12</div>
+</div>
+<button id="fs" title="全屏（F）">⛶</button>
+
+<!-- 01 封面 -->
+<section class="slide dark cover active">
+  <div class="inner">
+    <div class="kicker">AI 龙虾智能体平台 · 教育 Skill 创新设计大赛 · 决赛</div>
+    <h1>LegalGuardian <span>法律守卫</span></h1>
+    <h2>面向法学教育的 AI 法律输出审核 · 纠正 · 评估 Skill</h2>
+    <div class="chips">
+      <div class="chip">24 种失效模式</div>
+      <div class="chip">8 大题型评估</div>
+      <div class="chip">5,515 案例库</div>
+      <div class="chip">41 项冒烟全绿</div>
+    </div>
+    <div class="foot">
+      <div>参赛团队 · <b>西南民族大学法学院参赛团队</b></div>
+      <div>版本 <b>v4.3.0</b></div>
+      <div><b>2026-08-19</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 问题与实证 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">01 问题与实证</div>
+    <h1 class="title">AI 法律输出的失效是系统性的，不是偶发的
+      <small>实证基线 · 14 案例 × 2 轮 × 4 维 · DeepSeek vs 通义千问</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g4">
+      <div class="stat"><div class="num">3.84 <em>/ 3.06</em></div><div class="lab">综合校准分（DS / 千问），满分 5</div></div>
+      <div class="stat"><div class="num">71<em>%</em></div><div class="lab">DS 量刑预测误差：预测 3.5 年，实际 6 年</div></div>
+      <div class="stat"><div class="num">0<em>%</em></div><div class="lab">千问虚构法条识别率</div></div>
+      <div class="stat"><div class="num">2.96 <em>/ 1.70</em></div><div class="lab">引导性得分（DS / 千问）</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>失效一 · 准确性</h3><p>引用虚构或已废止的法律，用户难以察觉。</p></div>
+      <div class="card"><h3>失效二 · 深度</h3><p>结论正确、法理浅薄，不追问争议焦点。</p></div>
+      <div class="card"><h3>失效三 · 引导性</h3><p>只判对错、不给方法，学生学不到"如何分析"。</p></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">结论：</b>模型再强也解决不了"可检验性"问题，需要一个独立于模型的输出审查层。
+    </div>
+  </div>
+</section>
+
+<!-- 03 方案 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">02 方案设计</div>
+    <h1 class="title">检测 — 纠正 — 评分：一条可闭环的审查流水线
+      <small>输入任意 AI 法律回答，输出失效清单、纠正建议、量化评分与可视化报告</small>
+    </h1>
+    <hr class="rule">
+    <div class="chain">
+      <div class="step"><div class="s-no">INPUT</div><div class="s-t">输入</div><div class="s-d">回答 / 作业 / 试题 / 大纲</div></div>
+      <div class="step"><div class="s-no">1</div><div class="s-t">失效检测</div><div class="s-d">F1-F24 模式匹配</div></div>
+      <div class="step"><div class="s-no">2</div><div class="s-t">纠正建议</div><div class="s-d">逐条可执行</div></div>
+      <div class="step"><div class="s-no">3</div><div class="s-t">安全复核</div><div class="s-d">C1-C8 八项</div></div>
+      <div class="step"><div class="s-no">4</div><div class="s-t">评分校准</div><div class="s-d">五维加权 · 偏差 ≤ 0.2</div></div>
+      <div class="step"><div class="s-no">5</div><div class="s-t">报告</div><div class="s-d">单文件 HTML</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3><span class="dot">A</span>审核纠正（核心）</h3><p>24 模式检测 + 逐条纠正 + 8 项安全复核，标注概率与依据。</p></div>
+      <div class="card"><h3><span class="dot">B</span>提问优化</h3><p>5 大模板按场景匹配，引导性实证提升 <b>+40%</b>。</p></div>
+      <div class="card"><h3><span class="dot">C</span>作业评估</h3><p>8 题型 T1-T8，五维加权，红线一票降级。</p></div>
+      <div class="card"><h3><span class="dot">D</span>质量基准</h3><p>以实证基线为校准锚点，评分可复现。</p></div>
+      <div class="card"><h3><span class="dot">E</span>大纲合规</h3><p>对照教育部标准与 18 必知知识点，覆盖率阈值 80%。</p></div>
+      <div class="card"><h3><span class="dot">F</span>报告面板</h3><p>零依赖 HTML，一页看清失效分布与纠正清单。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 版本迭代 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">03 版本迭代</div>
+    <h1 class="title">21 天 8 个版本，每一步都可查
+      <small>v1.0.0（2026-07-29）→ v4.3.0（2026-08-19）· GitHub: phillnarsoeer/legal-guardian</small>
+    </h1>
+    <hr class="rule">
+    <div class="tl">
+      <div class="node"><div class="v">v1.0.0</div><div class="d">07-29</div><div class="t">框架创立</div></div>
+      <div class="node"><div class="v">v2.0.0</div><div class="d">07-30</div><div class="t">900 案例奠基</div></div>
+      <div class="node"><div class="v">v3.0.0</div><div class="d">07-31</div><div class="t">5,515 案例 / RAG 上线</div></div>
+      <div class="node"><div class="v">v4.0.0</div><div class="d">07-31</div><div class="t">18 失效模式 / 8 题型</div></div>
+      <div class="node"><div class="v">v4.1.0</div><div class="d">08-03</div><div class="t">F1-F24 / 大纲合规</div></div>
+      <div class="node"><div class="v">v4.2.0</div><div class="d">08-05</div><div class="t">缓存 / 单遍扫描 / 归一化</div></div>
+      <div class="node"><div class="v">v4.2.1</div><div class="d">08-17</div><div class="t">文档与版本化</div></div>
+      <div class="node hot"><div class="v">v4.3.0</div><div class="d">08-17</div><div class="t">红线统一 / 校准 A / 0.16MB</div></div>
+    </div>
+    <div class="grid g4" style="margin-top:16px">
+      <div class="stat"><div class="num">6.1<em>&times;</em></div><div class="lab">语料规模：900 → 5,515 案例</div></div>
+      <div class="stat"><div class="num">18 → 24</div><div class="lab">失效模式体系扩容</div></div>
+      <div class="stat"><div class="num">39 → 41</div><div class="lab">冒烟用例（0 FAIL）</div></div>
+      <div class="stat gold"><div class="num">14 → 0.16<em>MB</em></div><div class="lab">安装包体积（精简 98.9%）</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 创新① -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">04 技术创新 ①</div>
+    <h1 class="title">24 种失效模式，每一种都有实证依据
+      <small>F1-F24 三层结构 · 以实证基线为不可修改的校准锚点</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g3">
+      <div class="card"><h3><span class="dot">F1-F10</span>通用基座</h3>
+        <ul><li>虚构法条、废止法、量刑预测、前提验证</li><li>浅度正确、引导缺失、用户差异风险</li></ul></div>
+      <div class="card"><h3><span class="dot">F11-F18</span>题型特化</h3>
+        <ul><li>基于 2022-2025 法考真题校准</li><li>覆盖辨析、论述、案例分析等 8 大题型</li></ul></div>
+      <div class="card"><h3><span class="dot">F19-F24</span>教信赛场景</h3>
+        <ul><li>试题歧义、评分偏移、格式违规、跨题矛盾</li><li>教学合规偏离（F24）</li></ul></div>
+    </div>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="stat"><div class="num">23 / 24</div><div class="lab">模式可提前终止判定（误报可控）</div></div>
+      <div class="stat"><div class="num">≤ 0.2</div><div class="lab">评分偏差上限（可复现铁律）</div></div>
+      <div class="stat"><div class="num">100<em>%</em></div><div class="lab">检测—纠正对齐（v4.2.0 修复）</div></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">与常见做法的差异：</b>不是"写一堆规则"，而是每条模式都绑定实证案例，并以法考真题校准、以 3.84 / 1.70 为锚点。
+    </div>
+  </div>
+</section>
+
+<!-- 06 创新② -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">04 技术创新 ②</div>
+    <h1 class="title">8 大题型 × 五维加权，同一份作业评分可复现
+      <small>主观题百分制归一化 · 红线一票降级 · 全量 26 项校准评级 A</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g2">
+      <div class="card"><h3>题型满分矩阵 T1-T8</h3>
+        <p>概念辨析 <b>1</b> · 简答 <b>2</b> · 判断+说明 <b>1+2</b> · 案例分析 <b>5</b> · 论述 <b>10</b> · 综合大案例 <b>30</b> · 法条评析 <b>20</b> · 情景分析 <b>25</b>。</p></div>
+      <div class="card"><h3>五维加权</h3>
+        <p>法律依据 <b>30%</b> · 逻辑严密 <b>25%</b> · 法理深度 <b>20%</b> · 实务可行 <b>15%</b> · 学术规范 <b>10%</b>。</p></div>
+      <div class="card"><h3>红线规则（一票降级）</h3>
+        <p>法律依据 <b>D1 = 0</b> 即整体归零；大纲覆盖率 <b>F24 &lt; 80%</b> 判失败，不被其他维度高分稀释。</p></div>
+      <div class="card"><h3>校准复现</h3>
+        <p>以 DS 3.84 为基准、千问 1.70 为下限，同输入评分偏差 <b>≤ 0.2</b>，26 项校准由 C 升至 <b>A</b>。</p></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">为什么重要：</b>教育场景最怕评分不可解释、不可复现；锚定公开实证基线后，谁评、何时评，结果一致。
+    </div>
+  </div>
+</section>
+
+<!-- 07 创新③ -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">04 技术创新 ③</div>
+    <h1 class="title">三层知识库：可替换、可审计、可迁移
+      <small>数据与逻辑解耦，换一套知识库即可迁移到其他学科</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g3">
+      <div class="card"><h3><span class="dot">层 1</span>结构知识库</h3>
+        <ul><li>24 失效模式 / 8 题型评分标准</li><li>教育部课程要求 / 18 必知知识点</li><li>9 个 JSON，全部可替换</li></ul></div>
+      <div class="card"><h3><span class="dot">层 2</span>案例检索 RAG</h3>
+        <ul><li>5,515 人民法院案例 / 535 案由</li><li>27,575 QA 训练语料</li><li>检索结果带案例编号，可溯源</li></ul></div>
+      <div class="card"><h3><span class="dot">层 3</span>三维规制</h3>
+        <ul><li>技术 T1-T5 / 教育 E1-E4 / 法律 L1-L4</li><li>13 条目逐项可查</li></ul></div>
+    </div>
+    <div class="grid g4" style="margin-top:14px">
+      <div class="stat"><div class="num">5,515</div><div class="lab">人民法院案例库条目</div></div>
+      <div class="stat"><div class="num">535</div><div class="lab">覆盖案由类型</div></div>
+      <div class="stat"><div class="num">27,575</div><div class="lab">RAG 语料问答对</div></div>
+      <div class="stat"><div class="num">16 / 16</div><div class="lab">黄金标准基准覆盖（100%）</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 创新④ -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">04 技术创新 ④</div>
+    <h1 class="title">0.16MB 跑完整条流水线
+      <small>性能优化 + 正确性修复 + 结构重构（v4.2.0 → v4.3.0）</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g3">
+      <div class="card"><h3>性能：三处关键优化</h3>
+        <ul><li>JSON 模块级缓存</li><li>正则单遍扫描（24 模式一次遍历）</li><li>进程内检测调用，免子进程开销</li></ul></div>
+      <div class="card"><h3>正确性：可验证的修复</h3>
+        <ul><li>主观题百分制归一化</li><li>废止法红线规则修正</li><li>F1-F3 检测对齐、F22 插值修复</li></ul></div>
+      <div class="card"><h3>重构：可维护</h3>
+        <ul><li>sys.executable 跨平台、结构化错误</li><li>清理 20 处死代码</li><li>包体 14MB → 0.16MB</li></ul></div>
+    </div>
+    <div class="grid g4" style="margin-top:14px">
+      <div class="stat"><div class="num">41 / 41</div><div class="lab">冒烟测试通过（2026-08-19）</div></div>
+      <div class="stat"><div class="num">35 + 13 + 5</div><div class="lab">单元 / 集成 / 回退用例</div></div>
+      <div class="stat"><div class="num">16</div><div class="lab">基准测试项（全覆盖）</div></div>
+      <div class="stat gold"><div class="num">&lt; 2000</div><div class="lab">单次推理 token 消耗</div></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">意义：</b>轻量包体让任何平台都能低成本部署；四类用例回归，更新成本接近零。
+    </div>
+  </div>
+</section>
+
+<!-- 09 场景 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">05 教育应用场景</div>
+    <h1 class="title">四个教学场景，一条 Skill 覆盖
+      <small>课堂教学 · 作业批改 · 考试设计 · 教研合规</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g2">
+      <div class="card"><h3><span class="dot">01</span>课堂教学：AI 回答实时审查</h3>
+        <p>输入任意模型的法律回答，即时得到失效清单与纠正建议——把 AI 出错变成教学素材。</p></div>
+      <div class="card"><h3><span class="dot">02</span>作业批改：评分 + 失分点</h3>
+        <p>按题型匹配满分与五维权重，给出失分点与改进建议；偏差 ≤ 0.2，重复批改结果一致。</p></div>
+      <div class="card"><h3><span class="dot">03</span>考试设计：命题合规</h3>
+        <p>检测试题歧义（F19）、跨题矛盾（F22）、格式违规（F21），用法考真题校准考点覆盖。</p></div>
+      <div class="card"><h3><span class="dot">04</span>教研管理：大纲审核</h3>
+        <p>F24 对照课程标准与 18 必知知识点做覆盖率审核（阈值 80%），缺失点给出补充建议。</p></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">覆盖延伸：</b>以上场景同时满足教育信息化大赛的三维规制要求（技术 / 教育 / 法律，共 13 条）。
+    </div>
+  </div>
+</section>
+
+<!-- 10 实施效果与对比 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">06 实施效果</div>
+    <h1 class="title">成效可复现：41 项全绿、评级 A、较基线 +25.5%
+      <small>2026-08-19 全量冒烟 PASS=41 FAIL=0 · 同一 14 案例 × 2 轮测评（满分 5）</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g2" style="align-items:start">
+      <div class="panel">
+        <h3>四维与综合对比 <em>DS / 千问</em></h3>
+        <div class="legend"><span><i style="background:linear-gradient(90deg,#1F4C7E,#2C6394)"></i>DeepSeek</span><span><i style="background:linear-gradient(90deg,#9AA7B7,#B9C4D2)"></i>千问 Qwen</span></div>
+        <div class="bar"><div class="lbl">准确性</div><div class="track"><div class="fill" style="width:80.6%"></div><div class="fill q" style="width:69.8%"></div></div><div class="val"><b>4.03</b> / 3.49</div></div>
+        <div class="bar"><div class="lbl">时效性</div><div class="track"><div class="fill" style="width:93.8%"></div><div class="fill q" style="width:82.6%"></div></div><div class="val"><b>4.69</b> / 4.13</div></div>
+        <div class="bar"><div class="lbl">逻辑性</div><div class="track"><div class="fill" style="width:73.2%"></div><div class="fill q" style="width:58.6%"></div></div><div class="val"><b>3.66</b> / 2.93</div></div>
+        <div class="bar"><div class="lbl">引导性</div><div class="track"><div class="fill" style="width:59.2%"></div><div class="fill q" style="width:34.0%"></div></div><div class="val"><b>2.96</b> / 1.70</div></div>
+        <div class="bar"><div class="lbl">综合</div><div class="track"><div class="fill" style="width:76.8%"></div><div class="fill q" style="width:61.2%"></div></div><div class="val"><b>3.84</b> / 3.06</div></div>
+      </div>
+      <div class="grid g2" style="gap:12px">
+        <div class="stat"><div class="num">41<em>/41</em></div><div class="lab">冒烟测试通过（0 失败）</div></div>
+        <div class="stat"><div class="num">A<em>级</em></div><div class="lab">综合校准评级（26 项全量）</div></div>
+        <div class="stat"><div class="num">100<em>%</em></div><div class="lab">虚构法条识别（14 实证案例）</div></div>
+        <div class="stat"><div class="num">≤0.2</div><div class="lab">评分偏差，可复现</div></div>
+        <div class="stat"><div class="num">5,515</div><div class="lab">案例库 + 27,575 QA</div></div>
+        <div class="stat gold"><div class="num">0.16<em>MB</em></div><div class="lab">安装包体积（原 14MB）</div></div>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:12px">
+      <b style="color:var(--navy2)">解读：</b>差距最大的引导性（2.96 vs 1.70），正是教育场景的痛点——学生要的是"怎么分析"，不只是"结论对错"。
+    </div>
+  </div>
+</section>
+
+<!-- 11 可推广性 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">07 可推广性</div>
+    <h1 class="title">开源可查、零依赖部署、跨学科可迁移
+      <small>从一门课到一个学科生态</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g2">
+      <div class="card"><h3><span class="dot">1</span>全程开源可查</h3>
+        <p>GitHub 仓库 <b>phillnarsoeer/legal-guardian</b> 记录 8 个版本，tag / commit / 说明逐版可查。</p></div>
+      <div class="card"><h3><span class="dot">2</span>零依赖、离线可用</h3>
+        <p>纯 Python + 可替换 JSON，不调用第三方 API；报告为单文件 HTML，双击即开。</p></div>
+      <div class="card"><h3><span class="dot">3</span>跨学科迁移</h3>
+        <p>失效模式库、评分维度、知识库均为独立 JSON：换库换基线，即可迁移至医学、金融、工程。</p></div>
+      <div class="card"><h3><span class="dot">4</span>可持续演进</h3>
+        <p>每版伴随冒烟回归；新增一个模式只需追加 JSON 条目 + 一条用例。</p></div>
+    </div>
+    <div class="sub" style="margin-top:14px">
+      <b style="color:var(--navy2)">一句话：</b>我们交付的不是一个封闭工具，而是一套可被检查、可被复用的"AI 输出质量方法论"。
+    </div>
+  </div>
+</section>
+
+<!-- 12 结束 -->
+<section class="slide dark">
+  <div class="inner">
+    <div class="tag">谢谢聆听 · 敬请指正</div>
+    <h1 class="title" style="font-size:clamp(30px,4vw,52px)">让每一次 AI 法律回答<br>都可以被<b style="color:var(--gold2)">检验</b>。
+      <small>LegalGuardian 法律守卫 · v4.3.0 · 西南民族大学法学院参赛团队</small>
+    </h1>
+    <hr class="rule">
+    <div class="grid g3">
+      <div class="stat" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)">
+        <div class="num" style="color:#fff">24 + 8</div><div class="lab" style="color:#AEC0D6">失效模式 + 题型评估</div></div>
+      <div class="stat" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)">
+        <div class="num" style="color:#fff">5,515</div><div class="lab" style="color:#AEC0D6">案例库支撑的检索增强</div></div>
+      <div class="stat" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)">
+        <div class="num" style="color:#fff">41 / 41</div><div class="lab" style="color:#AEC0D6">冒烟测试全绿（可复现）</div></div>
+    </div>
+    <div class="sub" style="margin-top:20px;color:#B9C9DC">
+      GitHub · <b style="color:#E6EDF6">phillnarsoeer/legal-guardian</b>　|　平台 · AI 龙虾智能体平台　|　团队 · 西南民族大学法学院参赛团队
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  var pager = document.querySelector('#pager b');
+  var progress = document.getElementById('progress');
+  var topbar = document.getElementById('topbar');
+  var fsBtn = document.getElementById('fs');
+  var countEl = document.querySelector('#pager');
+
+  function fit(){
+    var dark = slides[idx].classList.contains('dark');
+    document.body.classList.toggle('on-light', !dark);
+    if(dark){ topbar.style.color='#9FB0C6'; countEl.style.color='#9FB0C6'; }
+    else { topbar.style.color='#7C8CA3'; countEl.style.color='#7C8CA3'; }
+    var s = Math.min(window.innerWidth / 1360, window.innerHeight / 640, 1.5);
+    document.documentElement.style.setProperty('--s', s.toFixed(3));
+  }
+
+  function show(n){
+    if(n < 0) n = 0;
+    if(n > total - 1) n = total - 1;
+    slides[idx].classList.remove('active');
+    idx = n;
+    slides[idx].classList.add('active');
+    pager.textContent = idx + 1;
+    progress.style.width = ((idx + 1) / total * 100) + '%';
+    fit();
+    if(history.replaceState){ history.replaceState(null, '', '#p' + (idx + 1)); }
+  }
+  function next(){ show(idx + 1); }
+  function prev(){ show(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if(k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'ArrowDown' || k === 'Enter'){ e.preventDefault(); next(); }
+    else if(k === 'ArrowLeft' || k === 'PageUp' || k === 'ArrowUp' || k === 'Backspace'){ e.preventDefault(); prev(); }
+    else if(k === 'Home'){ e.preventDefault(); show(0); }
+    else if(k === 'End'){ e.preventDefault(); show(total - 1); }
+    else if(k === 'f' || k === 'F'){ toggleFS(); }
+  });
+
+  function toggleFS(){
+    if(!document.fullscreenElement){
+      if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    } else if(document.exitFullscreen){ document.exitFullscreen(); }
+  }
+  fsBtn.addEventListener('click', function(e){ e.stopPropagation(); toggleFS(); });
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest('button, a, kbd')) return;
+    if(e.clientX > window.innerWidth * 0.42) next(); else prev();
+  });
+
+  var tx = null, ty = null;
+  document.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){ dx < 0 ? next() : prev(); }
+    tx = null; ty = null;
+  }, {passive:true});
+
+  function fromHash(){
+    var m = /#p(\d+)/.exec(location.hash || '');
+    if(m){ show(Math.min(total, Math.max(1, parseInt(m[1], 10))) - 1); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  window.addEventListener('resize', fit);
+  fromHash();
+  fit();
+  show(idx);
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 法律守卫 (LegalGuardian) — AI法律对话实证纠正框架
 
-**当前版本：v4.3.0**（2026-08-19 · 简洁精进版：精准度修复 + 红线统一 + 全量校准 C→A + 安装包瘦身）
+**当前版本：v5.0.0**（2026-10-27 · 逻辑/形式化版：5×4 矩阵 + 语义四格 + VeriCoT 完整版）
 
 基于西南民族大学法学院**14案例×2轮×4维实证测评** + **人民法院案例库5,515真实案例** +
 **2022-2025年法考真题校准**的法学全题型 AI 审查纠正与作业评估引擎。
@@ -19,6 +19,10 @@
 | **8 项安全检查清单** | 与失效模式联动，输出逐项通过/失败状态与总体风险等级 |
 | **教学大纲 AI 合规审核** (v4.1.0+) | 对照教育部课程标准 18 项核心知识点核验覆盖率（≥80% 硬性阈值，触发 F24） |
 | **案例库本地检索** (v4.3.0+) | 人民法院案例库 5,515 个真实案例确定性关键词检索（`rag_retriever.py`），支持相似案例佐证 |
+| **法条时效性人工核验** | 官方检索入口 + 五项核对清单 + 本地留痕（`statute_verifier.py`）；离线预检废止法/条文号越界/虚构法名，不联网、不自动下结论 |
+| **逻辑体检（5×4 矩阵）** | 争点/规范/事实/涵摄/边界 × 缺失/错误/矛盾/溢出，20 个单元；8 项确定性筛查（`logic_linter.py`，含废止/虚构法名与条文号越界），输出 issue + 热力图 + 逻辑分 + 修复顺序；支持批量目录与 student/ai_audit 双模式；矩阵只定位，不直接加分 |
+| **语义四格 + 人工队列** | M12 争点错位、M32 事实错认、M42 推理错误、M52 边界误用；`--semantic` 生成复核包，`--semantic-input` 合并结论，`--queue-out` 导出低置信度队列 |
+| **VeriCoT 完整版** | FOL 解析 → 有限域接地 → DPLL 可满足性/蕴涵检查：校验前提落地、引用存在、步骤完整、结论可推出、前提一致与反例模型；不做 NL→FOL 自动抽取 |
 | **三维规制符合性评估** (v4.3.0+) | 技术 T1-T5 / 教育 E1-E4 / 法律 L1-L4 逐项评估 + 雷达数据（`regulation_assessor.py`） |
 
 适用场景：法学作业批改、AI 法律回答审查纠正、智能考试全流程管理、教学质量多维评价、
@@ -116,12 +120,13 @@
 
 | 模块 | 功能 |
 |------|------|
-| **A. AI 法律回答审核纠正**（核心） | 失效模式检测 → 纠正建议生成 → 安全检查清单 + 案例库相似案例佐证，输出审核报告 |
+| **A. AI 法律回答审核纠正**（核心） | 失效模式检测 → 纠正建议生成 → 安全检查清单 + 案例库相似案例佐证 + 法条时效人工核验，输出审核报告 |
 | **B. 提问优化与模板推荐** | 分析原始问题陷阱，匹配 5 大标准化模板并给出优化后提问 |
 | **C. 法学作业评估与评分** | 8 题型自动识别、差异化评分、红线统一（F1 命中即 D1 归零）、五维评估报告 |
 | **D. 三维规制符合性评估** (v4.3.0+) | 技术(T1-T5)/教育(E1-E4)/法律(L1-L4) 逐项评估 + 雷达数据 + 路线图 |
 | **E. 教学大纲 AI 合规审核** (v4.1.0+) | 覆盖率核验（18 项知识点）+ F24 检测 + 修订建议 |
 | **F. 可视化报告面板** (v4.3.0+) | `panel/report_panel.html` 零依赖单文件：一键生成全链路"审核案卷"，内嵌 3 份示例（AI 审核/大纲审核/作业评估），支持拖入 JSON 与打印/导出 PDF |
+| **G. 逻辑体检** | `logic_linter.py`：5×4 矩阵 + 8 项确定性筛查，输出 issue、热力图、逻辑分与修复顺序；已接入 `report_builder.py` 的 `logic` 模块 |
 
 ---
 
@@ -132,7 +137,7 @@ legal-guardian/
 ├── SKILL.md                  # 技能主文档（Claude Code 指令）
 ├── manifest.yaml             # 技能清单（名称/版本/描述）
 ├── README.md                 # 本文件
-├── scripts/                  # 16 个 Python 脚本
+├── scripts/                  # 20 个 Python 脚本
 │   ├── failure_detector.py   # 失效模式检测（F1-F24，场景门控）
 │   ├── correction_engine.py  # 纠正建议生成
 │   ├── safety_checker.py     # 8 项安全检查清单
@@ -143,6 +148,10 @@ legal-guardian/
 │   ├── law_assignment_evaluator.py  # 五维评估库 + v1 入口
 │   ├── law_assignment_evaluator_v2.py # 8题型统一评估器（主入口）
 │   ├── legal_db_fetcher.py          # 法条库检索（本地优先）
+│   ├── statute_verifier.py          # 法条时效人工核验（链接+清单+留痕）
+│   ├── logic_linter.py              # 逻辑体检（5×4 矩阵 + 8 项筛查）
+│   ├── vericot_check.py             # VeriCoT 完整版（FOL + 有限域 DPLL）
+│   ├── fol_engine.py                # 一阶逻辑解析/接地/DPLL 引擎
 │   ├── rag_retriever.py             # 案例库检索（5,515 例，v4.3.0+）
 │   ├── regulation_assessor.py       # 三维规制评估（v4.3.0+）
 │   ├── report_builder.py            # 全链路报告构建（v4.3.0+）
@@ -154,7 +163,7 @@ legal-guardian/
 │   ├── demo_report.json      # 示例：AI 回答审核全链路报告
 │   ├── demo_syllabus.json    # 示例：教学大纲合规审核
 │   └── demo_assignment.json  # 示例：法学作业评估
-├── reference/                 # JSON 知识库（9 个运行时文件，无历史残留）
+├── reference/                 # JSON 知识库（12 个运行时文件，无历史残留）
 │   ├── failure_patterns.json  # 24 种失效模式特征库
 │   ├── correction_templates.json    # 5 大提问模板
 │   ├── safety_checklist.json        # 8 项安全检查清单
@@ -162,16 +171,19 @@ legal-guardian/
 │   ├── assignment_rubric.json       # 作业评分标准
 │   ├── curriculum_requirements.json # 教学大纲合规标准（18 项知识点）
 │   ├── legal_knowledge_base.json    # 法条知识库
+│   ├── statutes_seed.json           # 法条核验种子库（核心法/废止法/虚构法）
+│   ├── logic_taxonomy.json          # 逻辑矩阵（5 阶段 × 4 失效 × 20 单元）
+│   ├── logic_rubric.json            # 逻辑评分/主责/去重/指标
 │   ├── test_baseline.json           # 实证基线
 │   └── three_d_regulation.json      # 三维规制标准
 ├── benchmark/                 # 黄金标准基准测试集（16 基准 + 10 回归）
-├── templates/                 # 报告输出模板
-├── tests/  +  test_data/      # 冒烟测试（41 项）与测试数据
+├── templates/                 # 报告/生成模板（logic_review_template.md、irac_scaffold.md）
+├── tests/  +  test_data/      # 冒烟测试（44 项）与测试数据
 ├── test_data/                 # 大数据资产：5,515 案例 / RAG 块 / 训练样本（仓库级证据）
 └── 产品技术文档/               # 5 份 PDF（由 gen_docs.py 生成）
 ```
 
-> 注：v4.3.0 精简包 `legal-guardian.skill`（约 0.2MB）仅含运行时必需文件
+> 注：v5.0.0 精简包 `legal-guardian.skill`（约 0.28MB）仅含运行时必需文件；同时输出 `legal-guardian-v5.0.0.skill` 便于 Release。
 > （SKILL.md/manifest/README/scripts/reference/benchmark/templates/tests/panel）；
 > `test_data` 大数据资产（约 44MB）与 `产品技术文档` 保留在仓库作为实证证据。
 
@@ -180,7 +192,7 @@ legal-guardian/
 ## 🚀 安装与使用
 
 ### 作为 Claude Code Skill 安装
-1. 将 `legal-guardian.skill`（zip 包，约 0.2MB）解压到 `~/.claude/skills/legal-guardian/`
+1. 将 `legal-guardian.skill`（zip 包，约 0.28MB）解压到 `~/.claude/skills/legal-guardian/`
 2. 重启 Claude Code，在对话中直接使用 `legal-guardian` skill
 3. 注：精简包不含 `test_data/`（5,515 案例库/训练语料为仓库级证据数据）。如需案例库检索（`rag_retriever.py`），从仓库将 `test_data/rags/chunks.json` 与 `test_data/cases/all_cases.json` 复制到技能目录对应路径
 
@@ -217,6 +229,26 @@ python scripts/template_matcher.py "<用户原始问题文本>"
 # 案例库检索（5,515 例，v4.3.0+）
 python scripts/rag_retriever.py --query "民间借贷 利息上限" -k 5 [--detail]
 
+# 法条时效人工核验（离线生成链接+清单，核对后留痕）
+python scripts/statute_verifier.py --law "民法典" --article "第1165条"
+python scripts/statute_verifier.py --law "民法典" --article "第1165条" \
+    --record --verdict active --verifier "张三" --note "官网核对"
+python scripts/statute_verifier.py --list   # 查看记录；--stats / --pending 同理
+
+# 逻辑体检（5×4 矩阵 + 8 项筛查）
+python scripts/logic_linter.py <作业/回答文件>
+python scripts/logic_linter.py <文件> --json --out logic.json
+python scripts/logic_linter.py <文件> --mode ai_audit      # AI 审核门控：先规范、后争点
+python scripts/logic_linter.py --batch <目录> --out results.jsonl
+python scripts/logic_linter.py <文件> --semantic --question "请分析李某的侵权责任"
+python scripts/logic_linter.py <文件> --semantic-input review.json
+python scripts/logic_linter.py <文件> --queue-out queue.jsonl
+# 全链路报告默认包含 logic 模块；也可 --modules logic 单独生成
+
+# VeriCoT 完整版：先生成结构化模板，再校验
+python scripts/vericot_check.py --packet --text "<原文>"
+python scripts/vericot_check.py argument.json
+
 # 三维规制评估（v4.3.0+）
 python scripts/regulation_assessor.py --text "<AI法律工具功能描述>" [--detections <检测JSON>]
 
@@ -227,12 +259,25 @@ python scripts/calibrate_scoring.py [--quick]
 python scripts/exam_parser.py <PDF路径> --type objective|subjective
 ```
 
+### 逻辑体检与形式化校验的测试（开发/维护）
+
+```bash
+python tests/test_logic_linter.py      # 20 项单元测试（矩阵/CLI/评分/语义/批量/队列）
+python tests/logic_eval.py             # 20 条合成 fixture 的误差校准
+python tests/test_vericot_check.py     # VeriCoT 14 项单元测试（lite + full）
+python tests/test_fol_engine.py        # FOL 引擎 8 项单元测试
+python tests/test_statute_verifier.py  # 法条核验助手 12 项单元测试
+```
+
+> 合成 fixture 的 0 误报 / 1.0 召回只说明规则与样本自洽，不代表真实分布；正式使用前需用 50–100 条双人标注样本重新校准，并按 `logic-rubric` 的 precision/recall 目标验收。
+
 ---
 
 ## 📜 版本历史
 
 | 版本 | 日期 | 主要变更 |
 |------|------|---------|
+| **v5.0.0** | 2026-10-27 | **逻辑/形式化版**：5×4 逻辑体检矩阵（20 单元/8 项筛查）、语义四格 M12/M32/M42/M52、低置信度队列、批量与双门控、根因去重、条号越界；新增 VeriCoT 完整版（FOL + 有限域 DPLL + 步骤 trace/反例）；面板逻辑页签；冒烟 44 项 0 FAIL 0 KNOWN |
 | **v4.3.0** | 2026-08-19 | **简洁精进版**：F1 纠正文豁免/F2 死代码复活/F11 正则对合并/题型特化模式场景门控/F24 读 18 项知识点；红线统一（F1 命中⇒D1 归零）；题型识别 5 处修复；新增 rag_retriever + regulation_assessor（模块D 落地）；删除 reference/ 5 个 v2.0.0 残留（-1.9MB）；安装包瘦身 14MB→约2MB；全量校准 C→A（100%/0.0/69.2%）；冒烟 39 项 0 FAIL 0 KNOWN |
 | **v4.2.1** | 2026-08-17 | **文档结构优化**：SKILL.md 547→258 行、manifest 与模板版本对齐、校准口径修正（区分快速/全量）；全量冒烟测试 PASS=28 / FAIL=0 |
 | **v4.2.0** | 2026-08-05 | **性能优化 + 正确性修复 + 代码质量重构**（全 13 脚本）：JSON 知识库缓存、进程内检测调用消除子进程/32767 字符限制、主观题评分归一化、红线规则修复、检测→纠正链路对齐、`sys.executable` 统一 |
@@ -268,3 +313,5 @@ AI 法律工具输出质量审核、教学大纲 AI 合规审核（教信赛智�
 
 **作者**：徐子涵团队（西南民族大学法学院大创项目）· 教信赛智慧评价赛道
 **仓库**：https://github.com/Phillnarsoeer/legal-guardian
+
+

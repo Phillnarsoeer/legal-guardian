@@ -141,7 +141,7 @@ def run_calibration(benchmark_path: str, quick: bool = False) -> dict:
     # === 汇总报告 ===
     return {
         "meta": {
-            "calibrator_version": "4.3.0",
+            "calibrator_version": "5.0.0",
             "benchmark": os.path.basename(benchmark_path),
             "total_items": len(items),
             "quick_mode": quick

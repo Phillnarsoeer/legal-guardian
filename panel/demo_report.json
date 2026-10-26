@@ -8,6 +8,7 @@
     "modules_included": [
       "corrections",
       "detection",
+      "logic",
       "regulation",
       "retrieval",
       "safety",
@@ -794,6 +795,142 @@
           "Promote mandatory standards legislation for AI legal tools",
           "Establish independent third-party AI legal tool evaluation mechanism",
           "Establish AI legal safety incident reporting and traceability system"
+        ]
+      }
+    },
+    "logic": {
+      "meta": {
+        "tool": "logic_linter",
+        "version": "1.0.0",
+        "checked_at": "2026-10-26T22:22:46+08:00",
+        "taxonomy_version": "logic-1.0.0",
+        "rubric_version": "logic-rubric-1.0.0",
+        "text_length": 204,
+        "min_severity": "hint"
+      },
+      "summary": {
+        "total_issues": 2,
+        "visible_issues": 2,
+        "by_severity": {
+          "critical": 1,
+          "major": 1
+        },
+        "by_stage": {
+          "S2": 1,
+          "S4": 1
+        },
+        "by_cell": {
+          "M22": 1,
+          "M41": 1
+        },
+        "logic_score": 4.2,
+        "logic_major_error_free": false,
+        "red_flag_count": 1,
+        "gate_advice": "先修规范层：先确认法条存在、现行有效、与争点对应。",
+        "note": "筛查级结果，不构成最终法律判断；critical 项须人工复核。"
+      },
+      "matrix": {
+        "S1": {
+          "T1": 0,
+          "T2": 0,
+          "T3": 0,
+          "T4": 0
+        },
+        "S2": {
+          "T1": 0,
+          "T2": 1,
+          "T3": 0,
+          "T4": 0
+        },
+        "S3": {
+          "T1": 0,
+          "T2": 0,
+          "T3": 0,
+          "T4": 0
+        },
+        "S4": {
+          "T1": 1,
+          "T2": 0,
+          "T3": 0,
+          "T4": 0
+        },
+        "S5": {
+          "T1": 0,
+          "T2": 0,
+          "T3": 0,
+          "T4": 0
+        }
+      },
+      "issues": [
+        {
+          "check_id": "L02",
+          "cell": "M22",
+          "name": "规范失效",
+          "stage": "S2",
+          "failure_type": "T2",
+          "severity": "critical",
+          "score_dimension": "accuracy",
+          "span": {
+            "start": 3,
+            "end": 7,
+            "excerpt": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这"
+          },
+          "why": "“民法通则”已于 2021-01-01 废止，由《中华人民共和国民法典》取代；文本仍将其作为现行依据。",
+          "fix": "改用《中华人民共和国民法典》，并注明旧法废止日期。",
+          "confidence": 0.9,
+          "derived_from": null
+        },
+        {
+          "check_id": "L04",
+          "cell": "M41",
+          "name": "推理缺环",
+          "stage": "S4",
+          "failure_type": "T1",
+          "severity": "major",
+          "score_dimension": "logic",
+          "span": {
+            "start": 0,
+            "end": 29,
+            "excerpt": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这个利率在法律允许的范围内。按照年利率24%计"
+          },
+          "why": "三段论三类标记只出现 1 类，缺少：小前提（要件事实）、结论。",
+          "fix": "补齐缺失的大前提、小前提或结论。",
+          "confidence": 0.6,
+          "derived_from": null
+        }
+      ],
+      "red_flags": [
+        {
+          "check_id": "L02",
+          "cell": "M22",
+          "name": "规范失效",
+          "stage": "S2",
+          "failure_type": "T2",
+          "severity": "critical",
+          "score_dimension": "accuracy",
+          "span": {
+            "start": 3,
+            "end": 7,
+            "excerpt": "根据《民法通则》的相关规定，民间借贷的利息应当由双方约定。您2018年的借条约定利息24%，这"
+          },
+          "why": "“民法通则”已于 2021-01-01 废止，由《中华人民共和国民法典》取代；文本仍将其作为现行依据。",
+          "fix": "改用《中华人民共和国民法典》，并注明旧法废止日期。",
+          "confidence": 0.9,
+          "derived_from": null
+        }
+      ],
+      "config": {
+        "taxonomy": "logic-1.0.0",
+        "rubric": "logic-rubric-1.0.0",
+        "checks": [
+          "L01",
+          "L02",
+          "L03",
+          "L04",
+          "L05",
+          "L06",
+          "L07",
+          "L08"
         ]
       }
     }

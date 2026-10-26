@@ -1,15 +1,15 @@
-# LegalGuardian v4.3.0 功能测试方案
+# LegalGuardian v5.0.0 功能测试方案
 
 > 测试对象：本仓库根目录（`SKILL.md` / `manifest.yaml` 所在目录）
-> 文档日期：2026-08-19　|　配套运行器：`tests/run_smoke.py`　|　Python 3.12.10, Windows 11
+> 文档日期：2026-10-27　|　配套运行器：`tests/run_smoke.py`　|　Python 3.12.10, Windows 11
 
 ---
 
 ## 一、核心结论速览
 
-**v4.3.0（简洁精进版）冒烟测试 41 项：PASS=41 / FAIL=0 / KNOWN=0 / SKIP=0（全量模式）。**
+**v5.0.0（逻辑/形式化版）冒烟测试 44 项：PASS=44 / FAIL=0 / KNOWN=0 / SKIP=0（全量模式）。**
 
-相对 v4.2.1 的 14 项已知缺陷，本轮全部处置完毕：
+v5.0.0 在 v4.3.0 基础上新增：5×4 逻辑矩阵、语义四格、低置信度队列、批量/双门控、条号越界、VeriCoT 完整版（FOL + 有限域 DPLL）。以下 14 项为 v4.3.0 历史缺陷的处置记录：
 
 | v4.2.1 缺陷 | v4.3.0 处置 |
 |---|---|
@@ -33,8 +33,8 @@
 ```bash
 cd LegalGuardian_v4.2.0
 python --version        # 需 >=3.9；本机 3.12.10 ✓
-python tests/run_smoke.py               # 全量 41 项（含全量校准，约 1-2 分钟）
-python tests/run_smoke.py --quick       # 跳过全量校准（37 项）
+python tests/run_smoke.py               # 全量 44 项（含全量校准，约 1-2 分钟）
+python tests/run_smoke.py --quick       # 跳过 2 项慢检（42 PASS + 2 SKIP）
 ```
 
 ## 三、自动化运行器
@@ -43,13 +43,13 @@ python tests/run_smoke.py --quick       # 跳过全量校准（37 项）
 - 退出码：0 = 无意外失败。CI 门禁：`python tests/run_smoke.py && echo "SKILL OK"`
 - 报告：控制台表格 + `tests/smoke_report.md`
 
-### 39 项检查清单
+### 44 项检查清单
 
 | 组 | 编号 | 检查项 |
 |----|------|--------|
 | ENV | E1-E5 | Python≥3.9 / frontmatter / manifest 4.3.0 / 精简包 8 项且无 test_data / 已安装目录 |
-| DATA | D1-D11 | F1-F24 齐全 / 安全检查 8 项 / 模板 5 个 / T1-T8 / 案例 5,515 / RAG 块 5,515 / 训练 22060+5515 / benchmark meta / reference 无残留 / 新脚本齐全 / 报告面板齐全 |
-| SMOKE | S1-S25 | F1/F2/F17 修复回归、干净样本零误报、纠正链、安全检查、模板推荐、v2 评估、红线（已废止+虚构）、四维评分、校准 quick A + 全量 A、答案键容错、法条检索、RAG 命中 + 确定性、模块D、模块E、报告构建器全链路 |
+| DATA | D1-D12 | F1-F24 齐全 / 安全检查 8 项 / 模板 5 个 / T1-T8 / 案例 5,515 / RAG 块 5,515 / 训练 22060+5515 / benchmark meta / reference 无残留 / 新脚本齐全 / 报告面板齐全 / 逻辑矩阵 20 单元+8 检查 |
+| SMOKE | S1-S27 | F1/F2/F17 修复回归、干净样本零误报、纠正链、安全检查、模板推荐、v2 评估、红线（已废止+虚构）、四维评分、校准 quick A + 全量 A、答案键容错、法条检索、RAG 命中 + 确定性、模块D、模块E、报告构建器全链路、逻辑体检、VeriCoT 完整版 |
 | INTEG | I1-I2 | 检测→纠正→安全三阶段链路 / 竞赛场景模板推荐 |
 
 ## 四、集成用例（TC001-TC015）映射

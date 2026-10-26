@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-三维规制符合性评估器 (Regulation Assessor) — LegalGuardian v4.3.0
+三维规制符合性评估器 (Regulation Assessor) — LegalGuardian v5.0.0
 
 落地 SKILL.md 模块 D：对 AI 法律工具/Skill 做 技术(T1-T5)/教育(E1-E4)/
 法律(L1-L4) 三维规制符合性评估，输出逐项状态 + 维度得分 + 改进路线图。
@@ -151,7 +151,7 @@ def assess(text: str, tool_name: str = '', detections: dict = None) -> dict:
 
     return {
         'meta': {
-            'assessor_version': '4.3.0',
+            'assessor_version': '5.0.0',
             'tool_name': tool_name,
             'regulation_source': regulation.get('meta', {}).get('source', ''),
             'detections_loaded': bool(detections),
@@ -201,7 +201,7 @@ def main():
                         'evidence_keywords': EVIDENCE_KEYWORDS.get(iid, []),
                     } for iid, it in dim_data.get('items', {}).items()}
                 }
-            print(json.dumps({'meta': {'assessor_version': '4.3.0'}, 'dimensions': listing}, ensure_ascii=False, indent=2))
+            print(json.dumps({'meta': {'assessor_version': '5.0.0'}, 'dimensions': listing}, ensure_ascii=False, indent=2))
             sys.exit(0)
         else:
             i += 1
@@ -219,3 +219,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

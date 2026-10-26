@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LegalGuardian 精简包构建器 (v4.3.0)
+LegalGuardian 精简包构建器 (v5.0.0)
 ====================================
 构建 legal-guardian.skill 安装包：仅含运行时必需文件
 （SKILL.md / manifest.yaml / README.md / scripts / reference /
@@ -17,11 +17,14 @@ LegalGuardian 精简包构建器 (v4.3.0)
 """
 import argparse
 import os
+import shutil
 import sys
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'legal-guardian.skill')
+VERSION = '5.0.0'
+VERSIONED_OUT = os.path.join(ROOT, f'legal-guardian-v{VERSION}.skill')
 
 # 打包的顶层条目
 TOP_LEVEL = ['SKILL.md', 'manifest.yaml', 'README.md', 'scripts', 'reference',
@@ -68,6 +71,8 @@ def build(dry_run=False):
             z.write(f, arcname)
     size_mb = os.path.getsize(OUT) / 1024 / 1024
     print(f'已重建 {OUT}  ({len(files)} 个文件, {size_mb:.2f} MB)')
+    shutil.copyfile(OUT, VERSIONED_OUT)
+    print(f'已输出版本化安装包 {VERSIONED_OUT}')
     with zipfile.ZipFile(OUT) as z:
         tops = {n.split('/')[0] for n in z.namelist()}
         assert 'test_data' not in tops and '产品技术文档' not in tops

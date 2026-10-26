@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LegalGuardian v4.3.0 功能冒烟测试运行器
+LegalGuardian v5.0.0 功能冒烟测试运行器
 =======================================
 位置:   tests/run_smoke.py（与 skill 同仓，纯标准库，无第三方依赖）
 用法:
@@ -15,6 +15,11 @@ LegalGuardian v4.3.0 功能冒烟测试运行器
     PASS   —— 符合预期
     FAIL   —— 意外失败（未预期，影响退出码 -> 1）
     KNOWN  —— 已知缺陷/声明不符（已记录在测试方案文档中，不影响退出码）
+
+v5.0.0 变更:
+    - 新增 S26 逻辑体检（干净样本 0 命中 / 混合样本 L01/L04/L08）
+    - 新增 S27 VeriCoT 完整版（有效论证 valid / 缺失事实 V15）
+    - 新增 D12 逻辑矩阵资产（20 单元 + 8 项检查）
 
 v4.3.0 变更:
     - D9/D10 改为"精简断言"：reference/ 无 v2.0.0 残留、新增脚本齐全
@@ -128,9 +133,9 @@ CHECKS = [
           lambda: sys.version_info >= (3, 9)),
     check('E2', 'SKILL.md frontmatter 可解析且 name=legal-guardian', 'ENV 环境与元数据',
           lambda: _frontmatter_ok()),
-    check('E3', 'manifest.yaml name/version = legal-guardian/4.3.0', 'ENV 环境与元数据',
+    check('E3', 'manifest.yaml name/version = legal-guardian/5.0.0', 'ENV 环境与元数据',
           lambda: bool(re.search(r'name:\s*legal-guardian', _read(os.path.join(SKILL_ROOT, 'manifest.yaml'))))
-          and bool(re.search(r'version:\s*4\.3\.0', _read(os.path.join(SKILL_ROOT, 'manifest.yaml'))))),
+          and bool(re.search(r'version:\s*5\.0\.0', _read(os.path.join(SKILL_ROOT, 'manifest.yaml'))))),
     check('E4', 'legal-guardian.skill 为合法 zip 且含精简包 8 项（不含 test_data/产品技术文档）', 'ENV 环境与元数据',
           lambda: _check_package(), timeout=120),
     check('E5', '已安装 skill 目录存在 (~/.claude/skills/legal-guardian)', 'ENV 环境与元数据',
@@ -156,12 +161,18 @@ CHECKS = [
           lambda: _check_benchmark_meta()),
     check('D9', 'reference/ 已精简：无 v2.0.0 残留数据文件', 'DATA 数据资产完整性',
           lambda: _check_no_stale_reference()),
-    check('D10', '新增脚本齐全：rag_retriever / regulation_assessor / report_builder', 'DATA 数据资产完整性',
+    check('D10', '新增脚本齐全：rag / regulation / report / statute / logic / vericot / fol', 'DATA 数据资产完整性',
           lambda: os.path.exists(os.path.join(SCRIPTS, 'rag_retriever.py'))
           and os.path.exists(os.path.join(SCRIPTS, 'regulation_assessor.py'))
-          and os.path.exists(os.path.join(SCRIPTS, 'report_builder.py'))),
+          and os.path.exists(os.path.join(SCRIPTS, 'report_builder.py'))
+          and os.path.exists(os.path.join(SCRIPTS, 'statute_verifier.py'))
+          and os.path.exists(os.path.join(SCRIPTS, 'logic_linter.py'))
+          and os.path.exists(os.path.join(SCRIPTS, 'vericot_check.py'))
+          and os.path.exists(os.path.join(SCRIPTS, 'fol_engine.py'))),
     check('D11', '报告面板齐全：report_panel.html + 3 份示例数据', 'DATA 数据资产完整性',
           lambda: _check_panel()),
+    check('D12', '逻辑矩阵齐全：20 单元 + 8 项检查', 'DATA 数据资产完整性',
+          lambda: _check_logic_assets()),
 
     # ============ SMOKE 脚本冒烟 ============
     check('S1', '失效检测: F1 样本命中 repealed_law', 'SMOKE 脚本冒烟',
@@ -190,7 +201,7 @@ CHECKS = [
           lambda: _s12()),
     check('S13', '校准 --quick: 复现评级 A (100%/MAE0.0)', 'SMOKE 脚本冒烟',
           lambda: _calib_grade(['--quick']), slow=True, timeout=300),
-    check('S14', '校准全量: 复现评级 A (v4.3.0 全量 26 项)', 'SMOKE 脚本冒烟',
+    check('S14', '校准全量: 复现评级 A (v5.0.0 全量 26 项)', 'SMOKE 脚本冒烟',
           lambda: _calib_grade([]), slow=True, timeout=300),
     check('S15', '答案键验证: 畸形键返回结构化错误', 'SMOKE 脚本冒烟',
           lambda: _s15()),
@@ -208,8 +219,12 @@ CHECKS = [
           lambda: _s23()),
     check('S24', '确定性: RAG 两次检索逐字节一致', 'SMOKE 脚本冒烟',
           lambda: _s24()),
-    check('S25', '报告构建器: 全链路输出 8 模块且 JSON 合法', 'SMOKE 脚本冒烟',
+    check('S25', '报告构建器: 全链路输出 9 模块且 JSON 合法', 'SMOKE 脚本冒烟',
           lambda: _s25()),
+    check('S26', '逻辑体检: 干净样本 0 命中，混合样本命中 L01/L04/L08', 'SMOKE 脚本冒烟',
+          lambda: _s26()),
+    check('S27', 'VeriCoT 完整版: 有效论证 valid，缺失事实命中 V15', 'SMOKE 脚本冒烟',
+          lambda: _s27()),
 
     # ============ INTEG 集成链路 ============
     check('I1', '三阶段链路: 检测→纠正→安全 全通', 'INTEG 集成链路',
@@ -250,7 +265,7 @@ def _check_package():
     assert z.testzip() is None
     tops = {n.split('/')[0] for n in z.namelist()}
     req = {'manifest.yaml', 'SKILL.md', 'README.md', 'benchmark', 'reference', 'scripts', 'templates', 'tests'}
-    # v4.3.0 精简包：大数据集（test_data）与产品技术文档仅存于仓库，不进安装包
+    # v5.0.0 精简包：大数据集（test_data）与产品技术文档仅存于仓库，不进安装包
     assert req <= tops, 'missing: %s' % (req - tops)
     assert 'test_data' not in tops, 'test_data 不应进入精简包'
     assert '产品技术文档' not in tops
@@ -279,7 +294,7 @@ def _check_benchmark_meta():
 
 
 def _s1():
-    # v4.3.0：与 S2/S6/S7/I1 一致，只取 ai_response 纯文本，
+    # v5.0.0：与 S2/S6/S7/I1 一致，只取 ai_response 纯文本，
     # 避免 sample JSON 元数据（含"已废止"字样）触发 F1 纠正文豁免。
     d = _detect(_response_text('sample_ai_response_f1.json'))
     f1 = d.get('detections', {}).get('F1', {})
@@ -445,20 +460,96 @@ def _s24():
         == json.dumps(run(), ensure_ascii=False, sort_keys=True)
 
 
+def _check_logic_assets():
+    """逻辑矩阵：5 阶段 × 4 失效 = 20 单元，8 项 MVP 检查，评分规则齐备"""
+    tax = _load('reference', 'logic_taxonomy.json')
+    rub = _load('reference', 'logic_rubric.json')
+    return (len(tax.get('stages', [])) == 5
+            and len(tax.get('failure_types', [])) == 4
+            and len(tax.get('cells', [])) == 20
+            and len(tax.get('checks', [])) == 8
+            and len(tax.get('mvp_checks', [])) == 8
+            and 'cell_score_dimension' in rub)
+
+
+def _lint(path):
+    rc, out, err = run_script('logic_linter.py', path, '--json')
+    if rc != 0:
+        raise RuntimeError('logic_linter rc=%s: %s' % (rc, (err or out)[-200:]))
+    return extract_json(out)
+
+
+def _s26():
+    """逻辑体检：干净样本零命中；混合样本命中 L01/L04/L08"""
+    import sys
+    if TESTS_DIR not in sys.path:
+        sys.path.insert(0, TESTS_DIR)
+    from logic_fixtures import FIXTURES
+    by_id = {f['id']: f for f in FIXTURES}
+    clean = _lint(_write('logic_clean.txt', by_id['clean_irac']['text']))
+    mixed = _lint(_write('logic_mixed.txt', by_id['mixed']['text']))
+    ids = {i.get('check_id') for i in mixed.get('issues', [])}
+    return clean.get('summary', {}).get('total_issues') == 0 and {'L01', 'L04', 'L08'} <= ids
+
+
+def _s27():
+    """VeriCoT 完整版：有效论证 valid；缺失事实命中 V15"""
+    def arg():
+        return {
+            'text': '李某在公共通道堆放石子，致张某滑倒受伤。',
+            'variables': ['x'],
+            'domain': ['李某'],
+            'premises': [
+                {'id': 'p1', 'kind': 'rule', 'text': '堆放物致害',
+                 'formula': 'forall x (Stacks(x) -> Liable(x))',
+                 'grounded': True, 'source': '第1255条',
+                 'evidence': '李某在公共通道堆放石子'},
+                {'id': 'p2', 'kind': 'fact', 'text': '李某堆放石子',
+                 'formula': 'Stacks(李某)', 'grounded': True, 'source': '证据',
+                 'evidence': '李某在公共通道堆放石子'},
+            ],
+            'steps': [{'id': 's1', 'rule': 'subsumption', 'premises': ['p1', 'p2'],
+                       'conclusion': 'c1', 'formula': 'Liable(李某)',
+                       'conclusion_text': '李某应承担侵权责任'}],
+            'conclusion': 'c1',
+        }
+
+    def run(data):
+        path = _write('vericot_%s.json' % ('bad' if data['domain'] != ['李某'] else 'ok'),
+                      json.dumps(data, ensure_ascii=False))
+        rc, out, err = run_script('vericot_check.py', path, '--json', timeout=120)
+        if rc != 0:
+            raise RuntimeError('vericot rc=%s: %s' % (rc, (err or out)[-200:]))
+        return extract_json(out)
+
+    good = run(arg())
+    bad_data = arg()
+    bad_data['domain'] = ['李某', '张某']
+    bad_data['premises'][1]['formula'] = 'Stacks(张某)'
+    bad = run(bad_data)
+    return (good.get('valid') is True and good.get('meta', {}).get('mode') == 'full'
+            and bad.get('valid') is False
+            and 'V15' in {i.get('code') for i in bad.get('issues', [])})
+
+
 def _check_panel():
-    """报告面板资产：HTML 存在且内嵌 3 份示例数据块，示例 JSON 可解析"""
+    """报告面板资产：HTML 存在、内嵌 3 份示例可解析、逻辑体检已接入"""
     panel_dir = os.path.join(SKILL_ROOT, 'panel')
     html_path = os.path.join(panel_dir, 'report_panel.html')
     if not os.path.exists(html_path):
         return False
     html = _read(html_path)
+    if 'function renderLogic' not in html:
+        return False
     for bid in ('demo-ai', 'demo-syllabus', 'demo-assignment'):
         m = re.search(r'id="' + bid + r'">(.*?)</script>', html, re.S)
         if not m:
             return False
         try:
-            json.loads(m.group(1))
+            data = json.loads(m.group(1))
         except Exception:
+            return False
+        if bid == 'demo-ai' and 'logic' not in (data.get('modules') or {}):
             return False
     for f in ('demo_report.json', 'demo_syllabus.json', 'demo_assignment.json'):
         if not os.path.exists(os.path.join(panel_dir, f)):
@@ -467,7 +558,7 @@ def _check_panel():
 
 
 def _s25():
-    """报告构建器全链路：对 F1 样本生成报告，8 模块齐备且含检测命中"""
+    """报告构建器全链路：对 F1 样本生成报告，9 模块齐备且含检测命中"""
     rc, out, err = run_script('report_builder.py', _data('sample_ai_response_f1.json'),
                               '--query', '民间借贷 利息', timeout=180)
     if rc != 0:
@@ -475,7 +566,7 @@ def _s25():
     r = extract_json(out)
     mods = r.get('meta', {}).get('modules_included', [])
     expected = {'detection', 'corrections', 'safety', 'scoring',
-                'assignment', 'templates', 'retrieval', 'regulation'}
+                'assignment', 'templates', 'retrieval', 'regulation', 'logic'}
     if not expected <= set(mods):
         return False
     det = r.get('modules', {}).get('detection', {}).get('detections', {})
@@ -539,7 +630,7 @@ def emit(no_report=False):
 
     lines = []
     lines.append('=' * 66)
-    lines.append('LegalGuardian v4.3.0 功能冒烟测试报告')
+    lines.append('LegalGuardian v5.0.0 功能冒烟测试报告')
     lines.append('=' * 66)
     lines.append('时间:    %s' % time.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('根目录:  %s' % SKILL_ROOT)
@@ -570,7 +661,7 @@ def emit(no_report=False):
     if not no_report:
         report_path = os.path.join(TESTS_DIR, 'smoke_report.md')
         with open(report_path, 'w', encoding='utf-8') as f:
-            f.write('# LegalGuardian v4.3.0 冒烟测试报告\n\n')
+            f.write('# LegalGuardian v5.0.0 冒烟测试报告\n\n')
             f.write('- 时间: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S'))
             f.write('- 根目录: `%s`\n' % SKILL_ROOT)
             f.write('- 运行命令: `python tests/run_smoke.py%s`\n\n' % (' --quick' if _SKIP else ''))
@@ -584,7 +675,7 @@ def emit(no_report=False):
 
 
 def main():
-    ap = argparse.ArgumentParser(description='LegalGuardian v4.3.0 功能冒烟测试')
+    ap = argparse.ArgumentParser(description='LegalGuardian v5.0.0 功能冒烟测试')
     ap.add_argument('--quick', action='store_true', help='跳过耗时项（全量校准）')
     ap.add_argument('--verbose', action='store_true', help='失败项打印详情')
     ap.add_argument('--no-report', action='store_true', help='不写 smoke_report.md')

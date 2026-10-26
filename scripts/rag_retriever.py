@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-案例库检索器 (Case RAG Retriever) — LegalGuardian v4.3.0
+案例库检索器 (Case RAG Retriever) — LegalGuardian v5.0.0
 
 对人民法院案例库 5,515 个真实案例（test_data/rags/chunks.json）做
 确定性关键词检索（无需外部依赖/嵌入模型），落实 SKILL.md 中
@@ -135,7 +135,7 @@ def retrieve(query: str, top_k: int = 5, with_detail: bool = False) -> dict:
 
     return {
         'meta': {
-            'retriever': 'rag_retriever v4.3.0',
+            'retriever': 'rag_retriever v5.0.0',
             'corpus_size': len(chunks),
             'query': query,
             'terms': terms,
@@ -182,7 +182,7 @@ def main():
         for c in chunks:
             cats[c.get('category', '未知')] = cats.get(c.get('category', '未知'), 0) + 1
         print(json.dumps({
-            'meta': {'retriever': 'rag_retriever v4.3.0', 'corpus_size': len(chunks)},
+            'meta': {'retriever': 'rag_retriever v5.0.0', 'corpus_size': len(chunks)},
             'categories': cats,
         }, ensure_ascii=False, indent=2))
         sys.exit(0)

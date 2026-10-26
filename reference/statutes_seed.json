@@ -1,0 +1,563 @@
+{
+  "meta": {
+    "version": "seed-2026.10",
+    "updated": "2026-10-26",
+    "description": "离线法条核验种子库：高频核心法、已废止法、虚构/易混法名单。用于生成核验清单与越界预检，不构成法律效力结论。",
+    "sources": [
+      "国家法律法规数据库 https://flk.npc.gov.cn",
+      "中国人大网 http://www.npc.gov.cn"
+    ],
+    "notice": "条文数与日期为整理时点数据，可能滞后于最新修正；任何结论须在官方渠道人工复核后写入核验记录。",
+    "coverage": "民法、刑法、诉讼法、行政法、经济法、知识产权法及常用司法解释的高频核心法，非全量法规库。"
+  },
+  "laws": [
+    {
+      "name": "宪法",
+      "full_name": "中华人民共和国宪法",
+      "aliases": ["宪法典"],
+      "status": "active",
+      "promulgated": "1982-12-04",
+      "effective_date": "1982-12-04",
+      "latest_amendment": "2018-03-11",
+      "article_count": 143,
+      "category": "宪法"
+    },
+    {
+      "name": "民法典",
+      "full_name": "中华人民共和国民法典",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2020-05-28",
+      "effective_date": "2021-01-01",
+      "latest_amendment": null,
+      "article_count": 1260,
+      "category": "民法"
+    },
+    {
+      "name": "刑法",
+      "full_name": "中华人民共和国刑法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1997-03-14",
+      "effective_date": "1997-10-01",
+      "latest_amendment": "2023-12-29（刑法修正案十二，2024-03-01 施行）",
+      "article_count": 452,
+      "category": "刑法"
+    },
+    {
+      "name": "刑事诉讼法",
+      "full_name": "中华人民共和国刑事诉讼法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1979-07-01",
+      "effective_date": "1980-01-01",
+      "latest_amendment": "2018-10-26",
+      "article_count": 308,
+      "category": "诉讼法"
+    },
+    {
+      "name": "民事诉讼法",
+      "full_name": "中华人民共和国民事诉讼法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1991-04-09",
+      "effective_date": "1991-04-09",
+      "latest_amendment": "2023-09-01（2024-01-01 施行）",
+      "article_count": null,
+      "category": "诉讼法"
+    },
+    {
+      "name": "行政诉讼法",
+      "full_name": "中华人民共和国行政诉讼法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1989-04-04",
+      "effective_date": "1990-10-01",
+      "latest_amendment": "2017-06-27",
+      "article_count": 103,
+      "category": "诉讼法"
+    },
+    {
+      "name": "行政处罚法",
+      "full_name": "中华人民共和国行政处罚法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1996-03-17",
+      "effective_date": "1996-10-01",
+      "latest_amendment": "2021-01-22（2021-07-15 施行）",
+      "article_count": 86,
+      "category": "行政法"
+    },
+    {
+      "name": "行政许可法",
+      "full_name": "中华人民共和国行政许可法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2003-08-27",
+      "effective_date": "2004-07-01",
+      "latest_amendment": "2019-04-23",
+      "article_count": 83,
+      "category": "行政法"
+    },
+    {
+      "name": "行政强制法",
+      "full_name": "中华人民共和国行政强制法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2011-06-30",
+      "effective_date": "2012-01-01",
+      "latest_amendment": null,
+      "article_count": 71,
+      "category": "行政法"
+    },
+    {
+      "name": "公司法",
+      "full_name": "中华人民共和国公司法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1993-12-29",
+      "effective_date": "1994-07-01",
+      "latest_amendment": "2023-12-29（2024-07-01 施行）",
+      "article_count": 266,
+      "category": "商法"
+    },
+    {
+      "name": "企业破产法",
+      "full_name": "中华人民共和国企业破产法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2006-08-27",
+      "effective_date": "2007-06-01",
+      "latest_amendment": null,
+      "article_count": 136,
+      "category": "商法"
+    },
+    {
+      "name": "保险法",
+      "full_name": "中华人民共和国保险法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1995-06-30",
+      "effective_date": "1995-10-01",
+      "latest_amendment": "2015-04-24",
+      "article_count": 187,
+      "category": "商法"
+    },
+    {
+      "name": "证券法",
+      "full_name": "中华人民共和国证券法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1998-12-29",
+      "effective_date": "1999-07-01",
+      "latest_amendment": "2019-12-28（2020-03-01 施行）",
+      "article_count": 226,
+      "category": "商法"
+    },
+    {
+      "name": "票据法",
+      "full_name": "中华人民共和国票据法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1995-05-10",
+      "effective_date": "1996-01-01",
+      "latest_amendment": "2004-08-28",
+      "article_count": 111,
+      "category": "商法"
+    },
+    {
+      "name": "信托法",
+      "full_name": "中华人民共和国信托法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2001-04-28",
+      "effective_date": "2001-10-01",
+      "latest_amendment": null,
+      "article_count": 74,
+      "category": "商法"
+    },
+    {
+      "name": "招标投标法",
+      "full_name": "中华人民共和国招标投标法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1999-08-30",
+      "effective_date": "2000-01-01",
+      "latest_amendment": "2017-12-27",
+      "article_count": 68,
+      "category": "经济法"
+    },
+    {
+      "name": "劳动合同法",
+      "full_name": "中华人民共和国劳动合同法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2007-06-29",
+      "effective_date": "2008-01-01",
+      "latest_amendment": "2012-12-28（2013-07-01 施行）",
+      "article_count": 98,
+      "category": "劳动法"
+    },
+    {
+      "name": "劳动法",
+      "full_name": "中华人民共和国劳动法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1994-07-05",
+      "effective_date": "1995-01-01",
+      "latest_amendment": "2018-12-29",
+      "article_count": 107,
+      "category": "劳动法"
+    },
+    {
+      "name": "消费者权益保护法",
+      "full_name": "中华人民共和国消费者权益保护法",
+      "aliases": ["消法"],
+      "status": "active",
+      "promulgated": "1993-10-31",
+      "effective_date": "1994-01-01",
+      "latest_amendment": "2013-10-25（2014-03-15 施行）",
+      "article_count": 63,
+      "category": "经济法"
+    },
+    {
+      "name": "道路交通安全法",
+      "full_name": "中华人民共和国道路交通安全法",
+      "aliases": ["道交法"],
+      "status": "active",
+      "promulgated": "2003-10-28",
+      "effective_date": "2004-05-01",
+      "latest_amendment": "2021-04-29",
+      "article_count": 124,
+      "category": "行政法"
+    },
+    {
+      "name": "治安管理处罚法",
+      "full_name": "中华人民共和国治安管理处罚法",
+      "aliases": ["治安处罚法"],
+      "status": "active",
+      "promulgated": "2005-08-28",
+      "effective_date": "2006-03-01",
+      "latest_amendment": "2025-06-27（2026-01-01 施行）",
+      "article_count": null,
+      "category": "行政法"
+    },
+    {
+      "name": "国家安全法",
+      "full_name": "中华人民共和国国家安全法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2015-07-01",
+      "effective_date": "2015-07-01",
+      "latest_amendment": null,
+      "article_count": 84,
+      "category": "国家安全"
+    },
+    {
+      "name": "反间谍法",
+      "full_name": "中华人民共和国反间谍法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2014-11-01",
+      "effective_date": "2014-11-01",
+      "latest_amendment": "2023-04-26（2023-07-01 施行）",
+      "article_count": null,
+      "category": "国家安全"
+    },
+    {
+      "name": "网络安全法",
+      "full_name": "中华人民共和国网络安全法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2016-11-07",
+      "effective_date": "2017-06-01",
+      "latest_amendment": "2025-10-28（2026-01-01 施行）",
+      "article_count": null,
+      "category": "网络法"
+    },
+    {
+      "name": "数据安全法",
+      "full_name": "中华人民共和国数据安全法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "2021-06-10",
+      "effective_date": "2021-09-01",
+      "latest_amendment": null,
+      "article_count": 55,
+      "category": "网络法"
+    },
+    {
+      "name": "个人信息保护法",
+      "full_name": "中华人民共和国个人信息保护法",
+      "aliases": ["个保法"],
+      "status": "active",
+      "promulgated": "2021-08-20",
+      "effective_date": "2021-11-01",
+      "latest_amendment": null,
+      "article_count": 74,
+      "category": "网络法"
+    },
+    {
+      "name": "著作权法",
+      "full_name": "中华人民共和国著作权法",
+      "aliases": ["版权法"],
+      "status": "active",
+      "promulgated": "1990-09-07",
+      "effective_date": "1991-06-01",
+      "latest_amendment": "2020-11-11（2021-06-01 施行）",
+      "article_count": 67,
+      "category": "知识产权"
+    },
+    {
+      "name": "专利法",
+      "full_name": "中华人民共和国专利法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1984-03-12",
+      "effective_date": "1985-04-01",
+      "latest_amendment": "2020-10-17（2021-06-01 施行）",
+      "article_count": 82,
+      "category": "知识产权"
+    },
+    {
+      "name": "商标法",
+      "full_name": "中华人民共和国商标法",
+      "aliases": [],
+      "status": "active",
+      "promulgated": "1982-08-23",
+      "effective_date": "1983-03-01",
+      "latest_amendment": "2019-04-23（2019-11-01 施行）",
+      "article_count": 73,
+      "category": "知识产权"
+    },
+    {
+      "name": "环境保护法",
+      "full_name": "中华人民共和国环境保护法",
+      "aliases": ["环保法"],
+      "status": "active",
+      "promulgated": "1989-12-26",
+      "effective_date": "1989-12-26",
+      "latest_amendment": "2014-04-24（2015-01-01 施行）",
+      "article_count": 70,
+      "category": "环境法"
+    },
+    {
+      "name": "最高人民法院关于适用《中华人民共和国民法典》时间效力的若干规定",
+      "full_name": "最高人民法院关于适用《中华人民共和国民法典》时间效力的若干规定",
+      "aliases": ["民法典时间效力规定"],
+      "status": "active",
+      "promulgated": "2020-12-29",
+      "effective_date": "2021-01-01",
+      "latest_amendment": null,
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于审理民间借贷案件适用法律若干问题的规定",
+      "full_name": "最高人民法院关于审理民间借贷案件适用法律若干问题的规定",
+      "aliases": ["民间借贷司法解释", "民间借贷规定"],
+      "status": "active",
+      "promulgated": "2015-08-06",
+      "effective_date": "2015-09-01",
+      "latest_amendment": "2020-12-29（2020 年第二次修正，2021-01-01 施行）",
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于适用《中华人民共和国民法典》合同编通则若干问题的解释",
+      "full_name": "最高人民法院关于适用《中华人民共和国民法典》合同编通则若干问题的解释",
+      "aliases": ["合同编通则解释"],
+      "status": "active",
+      "promulgated": "2023-12-04",
+      "effective_date": "2023-12-05",
+      "latest_amendment": null,
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于适用《中华人民共和国民法典》婚姻家庭编的解释（一）",
+      "full_name": "最高人民法院关于适用《中华人民共和国民法典》婚姻家庭编的解释（一）",
+      "aliases": ["婚姻家庭编解释一"],
+      "status": "active",
+      "promulgated": "2020-12-29",
+      "effective_date": "2021-01-01",
+      "latest_amendment": null,
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于适用《中华人民共和国民法典》继承编的解释（一）",
+      "full_name": "最高人民法院关于适用《中华人民共和国民法典》继承编的解释（一）",
+      "aliases": ["继承编解释一"],
+      "status": "active",
+      "promulgated": "2020-12-29",
+      "effective_date": "2021-01-01",
+      "latest_amendment": null,
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于适用《中华人民共和国民法典》物权编的解释（一）",
+      "full_name": "最高人民法院关于适用《中华人民共和国民法典》物权编的解释（一）",
+      "aliases": ["物权编解释一"],
+      "status": "active",
+      "promulgated": "2020-12-29",
+      "effective_date": "2021-01-01",
+      "latest_amendment": null,
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于审理人身损害赔偿案件适用法律若干问题的解释",
+      "full_name": "最高人民法院关于审理人身损害赔偿案件适用法律若干问题的解释",
+      "aliases": ["人身损害赔偿解释"],
+      "status": "active",
+      "promulgated": "2003-12-26",
+      "effective_date": "2004-05-01",
+      "latest_amendment": "2022-04-24（2022 年修正，2022-05-01 施行）",
+      "article_count": null,
+      "category": "司法解释"
+    },
+    {
+      "name": "最高人民法院关于确定民事侵权精神损害赔偿责任若干问题的解释",
+      "full_name": "最高人民法院关于确定民事侵权精神损害赔偿责任若干问题的解释",
+      "aliases": ["精神损害赔偿解释"],
+      "status": "active",
+      "promulgated": "2001-03-08",
+      "effective_date": "2001-03-10",
+      "latest_amendment": "2020-12-29（2021-01-01 施行）",
+      "article_count": null,
+      "category": "司法解释"
+    }
+  ],
+  "repealed": [
+    {
+      "name": "民法通则",
+      "full_name": "中华人民共和国民法通则",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典",
+      "note": "民法典施行后废止，相关内容纳入民法典总则编。"
+    },
+    {
+      "name": "民法总则",
+      "full_name": "中华人民共和国民法总则",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典",
+      "note": "民法典施行后废止，相关内容纳入民法典总则编。"
+    },
+    {
+      "name": "合同法",
+      "full_name": "中华人民共和国合同法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典合同编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "物权法",
+      "full_name": "中华人民共和国物权法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典物权编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "侵权责任法",
+      "full_name": "中华人民共和国侵权责任法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典侵权责任编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "婚姻法",
+      "full_name": "中华人民共和国婚姻法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典婚姻家庭编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "继承法",
+      "full_name": "中华人民共和国继承法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典继承编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "收养法",
+      "full_name": "中华人民共和国收养法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典婚姻家庭编",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "担保法",
+      "full_name": "中华人民共和国担保法",
+      "aliases": [],
+      "repealed_date": "2021-01-01",
+      "replaced_by": "中华人民共和国民法典及担保制度司法解释",
+      "note": "民法典施行后废止。"
+    },
+    {
+      "name": "经济合同法",
+      "full_name": "中华人民共和国经济合同法",
+      "aliases": [],
+      "repealed_date": "1999-10-01",
+      "replaced_by": "中华人民共和国合同法（现民法典合同编）",
+      "note": "合同法施行后废止。"
+    },
+    {
+      "name": "技术合同法",
+      "full_name": "中华人民共和国技术合同法",
+      "aliases": [],
+      "repealed_date": "1999-10-01",
+      "replaced_by": "中华人民共和国合同法（现民法典合同编）",
+      "note": "合同法施行后废止。"
+    },
+    {
+      "name": "涉外经济合同法",
+      "full_name": "中华人民共和国涉外经济合同法",
+      "aliases": [],
+      "repealed_date": "1999-10-01",
+      "replaced_by": "中华人民共和国合同法（现民法典合同编）",
+      "note": "合同法施行后废止。"
+    },
+    {
+      "name": "治安管理处罚条例",
+      "full_name": "中华人民共和国治安管理处罚条例",
+      "aliases": [],
+      "repealed_date": "2006-03-01",
+      "replaced_by": "中华人民共和国治安管理处罚法",
+      "note": "治安管理处罚法施行后废止。"
+    },
+    {
+      "name": "行政复议条例",
+      "full_name": "行政复议条例",
+      "aliases": [],
+      "repealed_date": "1999-10-01",
+      "replaced_by": "中华人民共和国行政复议法",
+      "note": "行政复议法施行后废止。"
+    }
+  ],
+  "fictional": [
+    {
+      "name": "人格权侵害惩治条例",
+      "aliases": [],
+      "kind": "fictional",
+      "correct_name": null,
+      "note": "实证测试中千问将其接受为真实法律；实际不存在该条例。"
+    },
+    {
+      "name": "网络信息内容生态治理条例",
+      "aliases": [],
+      "kind": "misnamed",
+      "correct_name": "网络信息内容生态治理规定",
+      "note": "正确名称是“规定”，不是“条例”。"
+    }
+  ]
+}
